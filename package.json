@@ -1,0 +1,58 @@
+{
+  "name": "bachduet",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^3.9.0",
+    "@tonaljs/note": "^4.6.5",
+    "@tonaljs/tonal": "^4.6.5",
+    "@tonejs/midi": "^2.0.27",
+    "audiokeys": "^0.1.1",
+    "benchmark": "^2.1.4",
+    "core-js": "^3.16.2",
+    "firebase": "^9.6.6",
+    "fs": "^0.0.1-security",
+    "pixi-piano-roll": "^1.2.3",
+    "postprocessing": "^6.23.3",
+    "register-service-worker": "^1.7.1",
+    "remixicon": "^2.5.0",
+    "sweet-modal-vue": "^2.0.0",
+    "three": "^0.133.1",
+    "three-trackballcontrols": "^0.9.0",
+    "tone": "^14.7.77",
+    "vexflow": "4.0.0",
+    "vue": "^2.6.11",
+    "vue-fab": "^2.3.1",
+    "vue-js-modal": "^2.0.1",
+    "vue-js-toggle-button": "^1.3.3",
+    "vue-loading-overlay": "^3.4.2",
+    "vue-material": "^1.0.0-beta-15",
+    "vue-router": "^3.2.0",
+    "vue-simple-search-dropdown": "^1.0.1",
+    "vue-slider-component": "^3.2.15",
+    "vue-star-rating": "^1.7.0",
+    "vue-step-progress": "^0.3.7",
+    "vue-toasted": "^1.1.28",
+    "vue2-touch-events": "^3.2.2",
+    "vuetify": "^2.6.3",
+    "vuex": "^3.6.2",
+    "webmidi": "^3.0.10"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-pwa": "~4.5.0",
+    "@vue/cli-plugin-router": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "deepmerge": "^4.2.2",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
