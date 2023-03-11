@@ -78,7 +78,7 @@ const mutations = {
         state.metronomeStatus = !state.metronomeStatus;
     },
     // TODO : use the same function for both samplers
-    setUserPianoVolume(state, volume){
+    setHumanVolume(state, volume){
         if (volume == 10){
             state.humanSamplerGain = 0;
         } else{
@@ -87,7 +87,7 @@ const mutations = {
         }
         humanSampler.volume.value = state.humanSamplerGain;
     },
-    setAIPianoVolume(state, volume){
+    setWorkerVolume(state, volume){
         if (volume == 10){
             state.workerSamplerGain = 0;
         } else {
