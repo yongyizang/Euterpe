@@ -8,3 +8,35 @@ introTypewriterContent:
 inputVoices: 1
 outputVoices: 1
 
+# timeUnit: string, denotes the time unit for the input and output. Should be either "seconds" or "ticks".
+timeUnit: "seconds"
+
+# Event-based on clock-based.
+# If event-based is true, clock-based config will be ignored.
+# If clock-based is true, timeSignature, tempo and grid will be used to calculate the time unit.
+# timeSignature will affect the metronome sound and the time unit.
+event-based: false
+clock-based:
+  timeSignature: [4, 4] # denotes 4/4. [numerator, denominator]
+  tempo: 120 # beat per minute
+  grid: 16 # ticks per beat
+
+# Data Collection
+# If dataCollection is true, the data will be collected and saved to firebase.
+dataCollection: false
+# We natively support firebase. Just provide credentials here.
+firebaseConfig:
+  apiKey: "AIzaSyDzY6lKHN69A8xFVljbJeDP75RL3Yz8Zfo"
+  authDomain: "bachduet-d6ca6.firebaseapp.com"
+  projectId: "bachduet-d6ca6"
+  storageBucket: "bachduet-d6ca6.appspot.com"
+  messagingSenderId: "630968840698"
+  appId: "1:630968840698:web:12c4589bb03536ec857443"
+  measurementId: "G-NGJWHLYCS3"
+
+
+# worker parameters
+# each parameter is denoted as a floating point number between 0 and 1.
+workerParams:
+ - "temperature"
+ - "handsome_value"

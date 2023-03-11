@@ -33,13 +33,13 @@
 
     <div ref="mainContent" id="mainContent" class="fade-in">
       <div style="
-            background-color: black;
-            opacity: 0.5;
-            display: fixed;
-            top: 0;
-            right: 0;
-            z-index: 999;
-          "></div>
+              background-color: black;
+              opacity: 0.5;
+              display: fixed;
+              top: 0;
+              right: 0;
+              z-index: 999;
+            "></div>
       <scoreUI />
       <pianoRollUI />
       <!-- <neuralNet /> -->
@@ -73,17 +73,17 @@
         :octave-start="keyboardUIoctaveStart" :octave-end="keyboardUIoctaveEnd" />
       <modal name="feedbackModal" :minHeight="500" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-              padding: 20px;
-              height: 100%;
-              background-color: rgb(243, 225, 190);
-            ">
-          <p style="
-                font-weight: 800;
-                font-size: 2rem;
-                margin: 0;
-                padding-top: 20px;
-                padding-bottom: 10px;
+                padding: 20px;
+                height: 100%;
+                background-color: rgb(243, 225, 190);
               ">
+          <p style="
+                  font-weight: 800;
+                  font-size: 2rem;
+                  margin: 0;
+                  padding-top: 20px;
+                  padding-bottom: 10px;
+                ">
             Feedback
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -106,17 +106,17 @@
       </modal>
       <modal name="aboutModal" :minHeight="300" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-              padding: 20px;
-              height: 100%;
-              background-color: rgb(243, 225, 190);
-            ">
-          <p style="
-                font-weight: 800;
-                font-size: 2rem;
-                margin: 0;
-                padding-top: 20px;
-                padding-bottom: 10px;
+                padding: 20px;
+                height: 100%;
+                background-color: rgb(243, 225, 190);
               ">
+          <p style="
+                  font-weight: 800;
+                  font-size: 2rem;
+                  margin: 0;
+                  padding-top: 20px;
+                  padding-bottom: 10px;
+                ">
             About
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -134,17 +134,17 @@
       </modal>
       <modal name="settingsModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-              padding: 20px;
-              height: 100%;
-              background-color: rgb(243, 225, 190);
-            ">
-          <p style="
-                font-weight: 800;
-                font-size: 2rem;
-                margin: 0;
-                padding-top: 20px;
-                padding-bottom: 10px;
+                padding: 20px;
+                height: 100%;
+                background-color: rgb(243, 225, 190);
               ">
+          <p style="
+                  font-weight: 800;
+                  font-size: 2rem;
+                  margin: 0;
+                  padding-top: 20px;
+                  padding-bottom: 10px;
+                ">
             Settings
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -237,17 +237,17 @@
       </modal>
       <modal name="introModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-              padding: 20px;
-              height: 100%;
-              background-color: rgb(243, 225, 190);
-            ">
-          <p style="
-                font-weight: 800;
-                font-size: 2rem;
-                margin: 0;
-                padding-top: 20px;
-                padding-bottom: 10px;
+                padding: 20px;
+                height: 100%;
+                background-color: rgb(243, 225, 190);
               ">
+          <p style="
+                  font-weight: 800;
+                  font-size: 2rem;
+                  margin: 0;
+                  padding-top: 20px;
+                  padding-bottom: 10px;
+                ">
             Introduction
           </p>
           <p>
@@ -300,34 +300,21 @@ import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import StarRating from "vue-star-rating";
 import yaml from "js-yaml";
-
-// TODO : can these go to a central place ? I also define them in worker.js
-const messageType = Object.freeze({
-  STATUS: "status",
-  INFERENCE: "inference",
-});
-const statusType = Object.freeze({
-  LOADED: "loaded", // it applies for any type of worker
-  WARMUP: "wwarmup",// it usually applies for neural network workers
-  SUCCESS: "success",// can be used for any type of worker
-  ERROR: "error",// can be used for any type of worker
-});
-
 /*
  * Use Google Firebase and Analytics for data gathering.
  */
 
-// import { initializeApp } from "firebase/app";
-// import {
-//   getFirestore,
-//   collection,
-//   doc,
-//   addDoc,
-//   updateDoc,
-//   deleteDoc,
-//   arrayUnion,
-// } from "firebase/firestore";
-// import { getAuth, signInAnonymously } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  arrayUnion,
+} from "firebase/firestore";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 // Firebase Configurations.
 // const firebaseConfig = {
@@ -358,6 +345,8 @@ export default {
 
   data() {
     return {
+      messageType: null,
+      statusType: null,
       BPM: 90, // TODO there is a confussion between BPM here and BPM in vuex
       temperature: 25, // TODO there is a confussion between temperature here and temperature in vuex
 
@@ -413,17 +402,31 @@ export default {
   },
 
   async beforeMount() {
+    var vm = this;
     try {
-      await fetch('/config.yaml').then(response => response.text()).then(text => this.$store.commit("setConfig", yaml.load(text)));
+      await fetch('/config.yaml').then(response => response.text()).then(text => vm.$store.commit("setConfig", yaml.load(text)));
     } catch (err) {
       console.error(err);
     }
+    try {
+      await fetch('/constants.json').then(response => response.json()).then(json => function () { vm.messageType = json.messageType; vm.statusType = json.statusType; }.bind(vm)());
+    } catch (err) {
+      console.error(err);
+    }
+    vm.worker = new Worker("worker.js");
+    vm.worker.onmessage = vm.workerCallback;
+    vm.worker.postMessage({
+      messageType: vm.messageType.LOAD_CONFIG,
+      content: vm.$store.getters.getConfig,
+    });
+    vm.worker.postMessage({
+      messageType: vm.messageType.LOAD_MODEL,
+      content: null,
+    });
   },
 
-  mounted() {
+  async mounted() {
     var vm = this;
-    this.worker = new Worker("worker.js");
-    this.worker.onmessage = this.workerCallback;
 
     // Prevent spacebar trigger any button
     document.querySelectorAll("button").forEach(function (item) {
@@ -527,11 +530,7 @@ export default {
 
     keyboard.up(function (note) {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
-      // const payload = {
-      //   name: "user",
-      //   note: currentNote,
-      //   time: Tone.now(),
-      // };
+
       const midiEvent = {
         player: "human",
         note: noteName, //message.note.identifier,
@@ -611,11 +610,12 @@ export default {
       }, delta);
     };
 
-    var element = document.getElementsByClassName("loadingTypewriter")[0];
+    var typewriterdom = document.getElementsByClassName("loadingTypewriter")[0];
     var toRotate = this.$store.getters.getConfig.introTypewriterContent;
-    var period = element.getAttribute("data-period");
+    console.log(toRotate);
+    var period = typewriterdom.getAttribute("data-period");
     if (toRotate) {
-      new introTypingText(element, toRotate, period);
+      new introTypingText(typewriterdom, toRotate, period);
     }
     var css = document.createElement("style");
     css.type = "text/css";
@@ -811,14 +811,17 @@ export default {
       // this.worker.postMessage(aiInp);
 
       this.worker.postMessage({
-        tick: this.$store.getters.getLocalTick,
-        humanInp: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
-        // TODO : add the human input buffer also.
-        // randomness: this.$store.getters.getRandomness,
-        // TODO : the Worker is should be responsible for converting randomness to temperature
-        temperature: this.$store.getters.getTemperature,
-        reset: this.reset,
-        write: this.write,
+        messageType: this.messageType.INFERENCE,
+        content: {
+          tick: this.$store.getters.getLocalTick,
+          humanInp: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
+          // TODO : add the human input buffer also.
+          // randomness: this.$store.getters.getRandomness,
+          // TODO : the Worker is should be responsible for converting randomness to temperature
+          temperature: this.$store.getters.getTemperature,
+          reset: this.reset,
+          write: this.write,
+        }
       })
 
       // TODO : move to firebase.js
@@ -835,11 +838,10 @@ export default {
     },
 
     async workerCallback(e) {
-
       const vm = this;
       // If the worker is giving us only string
       // if (typeof e.data === "string" || e.data instanceof String)
-      if (e.data.messageType === messageType.INFERENCE) {
+      if (e.data.messageType === this.messageType.INFERENCE) {
         // If the worker is giving us a prediction (inference)
         const workerPrediction = e.data.message;
         // e.data.messae Looks like this
@@ -883,8 +885,8 @@ export default {
         // }
 
       }
-      else if (e.data.messageType === messageType.STATUS) {
-        if (e.data.statusType == statusType.SUCCESS) {
+      else if (e.data.messageType === this.messageType.STATUS) {
+        if (e.data.statusType == this.statusType.SUCCESS) {
           vm.$refs.entryBtn.classList.add("fade-in");
           vm.$refs.entryBtn.style.visibility = "visible";
           vm.modelLoadTime = Date.now() - vm.modelLoadTime;

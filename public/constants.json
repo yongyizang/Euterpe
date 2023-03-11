@@ -1,0 +1,16 @@
+{
+  "messageType": {
+    "STATUS": 0,
+    "INFERENCE": 1,
+    "LOAD_MODEL": 2,
+    "LOAD_CONFIG": 3,
+    "SET_PARAMS": 4,
+    "NOTES": 5
+  },
+  "statusType": {
+    "LOADED": 0,
+    "WARMUP": 1,
+    "SUCCESS": 2,
+    "ERROR": 3
+  }
+}
