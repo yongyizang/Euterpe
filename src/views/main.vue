@@ -33,13 +33,13 @@
 
     <div ref="mainContent" id="mainContent" class="fade-in">
       <div style="
-              background-color: black;
-              opacity: 0.5;
-              display: fixed;
-              top: 0;
-              right: 0;
-              z-index: 999;
-            "></div>
+                      background-color: black;
+                      opacity: 0.5;
+                      display: fixed;
+                      top: 0;
+                      right: 0;
+                      z-index: 999;
+                    "></div>
       <scoreUI />
       <pianoRollUI />
       <!-- <neuralNet /> -->
@@ -73,17 +73,17 @@
         :octave-start="keyboardUIoctaveStart" :octave-end="keyboardUIoctaveEnd" />
       <modal name="feedbackModal" :minHeight="500" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-                padding: 20px;
-                height: 100%;
-                background-color: rgb(243, 225, 190);
-              ">
+                        padding: 20px;
+                        height: 100%;
+                        background-color: rgb(243, 225, 190);
+                      ">
           <p style="
-                  font-weight: 800;
-                  font-size: 2rem;
-                  margin: 0;
-                  padding-top: 20px;
-                  padding-bottom: 10px;
-                ">
+                          font-weight: 800;
+                          font-size: 2rem;
+                          margin: 0;
+                          padding-top: 20px;
+                          padding-bottom: 10px;
+                        ">
             Feedback
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -106,17 +106,17 @@
       </modal>
       <modal name="aboutModal" :minHeight="300" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-                padding: 20px;
-                height: 100%;
-                background-color: rgb(243, 225, 190);
-              ">
+                        padding: 20px;
+                        height: 100%;
+                        background-color: rgb(243, 225, 190);
+                      ">
           <p style="
-                  font-weight: 800;
-                  font-size: 2rem;
-                  margin: 0;
-                  padding-top: 20px;
-                  padding-bottom: 10px;
-                ">
+                          font-weight: 800;
+                          font-size: 2rem;
+                          margin: 0;
+                          padding-top: 20px;
+                          padding-bottom: 10px;
+                        ">
             About
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -134,17 +134,17 @@
       </modal>
       <modal name="settingsModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-                padding: 20px;
-                height: 100%;
-                background-color: rgb(243, 225, 190);
-              ">
+                        padding: 20px;
+                        height: 100%;
+                        background-color: rgb(243, 225, 190);
+                      ">
           <p style="
-                  font-weight: 800;
-                  font-size: 2rem;
-                  margin: 0;
-                  padding-top: 20px;
-                  padding-bottom: 10px;
-                ">
+                          font-weight: 800;
+                          font-size: 2rem;
+                          margin: 0;
+                          padding-top: 20px;
+                          padding-bottom: 10px;
+                        ">
             Settings
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -237,17 +237,17 @@
       </modal>
       <modal name="introModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-                padding: 20px;
-                height: 100%;
-                background-color: rgb(243, 225, 190);
-              ">
+                        padding: 20px;
+                        height: 100%;
+                        background-color: rgb(243, 225, 190);
+                      ">
           <p style="
-                  font-weight: 800;
-                  font-size: 2rem;
-                  margin: 0;
-                  padding-top: 20px;
-                  padding-bottom: 10px;
-                ">
+                          font-weight: 800;
+                          font-size: 2rem;
+                          margin: 0;
+                          padding-top: 20px;
+                          padding-bottom: 10px;
+                        ">
             Introduction
           </p>
           <p>
@@ -345,8 +345,10 @@ export default {
 
   data() {
     return {
+      config: null,
       messageType: null,
       statusType: null,
+
       BPM: 90, // TODO there is a confussion between BPM here and BPM in vuex
       temperature: 25, // TODO there is a confussion between temperature here and temperature in vuex
 
@@ -401,32 +403,34 @@ export default {
     StarRating,
   },
 
-  async beforeMount() {
+  async mounted() {
     var vm = this;
+
+    /*
+ * Loading Animation: set initial status of both div
+ */
+    this.$refs.mainContent.style.display = "none";
+    this.$refs.entryBtn.style.visibility = "hidden";
+
+
     try {
       await fetch('/config.yaml').then(response => response.text()).then(text => vm.$store.commit("setConfig", yaml.load(text)));
+      await fetch('/constants.json').then(response => response.json()).then(json => function () { this.messageType = json.messageType; this.statusType = json.statusType; }.bind(this)());
+      console.log("config and constants loaded");
     } catch (err) {
       console.error(err);
     }
-    try {
-      await fetch('/constants.json').then(response => response.json()).then(json => function () { vm.messageType = json.messageType; vm.statusType = json.statusType; }.bind(vm)());
-    } catch (err) {
-      console.error(err);
-    }
+
     vm.worker = new Worker("worker.js");
     vm.worker.onmessage = vm.workerCallback;
-    vm.worker.postMessage({
+    await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
       content: vm.$store.getters.getConfig,
     });
-    vm.worker.postMessage({
+    await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_MODEL,
       content: null,
     });
-  },
-
-  async mounted() {
-    var vm = this;
 
     // Prevent spacebar trigger any button
     document.querySelectorAll("button").forEach(function (item) {
@@ -548,13 +552,6 @@ export default {
         vm.$store.dispatch("noteOff", midiEvent);
       }
     });
-
-    /*
-     * Loading Animation: set initial status of both div
-     */
-    this.$refs.mainContent.style.display = "none";
-    this.$refs.entryBtn.style.visibility = "hidden";
-
     // When window resize, self-update this data.
     window.onresize = () => {
       return (() => {
@@ -611,7 +608,7 @@ export default {
     };
 
     var typewriterdom = document.getElementsByClassName("loadingTypewriter")[0];
-    var toRotate = this.$store.getters.getConfig.introTypewriterContent;
+    var toRotate = this.$store.getters.getLoadingtext;
     console.log(toRotate);
     var period = typewriterdom.getAttribute("data-period");
     if (toRotate) {
@@ -811,7 +808,7 @@ export default {
       // this.worker.postMessage(aiInp);
 
       this.worker.postMessage({
-        messageType: this.messageType.INFERENCE,
+        messageType: vm.messageType.INFERENCE,
         content: {
           tick: this.$store.getters.getLocalTick,
           humanInp: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
@@ -841,7 +838,7 @@ export default {
       const vm = this;
       // If the worker is giving us only string
       // if (typeof e.data === "string" || e.data instanceof String)
-      if (e.data.messageType === this.messageType.INFERENCE) {
+      if (e.data.messageType === vm.messageType.INFERENCE) {
         // If the worker is giving us a prediction (inference)
         const workerPrediction = e.data.message;
         // e.data.messae Looks like this
@@ -885,8 +882,8 @@ export default {
         // }
 
       }
-      else if (e.data.messageType === this.messageType.STATUS) {
-        if (e.data.statusType == this.statusType.SUCCESS) {
+      else if (e.data.messageType === vm.messageType.STATUS) {
+        if (e.data.statusType == vm.statusType.SUCCESS) {
           vm.$refs.entryBtn.classList.add("fade-in");
           vm.$refs.entryBtn.style.visibility = "visible";
           vm.modelLoadTime = Date.now() - vm.modelLoadTime;
