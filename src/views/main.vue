@@ -7,20 +7,20 @@
       <div id="loadingScreenInjection" class="center">
         <h1 class="loadingTitle">
           <p class="loadingTypewriter" data-period="300"
-            data-type='[ "Hello!", "This is BachDuet.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'>
+            data-type='[ "Hello!", "This is Euterpe.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'>
             <span class="wrap"></span>
           </p>
         </h1>
         <p ref="workerStatus" class="loadingStatus">
-          Loading in The Neural Network...
+          Loading in your music partner...
         </p>
         <div style="padding-bottom: 20px">
           <toggle-button color="#74601c" :value="true" @change="onPrivacyAgreeBtn($event)" />
           <span>
-            Send us data of your interaction with BachDuet anonymously.</span>
+            Send us data of your interaction anonymously.</span>
         </div>
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
-          Play with Neural Network
+          Play
         </button>
         <p v-if="isNotChrome">
           We highly recommend using Chrome for better user experience.
@@ -302,6 +302,7 @@ import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import StarRating from "vue-star-rating";
 
+// TODO : can these go to a central place ? I also define them in worker.js
 const messageType = Object.freeze({
     STATUS: "status",
     INFERENCE: "inference",
@@ -350,6 +351,7 @@ const statusType = Object.freeze({
 window.onclick = () => {
   Tone.start();
   Tone.context.lookAhead = 0;
+  
 };
 
 export default {
@@ -487,34 +489,55 @@ export default {
     });
 
     keyboard.down(function (note) {
-      var currentNote = Midi.midiToNoteName(note.note, { sharps: true });
+      let noteName = Midi.midiToNoteName(note.note, { sharps: true });
       // sound/sampler is active even when the improvisation (clock) has not started yet
-      const payload = {
-          name: "user",
-          note: currentNote,
-          time: Tone.now(),
-        };
-      vm.$store.dispatch("samplerOn", payload);
-      console.log("samplerOn", payload)
+      // const payload = {
+      //     name: "user",
+      //     note: currentNote,
+      //     time: Tone.now(),
+      //   };
+      const midiEvent = {
+          player : "human",
+          note : noteName, //message.note.identifier,
+          channel : 140, // this is channel midi channel 0
+          midi : note.note,
+          velocity : 127,
+          timestamp : Tone.now(),
+        }
+      // vm.$store.dispatch("samplerOn", payload);
+      let delay = 0;
+      vm.$store.dispatch("samplerOn", {midiEvent, delay});
+      // console.log("samplerOn", midiEvent)
       if (vm.$store.getters.getClockStatus) {
-        vm.$root.$refs.gameUI.keyDown(currentNote, true);
-        vm.$store.dispatch("noteOn", currentNote);   
+        // vm.$root.$refs.pianoRollUI.keyDown(currentNote, true);
+        // vm.$store.dispatch("noteOn", currentNote);   
+        vm.$root.$refs.pianoRollUI.keyDown(midiEvent.note, true);
+        vm.$store.dispatch("noteOn", midiEvent);
       }
     });
 
     keyboard.up(function (note) {
-      var currentNote = Midi.midiToNoteName(note.note, { sharps: true });
-      const payload = {
-        name: "user",
-        note: currentNote,
-        time: Tone.now(),
-      };
-      vm.$store.dispatch("samplerOff", payload);
-      console.log("samplerOff", payload)
+      let noteName = Midi.midiToNoteName(note.note, { sharps: true });
+      // const payload = {
+      //   name: "user",
+      //   note: currentNote,
+      //   time: Tone.now(),
+      // };
+      const midiEvent = {
+          player : "human",
+          note : noteName, //message.note.identifier,
+          channel : 140, // this is channel midi channel 0
+          midi : note.note,
+          velocity : 127,
+          timestamp : Tone.now(),
+        }
+      let delay = 0;
+      vm.$store.dispatch("samplerOff", {midiEvent, delay});
+      // console.log("samplerOff", midiEvent)
       if (vm.$store.getters.getClockStatus){
         // this enters here, only when the clock has started
-        vm.$root.$refs.gameUI.keyUp(currentNote, true);
-        vm.$store.dispatch("noteOff", currentNote);
+        vm.$root.$refs.pianoRollUI.keyUp(midiEvent.note, true);
+        vm.$store.dispatch("noteOff", midiEvent);
       }
     });
 
@@ -733,32 +756,34 @@ export default {
         // var currentNote = message.note.identifier;
         // console.log(message.data + " " + message.timestamp +  " " + performance.now() + " " + currentNote)
         const midiEvent = {
-          user : "human",
+          player : "human",
           note : message.note.identifier,
           channel : message.data[0],
           midi : message.data[1],
           velocity : message.data[2],
           timestamp : message.timestamp,
         }
-        this.$store.dispatch("samplerOn", midiEvent, 0);
+        let delay = 0;
+        this.$store.dispatch("samplerOn", {midiEvent, delay});
         if (this.$store.getters.getClockStatus) {
-          this.$root.$refs.gameUI.keyDown(midiEvent.note, true);
+          this.$root.$refs.pianoRollUI.keyDown(midiEvent.note, true);
           this.$store.dispatch("noteOn", midiEvent);
         }
       });
 
       inputDevice.addListener("noteoff", (message) => {
         const midiEvent = {
-          user : "human",
+          player : "human",
           note : message.note.identifier,
           channel : message.data[0],
           midi : message.data[1],
           velocity : message.data[2],
           timestamp : message.timestamp,
         }
-        this.$store.dispatch("samplerOff", midiEvent, 0);
+        let delay = 0;
+        this.$store.dispatch("samplerOff", {midiEvent, delay});
         if (this.$store.getters.getClockStatus) {
-          this.$root.$refs.gameUI.keyUp(midiEvent.note, true);
+          this.$root.$refs.pianoRollUI.keyUp(midiEvent.note, true);
           this.$store.dispatch("noteOff", message);
         }
       });
@@ -782,11 +807,18 @@ export default {
 
     runTheWorker() {
       const vm = this;
+      // TODO : this is another thing that should be in the worker ????
+      // TODO : or maybe we can have it here as optional. Basically we provide the users 
+      // with a set of utilities for manimulatin user's input.
+      // For example, uncomment that for quantize the user's input to the current grid. 
+      // or we can quantize the input anyway, and give both the quantized note and unquantized buffer to the worker.
       this.estimateHumanQuantizedNote();
 
       // remember, runTheWorker happens with a small delay of tick/4 after the tick
       // here I just keep track of the 'delayed' tick
       this.$store.commit("incrementTickDelayed");
+
+      // MAJOR TODO : draw should probably go before the delayedTickIncrement
       this.$root.$refs.scoreUI.draw();
 
       
@@ -795,7 +827,10 @@ export default {
       this.worker.postMessage({
         tick: this.$store.getters.getLocalTick,
         humanInp: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
-        randomness: this.$store.getters.getRandomness, // TODO : the Worker is responsible for converting randomness to temperature
+        // TODO : add the human input buffer also.
+        // randomness: this.$store.getters.getRandomness,
+        // TODO : the Worker is should be responsible for converting randomness to temperature
+        temperature: this.$store.getters.getTemperature,
         reset: this.reset,
         write: this.write,
       })
@@ -820,22 +855,32 @@ export default {
       // if (typeof e.data === "string" || e.data instanceof String)
       if (e.data.messageType === messageType.INFERENCE){
         // If the worker is giving us a prediction (inference)
-        const aiPrediction = e.data;
-        vm.modelInferenceTimes.push(aiPrediction.predictTime);
+        const workerPrediction = e.data.message;
+        // e.data.messae Looks like this
+        // message: {
+        //     predictTime: predictTime,
+        //     tick: currentTick,
+        //     note: {
+        //         midi: midi,
+        //         articulation: articulation,
+        //         cpc: cpc,
+        //     },
+        // }
+        vm.modelInferenceTimes.push(workerPrediction.predictTime);
 
         // Misalignment Check
         // Will block first 2 ticks' misalignment error msg
-        if ((aiPrediction.tick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
+        if ((workerPrediction.tick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
           this.$toasted.show(
             "Network tick misalignment: expecting " +
             this.$store.getters.getLocalTickDelayed +
-            ", get " +
-            aiPrediction.tick
+            ", got " +
+            workerPrediction.tick
           );
           this.misalignErrCount += 1;
         }
 
-        this.$store.dispatch("newAiPrediction", aiPrediction);
+        this.$store.dispatch("newWorkerPrediction", workerPrediction);
         
         this.reset = false; // for explanation see the comment about reset inside runTheWorker()
         this.write = false;
@@ -900,41 +945,63 @@ export default {
       // is 1 (hit), then we trigger the AI sampler to play the note.
       // if there is already a note active, we have to triggerRelease first
       // if the predicted note is a rest ... blablabla.
-      var aiPrediction = this.$store.getters.getAiPredictionFor(
+
+      // TODO : for Euterpe/polyphony, if the number of active notes exceeds te polyphony limit (set by the developer)
+      // then we have to triggerRelease the oldest note first. which means we need to keep track of the order of the notes
+      
+      // TODO : fix the payloads
+      // TODO : A worker that supports polyphony should be able to send note off events also. 
+      const workerPrediction = this.$store.getters.getWorkerPredictionFor(
         this.$store.getters.getLocalTick
       );
-      if (aiPrediction.artic == 1) {
-        if (aiPrediction.midi != 0) {
-          if (!(this.lastNoteOnAi === "")) {
-            var payload = {
-              name: "AI",
-              note: this.lastNoteOnAi,
-              time: Tone.now(),
-            };
-            this.$store.dispatch("samplerOff", payload);
+      // message/workerPrediction: {
+        //     predictTime: predictTime,
+        //     tick: currentTick,
+        //     note: {
+        //         midi: midi,
+        //         articulation: articulation,
+        //         cpc: cpc,
+        //     },
+
+      if (workerPrediction.articulation == 1) {
+        if (workerPrediction.midi != 0) {
+          if (!(this.lastNoteOnAi === "")) { 
+            const midiEvent = {
+              player : "worker",
+              note : this.lastNoteOnAi,
+              // channel : message.data[0],
+              // midi : message.data[1],
+              // velocity : message.data[2],
+              timestamp : Tone.now(),
+            }
+            const delay = 0;
+            this.$store.dispatch("samplerOff", {midiEvent, delay});
+
             this.$root.$refs.pianoRollUI.keyUp(this.lastNoteOnAi, false);
           }
-          let currentNote = Midi.midiToNoteName(aiPrediction.midi, {
+          const currentNote = Midi.midiToNoteName(workerPrediction.midi, {
             sharps: true,
           });
-          var payload = {
-            name: "AI",
-            note: currentNote,
-            time: Tone.now(),
-          };
-          this.$store.dispatch("samplerOn", payload);
+          const midiEvent = {
+              player : "worker",
+              note : currentNote,
+              timestamp : Tone.now(),
+            }
+          const delay = 0;
+          this.$store.dispatch("samplerOn", {midiEvent, delay});
           this.$root.$refs.pianoRollUI.keyDown(currentNote, false);
           this.lastNoteOnAi = currentNote;
         } else {
           if (!(this.lastNoteOnAi === "")) {
-            var payload = {
-              name: "AI",
+            const midiEvent = {
+              player: "worker",
               note: this.lastNoteOnAi,
-              time: Tone.now(),
+              timestamp: Tone.now(),
             };
-            this.$store.dispatch("samplerOff", payload);
+            let delay = 0;
+            this.$store.dispatch("samplerOff", {midiEvent, delay});
             this.$root.$refs.pianoRollUI.keyUp(this.lastNoteOnAi, false);
-            this.lastNoteOnAi = "";
+            this.lastNoteOnAi = ""; // TODO I don't like that. 
           }
         }
       }
@@ -943,63 +1010,63 @@ export default {
     estimateHumanQuantizedNote() {
       // Here we are quantize and store the user's input
       var midi;
-      var artic;
+      var articulation;
       var cpc;
       var name;
       // var startTick;
       // var dur;
 
       var activeNotes = this.$store.getters.getActiveNotes;
-      var lastNote = this.$store.getters.getLastNotePlayed;
+      // console.log("activeNotes", activeNotes)
+      var lastNote = this.$store.getters.getLastNoteOnEvent;
+      console.log("lastNote", lastNote)
       // check if keyboard is currently active, namely if there is at least one key pressed
       // If keyboard NOT active
       if (!this.$store.getters.keyboardIsActive) {
         // if the buffer is empty
-        if (this.$store.getters.getNotesBuffer.length == 0) {
+        if (this.$store.getters.getNoteOnBuffer.length == 0) {
           // then we have a REST
           midi = 0;
-          artic = 1;
+          articulation =  1;
           cpc = 12;
           name = "R";
         }
         // if the buffer is not empty
         else {
           // sanity check  notesBuffer.pop() === lastNote
-          midi = Midi.toMidi(lastNote);
-          artic = 1;
+          midi = lastNote.midi;
+          articulation =  1;
           cpc = midi % 12;
-          name = lastNote;
+          name = lastNote.note;
         }
       } else {
         // there is at least one key pressed. We only care for the last key pressed so
-        if (activeNotes.includes(lastNote)) {
+        if (activeNotes.includes(lastNote.midi)) {
           // find artic
-          midi = Midi.toMidi(lastNote);
+          midi = lastNote.midi;
           cpc = midi % 12;
-          name = lastNote;
-          if (
-            this.$store.getters.getGlobalTick -
-            this.$store.getters.getLastNotePlayedOnTick >
-            1
+          name = lastNote.name;
+          if (this.$store.getters.getGlobalTick - this.$store.getters.getLastNoteOnEventTick > 1
           ) {
             // if the note is active for more than 1 tick
             // then the articulation is set to 0
-            artic = 0;
+            articulation =  0;
           } else {
-            artic = 1;
+            articulation =  1;
           }
         } else {
           midi = 0;
-          artic = 1;
+          articulation =  1;
           cpc = 12;
           name = "R";
         }
       }
 
       // convert midi/cpc/artic to indexes that the AI understands
+      console.log("midi", midi);
       this.$store.dispatch("newHumanInputQuantized", {
         midi: midi,
-        artic: artic,
+        articulation: articulation,
         cpc: cpc,
         name: name,
       });
@@ -1031,6 +1098,7 @@ export default {
             // run the worker with a small delay of tick/4 in order to include 
             // any notes that the user played very close to the tick change.
             // this makes the grid a bit more flexible, and the human input is correctly parsed
+            // In terms of playability, the human finds it much more easy to play along the metronome on the grid
             setTimeout(function () {
               vm.runTheWorker();
             }, parseInt(((60 / vm.$store.getters.getBPM / vm.$store.getters.getGrid) * 1000) / 4));
@@ -1057,8 +1125,8 @@ export default {
             //       console.log("Firebase error:", e);
             //       vm.firebaseErrCount += 1;
             //     }
-            //   }
-            }
+              // }
+            // }
 
             vm.$store.commit("clearNoteOnBuffer");
           }
@@ -1091,11 +1159,16 @@ export default {
       ) {
         var currentNote =
           this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
-        const payload = {
-          name: "metronome",
+        const midiEvent = {
+          player: "metronome",
           note: currentNote,
+          // channel : 140, // this is channel midi channel 0
+          // midi : note.note,
+          // velocity : 127,
+          timestamp : Tone.now(),
         };
-        this.$store.dispatch("samplerOn", payload, 0);
+        let delay = 0;
+        this.$store.dispatch("samplerOn", {midiEvent, delay});
       }
     },
 

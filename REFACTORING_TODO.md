@@ -53,3 +53,5 @@ Currently, Euterpe is very 'BachDuety' oriented. In order to support all the new
 - Constants plugin
     - time signature
     - time grid
+
+- set a global variables for $WorkerName etc, that will replace all "worker" strings

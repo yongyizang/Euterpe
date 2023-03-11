@@ -7,11 +7,11 @@ window.onclick = () => {
     Tone.context.lookAhead = 0;
   };
 
-const userSampler = new Instruments().createSampler("piano", (piano) => {
+const humanSampler = new Instruments().createSampler("piano", (piano) => {
     piano.toDestination();
 });
 
-const WorkerSampler = new Instruments().createSampler("piano", (piano) => {
+const workerSampler = new Instruments().createSampler("piano", (piano) => {
     piano.toDestination();
 });
 
@@ -28,8 +28,8 @@ metronomeSampler.connect(metronomeBus);
 
 const state = {
     metronomeStatus: true,
-    userSamplerGain: 0, // in dB
-    WorkerSamplerGain: 0, // in dB
+    humanSamplerGain: 0, // in dB
+    workerSamplerGain: 0, // in dB
 };
 
 const getters = {
@@ -37,31 +37,35 @@ const getters = {
         return state.metronomeStatus;
     },
     getUserSamplerGain(state){
-        return state.userSamplerGain;
+        return state.humanSamplerGain;
     },
-    getWorkerSamplerGain(state){
-        return state.WorkerSamplerGain;
+    getworkerSamplerGain(state){
+        return state.workerSamplerGain;
     }
 };
 
 const actions = {
-    samplerOn(state, midiEvent, delay){
+    samplerOn(state, {midiEvent, delay}){
         // {samplerName, currentNote, time}
-        if (payload.name == "human"){
-            userSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
-        } else if (payload.name == "worker"){
-            WorkerSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
-        } else if (payload.name == "metronome"){
+        if (midiEvent.player == "human"){
+            // let skata = Tone.now();
+            // console.log(skata);
+            // console.log(delay);
+            humanSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
+        } else if (midiEvent.player == "worker"){
+            workerSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
+        } else if (midiEvent.player == "metronome"){
             metronomeSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
             // release the note 0.5s after the attack
+            // TODO : make that depend on the beat duration
             metronomeSampler.triggerRelease(midiEvent.note, Tone.now() + delay + 500);
         }
     },
-    samplerOff(state, payload, delay){
-        if (payload.name == "human"){
-            userSampler.triggerRelease(midiEvent.note, Tone.now() + delay);
-        } else if (payload.name == "worker"){
-            WorkerSampler.triggerRelease(midiEvent.note, Tone.now() + delay);
+    samplerOff(state, {midiEvent, delay}){
+        if (midiEvent.player == "human"){
+            humanSampler.triggerRelease(midiEvent.note, Tone.now() + delay);
+        } else if (midiEvent.player == "worker"){
+            workerSampler.triggerRelease(midiEvent.note, Tone.now() + delay);
         }
     },
 };
@@ -73,23 +77,24 @@ const mutations = {
     flipMetronomeStatus(state){
         state.metronomeStatus = !state.metronomeStatus;
     },
+    // TODO : use the same function for both samplers
     setUserPianoVolume(state, volume){
         if (volume == 10){
-            state.userSamplerGain = 0;
+            state.humanSamplerGain = 0;
         } else{
             var toDB = -Math.abs(20*Math.log(volume/10));
-            state.userSamplerGain = toDB;
+            state.humanSamplerGain = toDB;
         }
-        userSampler.volume.value = state.userSamplerGain;
+        humanSampler.volume.value = state.humanSamplerGain;
     },
     setAIPianoVolume(state, volume){
         if (volume == 10){
-            state.WorkerSamplerGain = 0;
+            state.workerSamplerGain = 0;
         } else {
             var toDB = -Math.abs(20*Math.log(volume/10));
-            state.WorkerSamplerGain = toDB;
+            state.workerSamplerGain = toDB;
         };
-        WorkerSampler.volume.value = state.WorkerSamplerGain;
+        workerSampler.volume.value = state.workerSamplerGain;
     },
 };
 

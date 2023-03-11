@@ -424,6 +424,7 @@ export default {
         this.afairetisAI = 0;
         this.barTieAI = false;
       }
+      // TODO : localTickDelayed is the same as localTick because I call draw after I increase localTickDelayed
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
         // this.lastDrawnNote_Human_prevBar = this.lastDrawnNote_Human;
         // this.lastSvgGroupTrebleXOffset_lastNote_prevBar = this.lastSvgGroupTrebleXOffset_lastNote;
