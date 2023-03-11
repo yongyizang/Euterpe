@@ -1,0 +1,10 @@
+---
+introTypewriter: true
+introTypewriterContent:
+ - "Hi, I'm BachDuet!"
+ - "I'm the YAML file that's working."
+
+# Voices: integer, denotes the number of voices for input and output.
+inputVoices: 1
+outputVoices: 1
+

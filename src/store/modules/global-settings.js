@@ -6,6 +6,7 @@ import Vue from "vue";
 */
 
 const state = {
+  config: null,
   isDataCollecting: true,
   sessionID: null,
   clockStatus: false,
@@ -31,6 +32,12 @@ const state = {
 };
 
 const getters = {
+  getConfig(state) {
+    return state.config;
+  },
+  getLoadingtext(state){
+    return state.config.introTypewriterContent;
+  },
   getDataCollectingState(state) {
     return state.isDataCollecting;
   },
@@ -70,6 +77,9 @@ const getters = {
 const actions = {};
 
 const mutations = {
+  setConfig (state, config){
+    state.config = config;
+  },
   changeDataCollectionState (state, status) {
     state.isDataCollecting = status;
     console.log(status);

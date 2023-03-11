@@ -6,8 +6,7 @@
     <div ref="mainLoadingScreen" id="mainLoadingScreen">
       <div id="loadingScreenInjection" class="center">
         <h1 class="loadingTitle">
-          <p class="loadingTypewriter" data-period="300"
-            data-type='[ "Hello!", "This is Euterpe.", "A Musical Genius.", "Well... Sort of.", "Studied from Bach.", "That Bach.", "No, Really.", "Wanna Try me?"]'>
+          <p class="loadingTypewriter" data-period="300">
             <span class="wrap"></span>
           </p>
         </h1>
@@ -34,20 +33,20 @@
 
     <div ref="mainContent" id="mainContent" class="fade-in">
       <div style="
-          background-color: black;
-          opacity: 0.5;
-          display: fixed;
-          top: 0;
-          right: 0;
-          z-index: 999;
-        "></div>
+            background-color: black;
+            opacity: 0.5;
+            display: fixed;
+            top: 0;
+            right: 0;
+            z-index: 999;
+          "></div>
       <scoreUI />
       <pianoRollUI />
       <!-- <neuralNet /> -->
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button @click="toggleClock" class="md-raised" style="width: 40px">
-          <md-icon>{{ localSyncClockStatus? "pause": "play_arrow" }}</md-icon>
-          <span> {{ localSyncClockStatus? "Pause": "Play" }}</span>
+          <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
+          <span> {{ localSyncClockStatus ? "Pause" : "Play" }}</span>
         </md-button>
         <md-button @click="showSettingsModal" class="md-raised">
           <md-icon>settings</md-icon>
@@ -74,17 +73,17 @@
         :octave-start="keyboardUIoctaveStart" :octave-end="keyboardUIoctaveEnd" />
       <modal name="feedbackModal" :minHeight="500" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-            padding: 20px;
-            height: 100%;
-            background-color: rgb(243, 225, 190);
-          ">
-          <p style="
-              font-weight: 800;
-              font-size: 2rem;
-              margin: 0;
-              padding-top: 20px;
-              padding-bottom: 10px;
+              padding: 20px;
+              height: 100%;
+              background-color: rgb(243, 225, 190);
             ">
+          <p style="
+                font-weight: 800;
+                font-size: 2rem;
+                margin: 0;
+                padding-top: 20px;
+                padding-bottom: 10px;
+              ">
             Feedback
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -107,17 +106,17 @@
       </modal>
       <modal name="aboutModal" :minHeight="300" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-            padding: 20px;
-            height: 100%;
-            background-color: rgb(243, 225, 190);
-          ">
-          <p style="
-              font-weight: 800;
-              font-size: 2rem;
-              margin: 0;
-              padding-top: 20px;
-              padding-bottom: 10px;
+              padding: 20px;
+              height: 100%;
+              background-color: rgb(243, 225, 190);
             ">
+          <p style="
+                font-weight: 800;
+                font-size: 2rem;
+                margin: 0;
+                padding-top: 20px;
+                padding-bottom: 10px;
+              ">
             About
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -135,17 +134,17 @@
       </modal>
       <modal name="settingsModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-            padding: 20px;
-            height: 100%;
-            background-color: rgb(243, 225, 190);
-          ">
-          <p style="
-              font-weight: 800;
-              font-size: 2rem;
-              margin: 0;
-              padding-top: 20px;
-              padding-bottom: 10px;
+              padding: 20px;
+              height: 100%;
+              background-color: rgb(243, 225, 190);
             ">
+          <p style="
+                font-weight: 800;
+                font-size: 2rem;
+                margin: 0;
+                padding-top: 20px;
+                padding-bottom: 10px;
+              ">
             Settings
           </p>
           <hr style="border-top: 1px solid #000; opacity: 12%" />
@@ -171,8 +170,7 @@
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Your Piano Volume</p>
                 <p class="settingsValue">{{ userPianoVolume }}</p>
-                <vue-slider v-model="userPianoVolume" :lazy="true" :min="1" :max="10"
-                  class="settingsSlider"></vue-slider>
+                <vue-slider v-model="userPianoVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
               </div>
             </div>
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
@@ -239,17 +237,17 @@
       </modal>
       <modal name="introModal" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="
-            padding: 20px;
-            height: 100%;
-            background-color: rgb(243, 225, 190);
-          ">
-          <p style="
-              font-weight: 800;
-              font-size: 2rem;
-              margin: 0;
-              padding-top: 20px;
-              padding-bottom: 10px;
+              padding: 20px;
+              height: 100%;
+              background-color: rgb(243, 225, 190);
             ">
+          <p style="
+                font-weight: 800;
+                font-size: 2rem;
+                margin: 0;
+                padding-top: 20px;
+                padding-bottom: 10px;
+              ">
             Introduction
           </p>
           <p>
@@ -301,17 +299,18 @@ import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import StarRating from "vue-star-rating";
+import yaml from "js-yaml";
 
 // TODO : can these go to a central place ? I also define them in worker.js
 const messageType = Object.freeze({
-    STATUS: "status",
-    INFERENCE: "inference",
-  });
+  STATUS: "status",
+  INFERENCE: "inference",
+});
 const statusType = Object.freeze({
-    LOADED: "loaded", // it applies for any type of worker
-    WARMUP: "wwarmup",// it usually applies for neural network workers
-    SUCCESS: "success",// can be used for any type of worker
-    ERROR: "error",// can be used for any type of worker
+  LOADED: "loaded", // it applies for any type of worker
+  WARMUP: "wwarmup",// it usually applies for neural network workers
+  SUCCESS: "success",// can be used for any type of worker
+  ERROR: "error",// can be used for any type of worker
 });
 
 /*
@@ -351,7 +350,7 @@ const statusType = Object.freeze({
 window.onclick = () => {
   Tone.start();
   Tone.context.lookAhead = 0;
-  
+
 };
 
 export default {
@@ -413,8 +412,18 @@ export default {
     StarRating,
   },
 
+  async beforeMount() {
+    try {
+      await fetch('/config.yaml').then(response => response.text()).then(text => this.$store.commit("setConfig", yaml.load(text)));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
   mounted() {
     var vm = this;
+    this.worker = new Worker("worker.js");
+    this.worker.onmessage = this.workerCallback;
 
     // Prevent spacebar trigger any button
     document.querySelectorAll("button").forEach(function (item) {
@@ -497,16 +506,16 @@ export default {
       //     time: Tone.now(),
       //   };
       const midiEvent = {
-          player : "human",
-          note : noteName, //message.note.identifier,
-          channel : 140, // this is channel midi channel 0
-          midi : note.note,
-          velocity : 127,
-          timestamp : Tone.now(),
-        }
+        player: "human",
+        note: noteName, //message.note.identifier,
+        channel: 140, // this is channel midi channel 0
+        midi: note.note,
+        velocity: 127,
+        timestamp: Tone.now(),
+      }
       // vm.$store.dispatch("samplerOn", payload);
       let delay = 0;
-      vm.$store.dispatch("samplerOn", {midiEvent, delay});
+      vm.$store.dispatch("samplerOn", { midiEvent, delay });
       // console.log("samplerOn", midiEvent)
       if (vm.$store.getters.getClockStatus) {
         // vm.$root.$refs.pianoRollUI.keyDown(currentNote, true);
@@ -524,33 +533,22 @@ export default {
       //   time: Tone.now(),
       // };
       const midiEvent = {
-          player : "human",
-          note : noteName, //message.note.identifier,
-          channel : 140, // this is channel midi channel 0
-          midi : note.note,
-          velocity : 127,
-          timestamp : Tone.now(),
-        }
+        player: "human",
+        note: noteName, //message.note.identifier,
+        channel: 140, // this is channel midi channel 0
+        midi: note.note,
+        velocity: 127,
+        timestamp: Tone.now(),
+      }
       let delay = 0;
-      vm.$store.dispatch("samplerOff", {midiEvent, delay});
+      vm.$store.dispatch("samplerOff", { midiEvent, delay });
       // console.log("samplerOff", midiEvent)
-      if (vm.$store.getters.getClockStatus){
+      if (vm.$store.getters.getClockStatus) {
         // this enters here, only when the clock has started
         vm.$root.$refs.pianoRollUI.keyUp(midiEvent.note, true);
         vm.$store.dispatch("noteOff", midiEvent);
       }
     });
-
-    /*
-     * Initialize neural network token dictionary, web worker and worker callback function.
-     * Neural network works as a web worker, and we communicate to it by posting message.
-     * workerCallback function is called when the worker returns the AI's prediction.
-     * Check out methods: "runTheWorker" and "workerCallback" for more information.
-     */
-
-    // this.$store.commit("setTokensDict", TokensDict.default);
-    this.worker = new Worker("worker.js");
-    this.worker.onmessage = this.workerCallback;
 
     /*
      * Loading Animation: set initial status of both div
@@ -613,13 +611,11 @@ export default {
       }, delta);
     };
 
-    var elements = document.getElementsByClassName("loadingTypewriter");
-    for (var i = 0; i < elements.length; i++) {
-      var toRotate = elements[i].getAttribute("data-type");
-      var period = elements[i].getAttribute("data-period");
-      if (toRotate) {
-        new introTypingText(elements[i], JSON.parse(toRotate), period);
-      }
+    var element = document.getElementsByClassName("loadingTypewriter")[0];
+    var toRotate = this.$store.getters.getConfig.introTypewriterContent;
+    var period = element.getAttribute("data-period");
+    if (toRotate) {
+      new introTypingText(element, toRotate, period);
     }
     var css = document.createElement("style");
     css.type = "text/css";
@@ -707,16 +703,6 @@ export default {
   },
 
   methods: {
-    // downloadToFile(content, filename, contentType) {
-    //   const a = document.createElement("a");
-    //   const file = new Blob([content], { type: contentType });
-
-    //   a.href = URL.createObjectURL(file);
-    //   a.download = filename;
-    //   a.click();
-
-    //   URL.revokeObjectURL(a.href);
-    // },
 
     /*
      * Web MIDI
@@ -748,7 +734,7 @@ export default {
       const vm = this;
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
       inputDevice.addListener("noteon", (message) => {
-        
+
         // message.data = [channel, note, velocity]
         // message.timestamp = time in milliseconds
         // message.note = { name, number, octave, identifier }
@@ -756,15 +742,15 @@ export default {
         // var currentNote = message.note.identifier;
         // console.log(message.data + " " + message.timestamp +  " " + performance.now() + " " + currentNote)
         const midiEvent = {
-          player : "human",
-          note : message.note.identifier,
-          channel : message.data[0],
-          midi : message.data[1],
-          velocity : message.data[2],
-          timestamp : message.timestamp,
+          player: "human",
+          note: message.note.identifier,
+          channel: message.data[0],
+          midi: message.data[1],
+          velocity: message.data[2],
+          timestamp: message.timestamp,
         }
         let delay = 0;
-        this.$store.dispatch("samplerOn", {midiEvent, delay});
+        this.$store.dispatch("samplerOn", { midiEvent, delay });
         if (this.$store.getters.getClockStatus) {
           this.$root.$refs.pianoRollUI.keyDown(midiEvent.note, true);
           this.$store.dispatch("noteOn", midiEvent);
@@ -773,15 +759,15 @@ export default {
 
       inputDevice.addListener("noteoff", (message) => {
         const midiEvent = {
-          player : "human",
-          note : message.note.identifier,
-          channel : message.data[0],
-          midi : message.data[1],
-          velocity : message.data[2],
-          timestamp : message.timestamp,
+          player: "human",
+          note: message.note.identifier,
+          channel: message.data[0],
+          midi: message.data[1],
+          velocity: message.data[2],
+          timestamp: message.timestamp,
         }
         let delay = 0;
-        this.$store.dispatch("samplerOff", {midiEvent, delay});
+        this.$store.dispatch("samplerOff", { midiEvent, delay });
         if (this.$store.getters.getClockStatus) {
           this.$root.$refs.pianoRollUI.keyUp(midiEvent.note, true);
           this.$store.dispatch("noteOff", message);
@@ -821,7 +807,7 @@ export default {
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
       this.$root.$refs.scoreUI.draw();
 
-      
+
       // this.worker.postMessage(aiInp);
 
       this.worker.postMessage({
@@ -845,15 +831,15 @@ export default {
       //   });
       // }
 
-      
+
     },
 
     async workerCallback(e) {
-      
+
       const vm = this;
       // If the worker is giving us only string
       // if (typeof e.data === "string" || e.data instanceof String)
-      if (e.data.messageType === messageType.INFERENCE){
+      if (e.data.messageType === messageType.INFERENCE) {
         // If the worker is giving us a prediction (inference)
         const workerPrediction = e.data.message;
         // e.data.messae Looks like this
@@ -881,10 +867,10 @@ export default {
         }
 
         this.$store.dispatch("newWorkerPrediction", workerPrediction);
-        
+
         this.reset = false; // for explanation see the comment about reset inside runTheWorker()
         this.write = false;
-        
+
         // TODO : move that to a function in firebase.js
         // try writing to firebase, if there's user permission
         // if (this.$store.getters.getDataCollectingState) {
@@ -897,8 +883,7 @@ export default {
         // }
 
       }
-      else if (e.data.messageType === messageType.STATUS)
-      {
+      else if (e.data.messageType === messageType.STATUS) {
         if (e.data.statusType == statusType.SUCCESS) {
           vm.$refs.entryBtn.classList.add("fade-in");
           vm.$refs.entryBtn.style.visibility = "visible";
@@ -928,8 +913,8 @@ export default {
         }
         const workerStatus = vm.$refs.workerStatus;
         workerStatus.innerHTML = e.data.message;
-      } 
-      
+      }
+
     },
 
     resetNetwork() {
@@ -948,34 +933,34 @@ export default {
 
       // TODO : for Euterpe/polyphony, if the number of active notes exceeds te polyphony limit (set by the developer)
       // then we have to triggerRelease the oldest note first. which means we need to keep track of the order of the notes
-      
+
       // TODO : fix the payloads
       // TODO : A worker that supports polyphony should be able to send note off events also. 
       const workerPrediction = this.$store.getters.getWorkerPredictionFor(
         this.$store.getters.getLocalTick
       );
       // message/workerPrediction: {
-        //     predictTime: predictTime,
-        //     tick: currentTick,
-        //     note: {
-        //         midi: midi,
-        //         articulation: articulation,
-        //         cpc: cpc,
-        //     },
+      //     predictTime: predictTime,
+      //     tick: currentTick,
+      //     note: {
+      //         midi: midi,
+      //         articulation: articulation,
+      //         cpc: cpc,
+      //     },
 
       if (workerPrediction.articulation == 1) {
         if (workerPrediction.midi != 0) {
-          if (!(this.lastNoteOnAi === "")) { 
+          if (!(this.lastNoteOnAi === "")) {
             const midiEvent = {
-              player : "worker",
-              note : this.lastNoteOnAi,
+              player: "worker",
+              note: this.lastNoteOnAi,
               // channel : message.data[0],
               // midi : message.data[1],
               // velocity : message.data[2],
-              timestamp : Tone.now(),
+              timestamp: Tone.now(),
             }
             const delay = 0;
-            this.$store.dispatch("samplerOff", {midiEvent, delay});
+            this.$store.dispatch("samplerOff", { midiEvent, delay });
 
             this.$root.$refs.pianoRollUI.keyUp(this.lastNoteOnAi, false);
           }
@@ -983,12 +968,12 @@ export default {
             sharps: true,
           });
           const midiEvent = {
-              player : "worker",
-              note : currentNote,
-              timestamp : Tone.now(),
-            }
+            player: "worker",
+            note: currentNote,
+            timestamp: Tone.now(),
+          }
           const delay = 0;
-          this.$store.dispatch("samplerOn", {midiEvent, delay});
+          this.$store.dispatch("samplerOn", { midiEvent, delay });
           this.$root.$refs.pianoRollUI.keyDown(currentNote, false);
           this.lastNoteOnAi = currentNote;
         } else {
@@ -999,7 +984,7 @@ export default {
               timestamp: Tone.now(),
             };
             let delay = 0;
-            this.$store.dispatch("samplerOff", {midiEvent, delay});
+            this.$store.dispatch("samplerOff", { midiEvent, delay });
             this.$root.$refs.pianoRollUI.keyUp(this.lastNoteOnAi, false);
             this.lastNoteOnAi = ""; // TODO I don't like that. 
           }
@@ -1027,7 +1012,7 @@ export default {
         if (this.$store.getters.getNoteOnBuffer.length == 0) {
           // then we have a REST
           midi = 0;
-          articulation =  1;
+          articulation = 1;
           cpc = 12;
           name = "R";
         }
@@ -1035,7 +1020,7 @@ export default {
         else {
           // sanity check  notesBuffer.pop() === lastNote
           midi = lastNote.midi;
-          articulation =  1;
+          articulation = 1;
           cpc = midi % 12;
           name = lastNote.note;
         }
@@ -1050,13 +1035,13 @@ export default {
           ) {
             // if the note is active for more than 1 tick
             // then the articulation is set to 0
-            articulation =  0;
+            articulation = 0;
           } else {
-            articulation =  1;
+            articulation = 1;
           }
         } else {
           midi = 0;
-          articulation =  1;
+          articulation = 1;
           cpc = 12;
           name = "R";
         }
@@ -1125,7 +1110,7 @@ export default {
             //       console.log("Firebase error:", e);
             //       vm.firebaseErrCount += 1;
             //     }
-              // }
+            // }
             // }
 
             vm.$store.commit("clearNoteOnBuffer");
@@ -1165,10 +1150,10 @@ export default {
           // channel : 140, // this is channel midi channel 0
           // midi : note.note,
           // velocity : 127,
-          timestamp : Tone.now(),
+          timestamp: Tone.now(),
         };
         let delay = 0;
-        this.$store.dispatch("samplerOn", {midiEvent, delay});
+        this.$store.dispatch("samplerOn", { midiEvent, delay });
       }
     },
 
@@ -1233,9 +1218,9 @@ export default {
       this.$store.commit("changeModalStatus");
     },
 
-    calculateMaxBPM(){
+    calculateMaxBPM() {
       const vm = this;
-      var dt = vm.modelInferenceTimes.sort(function(a, b){return a-b})[Math.floor(vm.modelInferenceTimes.length * 0.95)];
+      var dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
       vm.maxBPM = Math.round(60 / dt / vm.$store.getters.getGrid);
     },
 
