@@ -176,8 +176,8 @@
             <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Network Piano Volume</p>
-                <p class="settingsValue">{{ AIPianoVolume }}</p>
-                <vue-slider v-model="AIPianoVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
+                <p class="settingsValue">{{ WorkerVolume }}</p>
+                <vue-slider v-model="WorkerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
               </div>
             </div>
           </div>
@@ -369,7 +369,7 @@ export default {
       keyboardUIoctaveEnd: 6,
 
       // metronomeStatus: true,
-      lastNoteOnAi: "", //TODO: this needs to go
+      lastNoteOnAi: "", //TODO: this is is used only by triggerWorkerSample
       reset: false, // reset signal to notify the AI worker to reset
       write: false, // write signal to notify the AI worker to save its hidden state (bachDuet specific)
 
@@ -382,7 +382,7 @@ export default {
       selectedMIDIDevice: "",
 
       userPianoVolume: 10,
-      AIPianoVolume: 10,
+      WorkerVolume: 10,
       feedbackRating: 5.0,
       feedbackText: "",
 
@@ -497,41 +497,29 @@ export default {
       rootNote: 60,
     });
 
+    // callback for when a laptop keyboard key is pressed
     keyboard.down(function (note) {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
       // sound/sampler is active even when the improvisation (clock) has not started yet
-      // const payload = {
-      //     name: "user",
-      //     note: currentNote,
-      //     time: Tone.now(),
-      //   };
       const midiEvent = {
-        player: "human",
-        note: noteName, //message.note.identifier,
-        channel: 140, // this is channel midi channel 0
-        midi: note.note,
-        velocity: 127,
-        timestamp: Tone.now(),
-      }
-      // vm.$store.dispatch("samplerOn", payload);
+          player : "human",
+          note : noteName, //message.note.identifier,
+          channel : 140, // this is channel midi channel 0
+          midi : note.note,
+          velocity : 127,
+          timestamp : Tone.now(),
+        }
       let delay = 0;
-      vm.$store.dispatch("samplerOn", { midiEvent, delay });
-      // console.log("samplerOn", midiEvent)
+      vm.$store.dispatch("samplerOn", {midiEvent, delay});
       if (vm.$store.getters.getClockStatus) {
-        // vm.$root.$refs.pianoRollUI.keyDown(currentNote, true);
-        // vm.$store.dispatch("noteOn", currentNote);   
-        vm.$root.$refs.pianoRollUI.keyDown(midiEvent.note, true);
+        vm.$root.$refs.pianoRollUI.keyDown(midiEvent);
         vm.$store.dispatch("noteOn", midiEvent);
       }
     });
 
+    // callback for when a laptop keyboard key is released
     keyboard.up(function (note) {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
-      // const payload = {
-      //   name: "user",
-      //   note: currentNote,
-      //   time: Tone.now(),
-      // };
       const midiEvent = {
         player: "human",
         note: noteName, //message.note.identifier,
@@ -541,11 +529,10 @@ export default {
         timestamp: Tone.now(),
       }
       let delay = 0;
-      vm.$store.dispatch("samplerOff", { midiEvent, delay });
-      // console.log("samplerOff", midiEvent)
-      if (vm.$store.getters.getClockStatus) {
+      vm.$store.dispatch("samplerOff", {midiEvent, delay});
+      if (vm.$store.getters.getClockStatus){
         // this enters here, only when the clock has started
-        vm.$root.$refs.pianoRollUI.keyUp(midiEvent.note, true);
+        vm.$root.$refs.pianoRollUI.keyUp(midiEvent);
         vm.$store.dispatch("noteOff", midiEvent);
       }
     });
@@ -691,13 +678,13 @@ export default {
     userPianoVolume: {
       immediate: true,
       handler(newValue) {
-        this.$store.commit("setUserPianoVolume", newValue);
+        this.$store.commit("setHumanVolume", newValue);
       },
     },
-    AIPianoVolume: {
+    WorkerVolume: {
       immediate: true,
       handler(newValue) {
-        this.$store.commit("setAIPianoVolume", newValue);
+        this.$store.commit("setWorkerVolume", newValue);
       },
     },
   },
@@ -729,18 +716,13 @@ export default {
         }
       }
     },
-    // listens for midi message
+
+    // listens for midi messages from a midi keyboard
     messageListener() {
       const vm = this;
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
       inputDevice.addListener("noteon", (message) => {
-
-        // message.data = [channel, note, velocity]
-        // message.timestamp = time in milliseconds
-        // message.note = { name, number, octave, identifier }
-
-        // var currentNote = message.note.identifier;
-        // console.log(message.data + " " + message.timestamp +  " " + performance.now() + " " + currentNote)
+        
         const midiEvent = {
           player: "human",
           note: message.note.identifier,
@@ -752,7 +734,7 @@ export default {
         let delay = 0;
         this.$store.dispatch("samplerOn", { midiEvent, delay });
         if (this.$store.getters.getClockStatus) {
-          this.$root.$refs.pianoRollUI.keyDown(midiEvent.note, true);
+          this.$root.$refs.pianoRollUI.keyDown(midiEvent);
           this.$store.dispatch("noteOn", midiEvent);
         }
       });
@@ -769,8 +751,8 @@ export default {
         let delay = 0;
         this.$store.dispatch("samplerOff", { midiEvent, delay });
         if (this.$store.getters.getClockStatus) {
-          this.$root.$refs.pianoRollUI.keyUp(midiEvent.note, true);
-          this.$store.dispatch("noteOff", message);
+          this.$root.$refs.pianoRollUI.keyUp(midiEvent);
+          this.$store.dispatch("noteOff", midiEvent);
         }
       });
     },

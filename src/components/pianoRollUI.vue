@@ -14,19 +14,19 @@
 import * as THREE from "three";
 
 // Define basic parameters.
-const colorForAI = 0x7dd87d;
+const colorForWorker = 0x7dd87d;
 const colorForHuman = 0x4c9173;
 const initialScaling = 10000; // a constant in scaling the noteblock.
 const KeyboardUIHeight = 210;
 const NoteAnimationMargin = 10; // margin of noteblock plane compared to the width of the key.
 
-// Define basic "material" for three.js to build note blocks.
+// Define basic "humanMaterial" for three.js to build note blocks.
 const geometry = new THREE.PlaneGeometry(1, 1, 1); // A basic plane.
-const material = new THREE.MeshBasicMaterial({
-  color: colorForAI,
+const humanMaterial = new THREE.MeshBasicMaterial({
+  color: colorForWorker,
   side: THREE.DoubleSide,
 });
-const aiMaterial = new THREE.MeshBasicMaterial({
+const workerMaterial = new THREE.MeshBasicMaterial({
   color: colorForHuman,
   side: THREE.DoubleSide,
 });
@@ -134,7 +134,7 @@ export default {
             .getBoundingClientRect();
 
           // Define the noteblock plane.
-          const plane = new THREE.Mesh(geometry, AI ? aiMaterial : material);
+          const plane = new THREE.Mesh(geometry, AI ? workerMaterial : humanMaterial);
           const noteWidth =
             notePosition.right - notePosition.left - NoteAnimationMargin * 2;
           plane.scale.set(noteWidth, initialScaling, 1);
