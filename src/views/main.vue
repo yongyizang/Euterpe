@@ -301,6 +301,46 @@ import AudioKeys from "audiokeys";
 import StarRating from "vue-star-rating";
 import yaml from "js-yaml";
 
+/*********************************************************************************
+REMOVE THIS CODE AFTER YAML LOADING IS DONE
+*********************************************************************************/
+// FROM Yongyi's yaml I get
+const MODE = "GRID"; // or "CONTINUOUS"
+// If GRID, then we need BPM, GRID, TS_NOM, TS_DEN
+// If CONTINUOUS, then we need PERIOD
+const BPM = 90;
+const TICKS_PER_BEAT = 4; // this is the number of ticks per beat
+const TS_NOM = 4; // this is the numerator of the time signature
+const TS_DEN = 4; // this is the denominator of the time signature
+let CLOCK_PERIOD = null;
+let TICKS_PER_MEASURE = null;
+let GRID_TICK_PERIOD = null;
+let QUANTIZED_BUFFER_SIZE = null;
+if (MODE === "GRID") {
+    // in GRID mode, the clock period is the same as the grid tick duration
+    // for example if we have a 4/4 time signature, and a 16th note grid, then
+    // the grid tick duration is 60 / 90 / 4 = 0.25 seconds
+    // and the clock ticks every 0.25 seconds as well
+    GRID_TICK_PERIOD = (60 / BPM / TICKS_PER_BEAT) * 1000;
+    CLOCK_PERIOD = GRID_TICK_PERIOD;
+    TICKS_PER_MEASURE = TS_NOM * TICKS_PER_BEAT;
+    // In GRID mode, the quantized buffer size is the same as the number of ticks per measure
+    QUANTIZED_BUFFER_SIZE = TICKS_PER_MEASURE;
+}
+else if (MODE === "CONTINUOUS") {
+    // CLOCK_PERIOD needs not to be null.
+    if (CLOCK_PERIOD === null) {
+        throw new Error("CLOCK_PERIOD cannot be null in CONTINUOUS mode.");
+    }
+    GRID_TICK_PERIOD = CLOCK_PERIOD;
+    // In CONTINUOUS mode, the quant buffer size doesn't have any physical meaning,
+    // I just set it to 16 for now
+    QUANTIZED_BUFFER_SIZE = 16;
+}
+/****************************************************************************************
+ * END OF CODE TO REMOVE
+
+
 // TODO : can these go to a central place ? I also define them in worker.js
 const messageType = Object.freeze({
   STATUS: "status",
@@ -782,6 +822,7 @@ export default {
       // or we can quantize the input anyway, and give both the quantized note and unquantized buffer to the worker.
       this.estimateHumanQuantizedNote();
 
+      
       // remember, runTheWorker happens with a small delay of tick/4 after the tick
       // here I just keep track of the 'delayed' tick
       this.$store.commit("incrementTickDelayed");
@@ -944,7 +985,7 @@ export default {
             const delay = 0;
             this.$store.dispatch("samplerOff", { midiEvent, delay });
 
-            this.$root.$refs.pianoRollUI.keyUp(this.lastNoteOnAi, false);
+            this.$root.$refs.pianoRollUI.keyUp(midiEvent, false);
           }
           const currentNote = Midi.midiToNoteName(workerPrediction.midi, {
             sharps: true,
@@ -956,7 +997,7 @@ export default {
           }
           const delay = 0;
           this.$store.dispatch("samplerOn", { midiEvent, delay });
-          this.$root.$refs.pianoRollUI.keyDown(currentNote, false);
+          this.$root.$refs.pianoRollUI.keyDown(midiEvent, false);
           this.lastNoteOnAi = currentNote;
         } else {
           if (!(this.lastNoteOnAi === "")) {

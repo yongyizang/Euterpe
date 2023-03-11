@@ -1,11 +1,39 @@
 import Vue from "vue";
 import { createRange } from "../../library/music"
 
-// TODO noteOnBuffer is not used anywhere. 
-
-
-// TODO the names of most of the buffers/arrays/maps are not representative of 
-// their actual functionality
+// FROM Yongyi's yaml I get
+const MODE = "GRID"; // or "CONTINUOUS"
+// If GRID, then we need BPM, GRID, TS_NOM, TS_DEN
+// If CONTINUOUS, then we need PERIOD
+const BPM = 90;
+const TICKS_PER_BEAT = 4; // this is the number of ticks per beat
+const TS_NOM = 4; // this is the numerator of the time signature
+const TS_DEN = 4; // this is the denominator of the time signature
+let CLOCK_PERIOD = null;
+let TICKS_PER_MEASURE = null;
+let GRID_TICK_PERIOD = null;
+let QUANTIZED_BUFFER_SIZE = null;
+if (MODE === "GRID") {
+    // in GRID mode, the clock period is the same as the grid tick duration
+    // for example if we have a 4/4 time signature, and a 16th note grid, then
+    // the grid tick duration is 60 / 90 / 4 = 0.25 seconds
+    // and the clock ticks every 0.25 seconds as well
+    GRID_TICK_PERIOD = (60 / BPM / TICKS_PER_BEAT) * 1000;
+    CLOCK_PERIOD = GRID_TICK_PERIOD;
+    TICKS_PER_MEASURE = TS_NOM * TICKS_PER_BEAT;
+    // In GRID mode, the quantized buffer size is the same as the number of ticks per measure
+    QUANTIZED_BUFFER_SIZE = TICKS_PER_MEASURE;
+}
+else if (MODE === "CONTINUOUS") {
+    // CLOCK_PERIOD needs not to be null.
+    if (CLOCK_PERIOD === null) {
+        throw new Error("CLOCK_PERIOD cannot be null in CONTINUOUS mode.");
+    }
+    GRID_TICK_PERIOD = CLOCK_PERIOD;
+    // In CONTINUOUS mode, the quant buffer size doesn't have any physical meaning,
+    // I just set it to 16 for now
+    QUANTIZED_BUFFER_SIZE = 16;
+}
 
 // Create a range of notes from A0 to C8.
 // TODO we can use Range.chromatic(["C2", "C3"], { sharps: true }); from the tonaljs package
@@ -13,13 +41,8 @@ const notes = createRange("A0", "C8")
 // Create a range of midi numbers from 21 to 108 (piano keys)
 const midiNumbers = [...Array(88).keys()].map(i => i + 21);
 
-const measureTicks = [...Array(16).keys()]; // TODO : replace 16 and make it dynamic
-// Put all the notes into the notemap, then set all default values to false.
+const measureTicks = [...Array(QUANTIZED_BUFFER_SIZE).keys()];
 
-// let pianoState = notes.reduce((map, note) => {
-//     map[note.midi] = false
-//     return map
-// }, {})
 let pianoState = midiNumbers.reduce((map, midi) => {
     map[midi] = false
     return map
@@ -40,7 +63,6 @@ const restNote = {"midi" : 0,
                     "articulation" : 1,
                     }
 
-// TODO : can I replace const with let here? so I don't have to use the _tmp variables?
 let quantizedBufferWorker = measureTicks.reduce((map, tick) => {
     map[tick] = restNote
     return map
@@ -51,7 +73,6 @@ let quantizedBufferHuman = measureTicks.reduce((map, tick) => {
 }, {})
 
 
-// note as observables
 pianoState = new Vue.observable(pianoState)
 quantizedBufferWorker = new Vue.observable(quantizedBufferWorker)
 quantizedBufferHuman = new Vue.observable(quantizedBufferHuman)
@@ -61,16 +82,23 @@ quantizedBufferHuman = new Vue.observable(quantizedBufferHuman)
 const state = {
     // Define all basic states.
     pianoState: pianoState,
+
+    // Buffers where we push the quantized notes played.
+    // in grid mode, the quantized positions have a musical meaning
+    // in continuous mode, the quantized positions are just the time and depend on the CLOCK_PERIOD
     quantizedBufferWorker: quantizedBufferWorker,
     quantizedBufferHuman: quantizedBufferHuman,
 
-    // A buffer where we push the (continuous) notes the human plays.
+    // Buffers where we push the (continuous/unquantized) notes the human plays.
+    // these are cleared after each clock tick
     midiEventBuffer: [],
     noteOnBuffer: [],
     noteOffBuffer: [],
 
     // The last note (continuous) the human pressed on the keyboard
     // lastNotePlayed: "",
+    // TODO : group all these things into a single object
+    // like lastUnquantizedEvent, lastQuantizedEvent
     lastEvent: "",
     lastNoteOnEvent: "",
     lastNoteOffEvent: "",
@@ -79,16 +107,12 @@ const state = {
     lastNoteOffEventTick: -1,
     lastEventTick: -1,
 
+    // TODO : why do I need these ? I can just grab the last element of the quantizedBuffers
     // The last quantized note the human played
     lastHumanQuantizedNote : {"midi" : -1, "cpc" : -1, "name" : "", "dur" : 0, "startTick" : -1},
     // The last note the AI played (quantized by default for a grid-based worker)
     lastWorkerNote :  {"midi" : 0, "cpc" : 12, "name" : "R", "dur" : 1, "startTick" : -1},
     
-    // The dictionary that converts note tokens to the indexes that the AI understands
-    // For example, the rest token "0_1" is 96
-    // other tokens are "60_1" (a C4 onset)
-    // or "60_0" (a C4 hold)
-    // tokensDict: {}
 }
 
 const getters = {
@@ -135,15 +159,22 @@ const getters = {
     getLastNoteOffEventTick (state){
         return state.lastNoteOffEventTick;
     },
+    getNoteOffBuffer (state){
+        return state.noteOffBuffer;
+    },
     getNoteOnBuffer (state){
         return state.noteOnBuffer;
     },
-    getWorkerPredictions (state){
+    getMidiEventBuffer (state){
+        return state.midiEventBuffer;
+    },
+
+    getQuantizedBufferWorker (state){
         return state.quantizedBufferWorker;
     },
-    // getTokensDict (state){
-    //     return state.tokensDict;
-    // },
+    getQuantizedBufferHuman (state){
+        return state.quantizedBufferHuman;
+    },
     // these two below are only used by scoreUI
     getLastHumanNoteQuantized (state){
         return state.lastHumanQuantizedNote;
@@ -269,12 +300,14 @@ const actions = {
         When a note is "off", turn off pianoState
     */
     noteOn ({ commit, state, getters }, midiEvent) {
-        // note is a string. ie "C5"
-        // console.log(getters.getGlobalTickDelayed())
+        // Everything starts Here.
+
         console.log("noteOn", midiEvent.midi);
         state.pianoState[midiEvent.midi] = true;
+
         state.noteOnBuffer.push(midiEvent);
         state.midiEventBuffer.push(midiEvent);
+
         state.lastEvent = midiEvent;
         state.lastEventTick = getters.getGlobalTickDelayed();
         state.lastNoteOnEvent = midiEvent;
@@ -283,8 +316,10 @@ const actions = {
     },
     noteOff ({ commit, state, getters }, midiEvent) {
         state.pianoState[midiEvent.midi] = false;
+
         state.midiEventBuffer.push(midiEvent);
         state.noteOffBuffer.push(midiEvent);
+
         state.lastEvent = midiEvent;
         state.lastEventTick = getters.getGlobalTickDelayed();
         state.lastNoteOffEvent = midiEvent;
@@ -294,11 +329,10 @@ const actions = {
 
 const mutations = {
     clearNoteOnBuffer (state) {
-        state.noteOnBuffer = []
+        state.noteOnBuffer = [];
+        state.midiEventBuffer = [];
+        state.noteOffBuffer = [];
     }, 
-    // setTokensDict (state, tokensDictFromFile){
-    //     state.tokensDict = tokensDictFromFile;
-    // },
 }
 
 export default {

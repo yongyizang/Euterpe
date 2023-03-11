@@ -116,7 +116,8 @@ export default {
         this.renderer.render(this.scene, this.camera);
     },
 
-    keyDown(noteInput, AI) {
+    keyDown(midiEvent, AI) {
+      let noteInput = midiEvent.note;
       if (this.$store.getters.getClockStatus) {
         // Get the note's position.
         /* 
@@ -162,7 +163,8 @@ export default {
       }
     },
 
-    keyUp(noteInput, AI) {
+    keyUp(midiEvent, AI) {
+      let noteInput = midiEvent.note;
       // Retrieve the noteblock from the currentNotes data.
       // console.log("in pianoRollUI UP is ", noteInput, " human ", AI);
       const selector = AI ? "AI" + noteInput : "Human" + noteInput;
