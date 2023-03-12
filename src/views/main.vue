@@ -949,7 +949,7 @@ export default {
             const delay = 0;
             this.$store.dispatch("samplerOff", { midiEvent, delay });
 
-            this.$root.$refs.pianoRollUI.keyUp(midiEvent, false);
+            this.$root.$refs.pianoRollUI.keyUp(midiEvent);
           }
           const currentNote = Midi.midiToNoteName(workerPrediction.midi, {
             sharps: true,
@@ -961,7 +961,7 @@ export default {
           }
           const delay = 0;
           this.$store.dispatch("samplerOn", { midiEvent, delay });
-          this.$root.$refs.pianoRollUI.keyDown(midiEvent, false);
+          this.$root.$refs.pianoRollUI.keyDown(midiEvent);
           this.lastNoteOnAi = currentNote;
         } else {
           if (!(this.lastNoteOnAi === "")) {
@@ -972,7 +972,7 @@ export default {
             };
             let delay = 0;
             this.$store.dispatch("samplerOff", { midiEvent, delay });
-            this.$root.$refs.pianoRollUI.keyUp(this.lastNoteOnAi, false);
+            this.$root.$refs.pianoRollUI.keyUp(midiEvent);
             this.lastNoteOnAi = ""; // TODO I don't like that. 
           }
         }
