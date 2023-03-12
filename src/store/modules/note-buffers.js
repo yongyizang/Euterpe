@@ -1,5 +1,5 @@
 import Vue from "vue";
-import { createRange } from "../../library/music"
+import { Range } from "@tonaljs/tonal";
 
 // FROM Yongyi's yaml I get
 const MODE = "GRID"; // or "CONTINUOUS"
@@ -35,9 +35,7 @@ else if (MODE === "CONTINUOUS") {
     QUANTIZED_BUFFER_SIZE = 16;
 }
 
-// Create a range of notes from A0 to C8.
-// TODO we can use Range.chromatic(["C2", "C3"], { sharps: true }); from the tonaljs package
-const notes = createRange("A0", "C8") 
+const notes = Range.chromatic(["A0", "C8"], { sharps: true });
 // Create a range of midi numbers from 21 to 108 (piano keys)
 const pianoMidiNumbers = [...Array(88).keys()].map(i => i + 21);
 const measureTicks = [...Array(QUANTIZED_BUFFER_SIZE).keys()];
@@ -138,6 +136,11 @@ const getters = {
     },
     getHumanInputFor: (state) => (currentTick) => {
         return state.quantizedBufferHuman[currentTick]
+    },
+
+    // example getter. This will get BPM from global-settings module, then calculate the new clock period.
+    getNewClockPeriod (states, getters, rootState, rootGetters) {
+        return (60 / rootGetters['global-settings/getBPM'] / rootGetters['global-settings/getTicksPerMeasure']) * 1000;
     },
 
     // trivial getters that just get stuff

@@ -1,10 +1,27 @@
 ---
-introTypewriter: true
-introTypewriterContent:
- - "Hi, I'm BachDuet!"
- - "I'm the YAML file that's working."
-
+title: "Euterpe"
+subtitle: "An AI music interaction system framework"
 # Voices: integer, denotes the number of voices for input and output.
 inputVoices: 1
 outputVoices: 1
 
+# timeUnit: string, denotes the time unit for the input and output. Should be either "seconds" or "ticks".
+timeUnit: "seconds"
+
+# Event-based on clock-based.
+# If event-based is true, clock-based config will be ignored.
+# If clock-based is true, timeSignature, tempo and grid will be used to calculate the time unit.
+# timeSignature will affect the metronome sound and the time unit.
+eventBased: false
+clockBased:
+  timeSignature:
+    numerator: 4
+    denominator: 4
+  tempo: 120 # beat per minute
+  grid: 16 # ticks per beat
+
+# Intro Modal
+introModal: true
+introModalContent:
+ - "Hi! This is Euterpe."
+ - "I am a general AI music interaction system framework."

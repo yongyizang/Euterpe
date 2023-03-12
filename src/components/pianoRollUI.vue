@@ -12,10 +12,16 @@
 <script>
 // This project mainly uses Three.js to generate the canvas.
 import * as THREE from "three";
+import("../css/variables.css");
 
-// Define basic parameters.
-const colorForWorker = 0x7dd87d;
-const colorForHuman = 0x4c9173;
+// get --pianoRollUI-human-color and --pianoRollUI-worker-color from CSS.
+const colorForWorker = getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRollUI-worker-color"
+);
+const colorForHuman = getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRollUI-human-color"
+);
+
 const initialScaling = 10000; // a constant in scaling the noteblock.
 const KeyboardUIHeight = 210;
 const NoteAnimationMargin = 10; // margin of noteblock plane compared to the width of the key.
@@ -23,11 +29,11 @@ const NoteAnimationMargin = 10; // margin of noteblock plane compared to the wid
 // Define basic "humanMaterial" for three.js to build note blocks.
 const geometry = new THREE.PlaneGeometry(1, 1, 1); // A basic plane.
 const humanMaterial = new THREE.MeshBasicMaterial({
-  color: colorForWorker,
+  color: colorForHuman,
   side: THREE.DoubleSide,
 });
 const workerMaterial = new THREE.MeshBasicMaterial({
-  color: colorForHuman,
+  color: colorForWorker,
   side: THREE.DoubleSide,
 });
 
@@ -116,26 +122,16 @@ export default {
         this.renderer.render(this.scene, this.camera);
     },
 
-    keyDown(midiEvent, AI) {
+    keyDown(midiEvent) {
       let noteInput = midiEvent.note;
       if (this.$store.getters.getClockStatus) {
-        // Get the note's position.
-        /* 
-        NOTE: this is a **temporary hack**!
-        for now, PLEASE AVOID USING 'C4' 'Cs4' style CSS class anywhere!
-        This line of code would automatically find the first element with a matching note name CSS class
-        and get the 'noteblock' plane to go there.
-
-        I know this is not elegant. I know there must be better ways. I just can't think of them right now.
-      */
-        // console.log("in pianoRollUI DOWN is ", noteInput, " human ", AI);
         if (document.getElementsByClassName(noteInput.replace("#", "s"))[0]) {
           const notePosition = document
             .getElementsByClassName(noteInput.replace("#", "s"))[0]
             .getBoundingClientRect();
 
           // Define the noteblock plane.
-          const plane = new THREE.Mesh(geometry, AI ? workerMaterial : humanMaterial);
+          const plane = new THREE.Mesh(geometry, (midiEvent.player == "worker") ? workerMaterial : humanMaterial);
           const noteWidth =
             notePosition.right - notePosition.left - NoteAnimationMargin * 2;
           plane.scale.set(noteWidth, initialScaling, 1);
@@ -151,7 +147,7 @@ export default {
           this.scene.add(plane);
 
           // Register this noteblock to the currentNotes data.
-          const selector = AI ? "AI" + noteInput : "Human" + noteInput;
+          const selector = (midiEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
           if (!this.currentNotes.hasOwnProperty(selector)) {
             this.currentNotes[selector] = [];
           }
@@ -163,11 +159,9 @@ export default {
       }
     },
 
-    keyUp(midiEvent, AI) {
+    keyUp(midiEvent) {
       let noteInput = midiEvent.note;
-      // Retrieve the noteblock from the currentNotes data.
-      // console.log("in pianoRollUI UP is ", noteInput, " human ", AI);
-      const selector = AI ? "AI" + noteInput : "Human" + noteInput;
+      const selector = (midiEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {
         const note = this.currentNotes[selector].shift();

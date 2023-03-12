@@ -13,36 +13,31 @@ const state = {
   clockInitialized: false,
   bpm: 90,
   frequency: 4,
-  temperature: 0.25,
+  // temperature: 0.25,
+  workerParams: null,
   modalStatus: false,
   // static
   ts_nom: 4, // time signature numerator (number of beats)
   ts_denom: 4, // time signature denominator (note value of a beat)
   grid: 4, // grid resolution per beat (4 = 16th notes for a time signature of 4/4)
-  // messageType: Object.freeze({
-  //   STATUS: "status",
-  //   INFERENCE: "inference",
-  // }),
-  // statusType: Object.freeze({
-  //   LOADED: "loaded", // it applies for any type of worker
-  //   WARMUP: "wwarmup",// it usually applies for neural network workers
-  //   SUCCESS: "success",// can be used for any type of worker
-  //   ERROR: "error",// can be used for any type of worker
-  // })
 };
 
 const getters = {
   getConfig(state) {
     return state.config;
   },
+  // get the intro type writer animation text
   getLoadingtext(state){
     return state.config.introTypewriterContent;
   },
-  getDataCollectingState(state) {
-    return state.isDataCollecting;
+  getWorkerParams(state){
+    return state.config.workerParams;
   },
-  getSessionID(state) { // get Firebase sessionID
-    return state.sessionID;
+  getDataCollectingState(state) {
+    return state.config.dataCollection;
+  },
+  getFirebaseConfig(state) {
+    return state.config.firebaseConfig;
   },
   getClockStatus(state){
     return state.clockStatus;
@@ -53,14 +48,15 @@ const getters = {
   getBPM(state){
     return state.bpm;
   },
-  getTemperature(state){
-    return state.temperature;
+  getRandomness(state){
+    return state.randomness;
   },
   getModalStatus(state){
     return state.modalStatus;
   },
   getTSNom(state){
-    return state.ts_nom;
+    if (state.config.event-based) return null;
+    return state.config.clock-based.timeSignature.numerator;
   },
   getTSDenom(state){
     return state.ts_denom;
@@ -71,7 +67,6 @@ const getters = {
   getTicksPerMeasure(state){
     return state.ts_nom * state.grid;
   }
-  
 };
 
 const actions = {};
@@ -103,8 +98,8 @@ const mutations = {
   changeModalStatus(state){
     state.modalStatus = !state.modalStatus;
   },
-  setTemperature(state, temperature){
-    state.temperature = temperature;
+  setRandomness(state, randomness){
+    state.randomness = randomness;
   }
 };
 

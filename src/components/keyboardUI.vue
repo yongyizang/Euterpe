@@ -34,8 +34,9 @@
 </template>
 
 <script>
+import "../css/keyboardUI.css";
+
 import * as Tone from "tone";
-import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math";
 import {Note} from "@tonaljs/tonal";
 
@@ -301,12 +302,10 @@ export default {
         const octave = this.calculateOctave(i);
         const keyName = BLACK_KEYS[i % 7];
 
-        // Skip E♯ (F) or B♯ (C).
         if (!keyName) {
           continue;
         }
 
-        // Skip > C8.
         if (octave >= 8) {
           continue;
         }
@@ -329,150 +328,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-body,
-ul {
-  margin: 0;
-  padding: 0;
-}
-
-.keyboard {
-  width: 100vw;
-  height: 200px;
-  overflow-x: hidden;
-}
-
-.keyboard ul {
-  height: 100%;
-  width: 100%;
-  list-style-type: none;
-  display: grid;
-  grid-template-columns: repeat(calc(var(--keys) * 3), 1fr);
-  grid-template-rows: repeat(3, 1fr);
-}
-
-li {
-  text-align: center;
-  background-color: white;
-  border: 1px solid black;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  padding-bottom: 0.25rem;
-  font-weight: bold;
-}
-
-li.black span {
-  transform: rotate(90deg);
-  transform-origin: center 50%;
-  margin-bottom: 0.75rem;
-}
-
-.white {
-  grid-row: 1 / span 3;
-  z-index: 2;
-  border-radius: 10px;
-  margin-left: 1px;
-  margin-right: 1px;
-  border-style: hidden;
-  box-shadow: -1px 0 0 rgba(255, 255, 255, 0.8) inset, 0 0 5px #ccc inset,
-    0 0 3px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.9) 100%
-  );
-  padding-bottom: 10px;
-  -webkit-animation: scale-up-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94)
-    both;
-  animation: scale-up-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-}
-
-@-webkit-keyframes scale-down-center {
-  0% {
-    -webkit-transform: scale(1);
-    transform: scale(1);
-  }
-  100% {
-    -webkit-transform: scale(0.95);
-    transform: scale(0.95);
-  }
-}
-@keyframes scale-down-center {
-  0% {
-    -webkit-transform: scale(1);
-    transform: scale(1);
-  }
-  100% {
-    -webkit-transform: scale(0.95);
-    transform: scale(0.95);
-  }
-}
-@-webkit-keyframes scale-up-center {
-  0% {
-    -webkit-transform: scale(0.95);
-    transform: scale(0.95);
-  }
-  100% {
-    -webkit-transform: scale(1);
-    transform: scale(1);
-  }
-}
-@keyframes scale-up-center {
-  0% {
-    -webkit-transform: scale(0.95);
-    transform: scale(0.95);
-  }
-  100% {
-    -webkit-transform: scale(1);
-    transform: scale(1);
-  }
-}
-
-.white:active {
-  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
-    -5px 5px 20px rgba(0, 0, 0, 0.2) inset, 0 0 3px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(to bottom, rgb(170, 26, 26) 0%, #e9e9e9 100%);
-  -webkit-animation: scale-down-center 0.05s
-    cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-}
-
-.black {
-  grid-row: 1 / span 2;
-  background-color: black;
-  color: white;
-  z-index: 3;
-  width: 100%;
-  border-radius: 10px;
-  box-shadow: -1px -1px 2px rgba(255, 255, 255, 0.2) inset,
-    0 -5px 2px 3px rgba(0, 0, 0, 0.6) inset, 0 2px 4px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(45deg, #222 0%, #555 100%);
-}
-
-.white-activate {
-  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
-    -5px 5px 20px rgba(166, 192, 16, 0.2) inset, 0 0 3px rgba(19, 16, 206, 0.2);
-  background: linear-gradient(to bottom, rgb(209, 5, 5) 0%, #05e723 100%);
-  -webkit-transform: scale(0.5);
-  -moz-transform: scale(0.5);
-  -ms-transform: scale(0.5);
-  transform: scale(0.5);
-}
-
-.black:active {
-  box-shadow: -1px -1px 2px rgba(255, 255, 255, 0.2) inset,
-    0 -2px 2px 3px rgba(0, 0, 0, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
-  background: linear-gradient(to right, #444 0%, rgb(170, 26, 26) 100%);
-  -webkit-animation: scale-down-center 0.05s
-    cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-}
-
-.blank {
-  border-width: 0;
-  grid-row: 1 / span 2;
-}
-</style>

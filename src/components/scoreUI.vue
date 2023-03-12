@@ -14,7 +14,8 @@
 </template>
 
 <script>
-// import * as vextab from "@/library/vextab-div";
+import "../css/scoreUI.css";
+import "../css/variables.css";
 import { Note, Midi } from "@tonaljs/tonal";
 import * as Vex from "vexflow";
 const CLEF_SEPARATE_AT = "B3"; // Here, we define the separate point between treble clef and bass clef for both staff.
@@ -42,9 +43,8 @@ export default {
     return {
       // Customizable Properties for score rendering
       lineWidth: 2,
-      lineColor: "#000000",
-      userNoteColor: "#000000",
-      AINoteColor: "#FFFFFF",
+      lineColor: null,
+      noteColor: null,
       currentBarNumber: 0,
 
       screenWidth: document.body.clientWidth,
@@ -96,6 +96,9 @@ export default {
   created() {
     window.addEventListener("resize", this.resize);
     this.$root.$refs.scoreUI = this;
+    var css = window.getComputedStyle(document.documentElement);
+    this.noteColor = css.getPropertyValue("--note-color");
+    this.lineColor = css.getPropertyValue("--line-color");
   },
 
   destroyed() {
@@ -104,8 +107,23 @@ export default {
 
   mounted() {
     const vm = this;
-    this.init();
-    this.resize();
+    vm.init();
+    vm.resize();
+    var grandStaff = document.getElementById("grandStaff");
+    var grandStaffChildren = grandStaff.children;
+    for (var i = 0; i < grandStaffChildren.length; i++) {
+      var grandStaffChildrenChildren = grandStaffChildren[i].children;
+      for (var j = 0; j < grandStaffChildrenChildren.length; j++) {
+        grandStaffChildrenChildren[j].style.fill = this.lineColor;
+        grandStaffChildrenChildren[j].style.stroke = this.lineColor;
+      }
+    }
+    var clefs = document.getElementsByClassName("vf-clef");
+    for (var j = 0; j < clefs.length; j++) {
+      var clefPath = clefs[j].children[0];
+      clefPath.style.fill = this.lineColor;
+      clefPath.style.stroke = this.lineColor;
+    }
   },
 
   methods: {
@@ -138,10 +156,18 @@ export default {
       trebleStave.setContext(grandStaffContext).draw();
       bassStave.setContext(grandStaffContext).draw();
 
-      var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3);
+      var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3).setStyle({
+        fillStyle: this.lineColor,
+        strokeStyle: this.lineColor,
+        lineWidth: this.lineWidth,
+      });
       var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
         1
-      );
+      ).setStyle({
+        fillStyle: this.lineColor,
+        strokeStyle: this.lineColor,
+        lineWidth: this.lineWidth,
+      });
       brace.setContext(grandStaffContext).draw();
       lineLeft.setContext(grandStaffContext).draw();
 
@@ -153,7 +179,6 @@ export default {
       );
       this.renderer.resize(this.screenWidth, 300);
       this.context = this.renderer.getContext();
-
       this.tickContexts.push(new this.VF.TickContext());
       this.tickContexts.push(new this.VF.TickContext());
 
@@ -177,6 +202,7 @@ export default {
           lineWidth: this.lineWidth,
         })
         .draw();
+
 
       // Set ground for the notes.
       this.targetDiv = document.getElementById("noteBox");
@@ -243,8 +269,8 @@ export default {
           keys: [formName],
           duration: durationTokens[i] + extraR,
         }).setStyle({
-          fillStyle: this.userNoteColor,
-          strokeStyle: this.userNoteColor,
+          fillStyle: this.noteColor,
+          strokeStyle: this.noteColor,
         });
         if (durationTokens[i].includes("d")) {
           newNote.addDotToAll();
@@ -451,9 +477,10 @@ export default {
       // here we draw the barline and bar-number
       if (this.$store.getters.getLocalTickDelayed % 16 === 0) {
         // Draw Barnumber
-        // this.xCurrent +=
         this.currentBarNumber += 1;
         this.context.font = "22px Georgia";
+        // set every color to line color
+        this.context.fillStyle = this.lineColor;
         this.context.fillText(
           this.currentBarNumber,
           this.xCurrent + Math.floor(this.tickStepPixels / 2),
@@ -465,7 +492,7 @@ export default {
         let topY = this.staves[0].getYForLine(0);
         let botY = this.staves[1].getYForLine(this.staves[1].getNumLines() - 1);
         this.context.fillRect(
-          this.xCurrent + this.tickStepPixels / 2,
+          this.xCurrent + this.tickStepPixels / 2 - thickness / 2,
           topY,
           thickness,
           botY - topY
@@ -612,154 +639,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-#pianoScores {
-  overflow: hidden;
-  z-index: 1;
-  width: calc(100% - 20px);
-  height: 350px;
-  position: absolute;
-  left: 10px;
-  top: 0;
-}
-
-#scoreWrapper {
-  position: absolute;
-  height: 300px;
-  width: 100%;
-  overflow-x: hidden;
-  -webkit-box-shadow: -4px 6px 15px -9px #000000;
-  box-shadow: -4px 6px 15px -9px #000000;
-
-  background-color: rgb(233, 197, 147);
-  -webkit-border-bottom-right-radius: 40px;
-  -webkit-border-bottom-left-radius: 40px;
-  -moz-border-radius-bottomright: 40px;
-  -moz-border-radius-bottomleft: 40px;
-  border-bottom-right-radius: 40px;
-  border-bottom-left-radius: 40px;
-}
-
-#grandStaff {
-  z-index: 997;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-#noteBox {
-  z-index: 995;
-  position: absolute;
-  top: 0px;
-  left: 50px;
-}
-#staveBackground {
-  z-index: 993;
-  position: absolute;
-  top: 0px;
-  left: 50px;
-}
-
-#collapseBtn {
-  z-index: 999;
-  width: 60px;
-  height: 40px;
-  position: absolute;
-  top: 300px;
-  left: calc(50% - 30px);
-  -webkit-box-shadow: -4px 6px 15px -9px #000000;
-  box-shadow: -4px 6px 15px -9px #000000;
-  background-color: rgb(233, 197, 147);
-  color: white;
-  font-size: 35px;
-  -webkit-border-bottom-right-radius: 20px;
-  -webkit-border-bottom-left-radius: 20px;
-  -moz-border-radius-bottomright: 20px;
-  -moz-border-radius-bottomleft: 20px;
-  border-bottom-right-radius: 20px;
-  border-bottom-left-radius: 20px;
-  border-style: hidden;
-}
-
-#fadeBlockStart {
-  z-index: 996;
-  display: block;
-  width: 150px;
-  height: 300px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: linear-gradient(
-    270deg,
-    rgba(233, 197, 147, 0) 0%,
-    rgba(233, 197, 147, 1) 50%
-  );
-}
-
-#fadeBlockEnd {
-  z-index: 999;
-  display: inline-block;
-  width: 60px;
-  height: 300px;
-  position: absolute;
-  top: 0;
-  left: calc(100% - 60px);
-  background: linear-gradient(
-    90deg,
-    rgba(233, 197, 147, 0) 0%,
-    rgba(233, 197, 147, 1) 70%
-  );
-}
-
-.slide-up {
-  -webkit-animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
-  animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
-}
-
-.slide-down {
-  -webkit-animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
-  animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
-}
-
-@-webkit-keyframes slide-up {
-  0% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-  }
-  100% {
-    -webkit-transform: translateY(-300px);
-    transform: translateY(-300px);
-  }
-}
-@keyframes slide-up {
-  0% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-  }
-  100% {
-    -webkit-transform: translateY(-300px);
-    transform: translateY(-300px);
-  }
-}
-
-@-webkit-keyframes slide-down {
-  0% {
-    -webkit-transform: translateY(-300px);
-    transform: translateY(-300px);
-  }
-  100% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-  }
-}
-@keyframes slide-down {
-  0% {
-    -webkit-transform: translateY(-300px);
-    transform: translateY(-300px);
-  }
-  100% {
-    -webkit-transform: translateY(0);
-    transform: translateY(0);
-  }
-}
-</style>
