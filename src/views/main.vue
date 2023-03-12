@@ -252,7 +252,6 @@ export default {
         this.BPM = this.config.clockBased.tempo; 
       }.bind(this)());
       await fetch('/constants.json').then(response => response.json()).then(json => function () { this.messageType = json.messageType; this.statusType = json.statusType; }.bind(this)());
-      // console.log("config and constants loaded");
     } catch (err) {
       console.error(err);
     }
