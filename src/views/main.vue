@@ -199,9 +199,9 @@
               <div class="settingsDiv">
                 <p class="settingsOptionTitle">Randomness</p>
                 <p style="margin: 0; padding-bottom: 5px">
-                  {{ this.number2RandomnessDescription(temperature) }}
+                  {{ this.number2RandomnessDescription(randomness) }}
                 </p>
-                <vue-slider v-model="temperature" :lazy="true" :tooltip="'none'" :min="1" :max="200"></vue-slider>
+                <vue-slider v-model="randomness" :lazy="true" :tooltip="'none'" :min="1" :max="1000"></vue-slider>
               </div>
             </div>
             <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
@@ -348,10 +348,9 @@ export default {
       config: null,
       messageType: null,
       statusType: null,
-
-      BPM: 90, // TODO there is a confussion between BPM here and BPM in vuex
-      temperature: 25, // TODO there is a confussion between temperature here and temperature in vuex
-
+      // BPM and randomness here are the default values, they will be synced to vuex once they change.
+      BPM: 90,
+      randomness: 100,
       localSyncClockStatus: false, // used to trigger local UI change
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
@@ -671,10 +670,10 @@ export default {
         this.$store.commit("setBPM", newValue);
       },
     },
-    temperature: {
+    randomness: {
       immediate: true,
       handler(newValue) {
-        this.$store.commit("setTemperature", newValue / 100);
+        this.$store.commit("setRandomness", newValue / 1000);
       },
     },
     userPianoVolume: {
@@ -801,9 +800,7 @@ export default {
           tick: this.$store.getters.getLocalTick,
           humanInp: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
           // TODO : add the human input buffer also.
-          // randomness: this.$store.getters.getRandomness,
-          // TODO : the Worker is should be responsible for converting randomness to temperature
-          temperature: this.$store.getters.getTemperature,
+          randomness: this.$store.getters.getRandomness,
           reset: this.reset,
           write: this.write,
         }
@@ -1174,31 +1171,8 @@ export default {
       this.keyboardUIoctaveEnd -= 1;
     },
 
-    // Check this function! You could change the prompt if you would like.
     number2RandomnessDescription(num) {
-      if (num < 2) {
-        return "0" //"Not-So-Random";
-      } else if (num < 20) {
-        return "1" //"Not-So-Random";
-      } else if (num < 40) {
-        return "2" //"Getting a bit HOT in here";
-      } else if (num < 60) {
-        return "3"//"Some randomness";
-      } else if (num < 80) {
-        return "4"//"Good balance";
-      } else if (num < 100) {
-        return "5"//"Getting a bit messy...";
-      } else if (num < 120) {
-        return "6"//"A bit on the messy side";
-      } else if (num < 140) {
-        return "7"//"Messy! but not too messy.";
-      } else if (num < 160) {
-        return "8"//"So random!";
-      } else if (num < 180) {
-        return "9"//"A bit too random";
-      } else if (num <= 200) {
-        return "10"//"Careful! So much randomness";
-      }
+      return num / 1000;
     },
 
     modalCallback() {

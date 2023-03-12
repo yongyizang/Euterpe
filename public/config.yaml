@@ -15,9 +15,11 @@ timeUnit: "seconds"
 # If event-based is true, clock-based config will be ignored.
 # If clock-based is true, timeSignature, tempo and grid will be used to calculate the time unit.
 # timeSignature will affect the metronome sound and the time unit.
-event-based: false
-clock-based:
-  timeSignature: [4, 4] # denotes 4/4. [numerator, denominator]
+eventBased: false
+clockBased:
+  timeSignature:
+    numerator: 4
+    denominator: 4
   tempo: 120 # beat per minute
   grid: 16 # ticks per beat
 
@@ -33,10 +35,3 @@ firebaseConfig:
   messagingSenderId: "630968840698"
   appId: "1:630968840698:web:12c4589bb03536ec857443"
   measurementId: "G-NGJWHLYCS3"
-
-
-# worker parameters
-# each parameter is denoted as a floating point number between 0 and 1.
-workerParams:
- - "temperature"
- - "handsome_value"

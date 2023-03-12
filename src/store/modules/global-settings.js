@@ -48,8 +48,8 @@ const getters = {
   getBPM(state){
     return state.bpm;
   },
-  getTemperature(state){
-    return state.temperature;
+  getRandomness(state){
+    return state.randomness;
   },
   getModalStatus(state){
     return state.modalStatus;
@@ -98,8 +98,8 @@ const mutations = {
   changeModalStatus(state){
     state.modalStatus = !state.modalStatus;
   },
-  setTemperature(state, temperature){
-    state.temperature = temperature;
+  setRandomness(state, randomness){
+    state.randomness = randomness;
   }
 };
 

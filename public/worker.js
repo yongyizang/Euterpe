@@ -112,7 +112,7 @@ async function inference(data) {
     // getTokensDict is BachDuet specific. 
     const rhythmTokenInd = self.tokensDict.rhythm.token2index[rhythmToken];
 
-    const temperature = data.temperature;
+    const temperature = data.randomness * 2;
     const currentTick = data.tick;
     const humanInp = data.humanInp;
 
@@ -167,7 +167,6 @@ async function inference(data) {
 
     // TODO : convert the predicted note back to midi
     // no matter what the worker predicts, the UI will always expect a midi note
-
     const midi_artic_token_ind = predictedNote.dataSync()[0]
 
     // the tick that the AI run to make this prediction
