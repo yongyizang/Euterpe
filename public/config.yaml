@@ -1,6 +1,6 @@
 ---
-title: "BachDuet"
-subtitle: "An Baroque-Style AI Music Interaction System"
+title: "Euterpe"
+subtitle: "An AI music interaction system framework"
 # Voices: integer, denotes the number of voices for input and output.
 inputVoices: 1
 outputVoices: 1
@@ -23,7 +23,5 @@ clockBased:
 # Intro Modal
 introModal: true
 introModalContent:
- - "Hi! This is BachDuet."
- - "Gotta love some Duet!"
- - "Here is an example of using bold text."
- - "And here is an example of using <i>italic</i> text."
+ - "Hi! This is Euterpe."
+ - "I am a general AI music interaction system framework."
