@@ -39,12 +39,11 @@ else if (MODE === "CONTINUOUS") {
 // TODO we can use Range.chromatic(["C2", "C3"], { sharps: true }); from the tonaljs package
 const notes = createRange("A0", "C8") 
 // Create a range of midi numbers from 21 to 108 (piano keys)
-const midiNumbers = [...Array(88).keys()].map(i => i + 21);
-
+const pianoMidiNumbers = [...Array(88).keys()].map(i => i + 21);
 const measureTicks = [...Array(QUANTIZED_BUFFER_SIZE).keys()];
 
-let pianoState = midiNumbers.reduce((map, midi) => {
-    map[midi] = false
+let pianoState = pianoMidiNumbers.reduce((map, midi) => {
+    map[midi] = {status: false, timestamp: 0};
     return map
 }, {})
 
@@ -118,17 +117,21 @@ const state = {
 const getters = {
     // Return all notes that are currently "pressed"/active
     // the notes are sorted alphabetically
-    getActiveNotes (state){
-        const activeNotes = []
-        for (const midi of midiNumbers){
-          if (state.pianoState[midi]){
-              activeNotes.push(midi);
+    getActivePianoNotes (state){
+        const activePianoNotes = []
+        for (const midi of pianoMidiNumbers){
+            let pianoKeyStatus = state.pianoState[midi].status;
+            let pianoKeyTimestamp = state.pianoState[midi].timestamp;
+            if (pianoKeyStatus){
+                activePianoNotes.push({midi: midi, timestamp: pianoKeyTimestamp});
           }
         }
-        return activeNotes;
+        // sort the notes by timestamp
+        activePianoNotes.sort((a, b) => b.timestamp - a.timestamp);
+        return activePianoNotes;
     },
     keyboardIsActive (state, getters){
-        return getters.getActiveNotes.length > 0;
+        return getters.getActivePianoNotes.length > 0;
     },
     getWorkerPredictionFor: (state) => (currentTick) => {
         return state.quantizedBufferWorker[currentTick]
@@ -185,7 +188,7 @@ const getters = {
 }
 
 const actions = {
-    newWorkerPrediction ({ commit, state, getters }, workerPrediction) {
+    storeWorkerQuantizedOutput ({ commit, state, getters }, workerPrediction) {
         // workerPrediction is a dict like this
         // message: {
         //     predictTime: predictTime,
@@ -239,35 +242,46 @@ const actions = {
         }
     },
 
-    newHumanInputQuantized ({ commit, state, getters }, args) {
+    storeHumanQuantizedInput ({ commit, state, getters }, quantizedEventList) {
         
         // console.log(args)
-        // bring midi to the correct range for the AI (ignore 0 which is used for rest)
-        var clipedMidi = args.midi
-        while (clipedMidi < 28 && clipedMidi > 0){
-            clipedMidi += 12
-        }
-        while (clipedMidi > 94){
-            clipedMidi -= 12
-        }
-        console.log("newHumanInputQuant", clipedMidi)
+        // console.log("newHumanInputQuant", clipedMidi)
         // const midiArtic = clipedMidi.toString() + '_' + args.articulation.toString()
         // const midiArticInd = getters.getTokensDict.midiArtic.token2index[midiArtic]
-        state.quantizedBufferHuman[getters.getLocalTick] = { "midi" : clipedMidi, 
-                                                            "articulation" : args.articulation, 
-                                                            "cpc" : args.cpc, 
-                                                            // "midiArticInd" : midiArticInd
-                                                            // TODO check if I want those also
-                                                            // "note" : "R"
-                                                        }
+        state.quantizedBufferHuman[getters.getLocalTick] = quantizedEventList
+        // console.log(quantizedEventList);
+
+        // for (let i = 0; i < quantizedEventList.length; i++) {
+        //     const { type, midi } = quantizedEventList[i];
+            
+        //     // Print the object's fields to the console
+        //     console.log(`tick ${getters.getLocalTick} type: ${type}, midi: ${midi}`);
+        // }
+
+        // TODO : I still need this to display the notes in the scoreUI  
+        // TODO : Move this ugly code to scoreUI.js 
+        let args = {};
+        // keep only the "on" and "hold" type events from quantizedEventList in a new array
+        const quantizedEventListOnHold = quantizedEventList.filter((event) => event.type === "on" || event.type === "hold");
+
+        if ( quantizedEventListOnHold.length > 0 ) {
+            args = {midi : quantizedEventList[0].midi,
+                    // articulation is 1 if type="on" and 0 if type="hold"
+                    articulation : quantizedEventList[0].type === "on" ? 1 : 0,
+            }
+        }
+        else {
+            args.midi = 0;
+            args.articulation = 1;
+        }
         if (args.midi === 0){
             if (state.lastHumanQuantizedNote.midi === 0){
                 state.lastHumanQuantizedNote.dur += 1
             }
             else {
                 state.lastHumanQuantizedNote.midi = args.midi;
-                state.lastHumanQuantizedNote.cpc = args.cpc;
-                state.lastHumanQuantizedNote.name = args.name;
+                // state.lastHumanQuantizedNote.cpc = args.cpc;
+                // state.lastHumanQuantizedNote.name = args.name;
                 state.lastHumanQuantizedNote.dur = 1;
                 state.lastHumanQuantizedNote.startTick = getters.getGlobalTickDelayed();
                 // console.log("mesa")
@@ -276,22 +290,17 @@ const actions = {
         else {
             if (args.articulation == 1){
                 state.lastHumanQuantizedNote.midi = args.midi;
-                state.lastHumanQuantizedNote.cpc = args.cpc;
-                state.lastHumanQuantizedNote.name = args.name;
+                // state.lastHumanQuantizedNote.cpc = args.cpc;
+                // state.lastHumanQuantizedNote.name = args.name;
                 state.lastHumanQuantizedNote.dur = 1;
                 state.lastHumanQuantizedNote.startTick = getters.getGlobalTickDelayed();
             }
             else {
                 // it should always be
-                console.assert(args.midi === state.lastHumanQuantizedNote.midi)
+                // console.assert(args.midi === state.lastHumanQuantizedNote.midi)
                 state.lastHumanQuantizedNote.dur += 1
             }
         }
-        // console.log(getters.getGlobalTickDelayed(), " ",
-        //     state.lastHumanQuantizedNote.midi, " ",
-        // state.lastHumanQuantizedNote.dur, " ",
-        // state.lastHumanQuantizedNote.startTick, " ", )
-
     },
 
     /*
@@ -302,8 +311,9 @@ const actions = {
     noteOn ({ commit, state, getters }, midiEvent) {
         // Everything starts Here.
 
-        console.log("noteOn", midiEvent.midi);
-        state.pianoState[midiEvent.midi] = true;
+        // console.log("noteOn", midiEvent.midi);
+        state.pianoState[midiEvent.midi].status = true;
+        state.pianoState[midiEvent.midi].timestamp = midiEvent.timestamp;
 
         state.noteOnBuffer.push(midiEvent);
         state.midiEventBuffer.push(midiEvent);
@@ -315,7 +325,8 @@ const actions = {
         
     },
     noteOff ({ commit, state, getters }, midiEvent) {
-        state.pianoState[midiEvent.midi] = false;
+        state.pianoState[midiEvent.midi].status = false;
+        state.pianoState[midiEvent.midi].timestamp = midiEvent.timestamp;
 
         state.midiEventBuffer.push(midiEvent);
         state.noteOffBuffer.push(midiEvent);
@@ -328,11 +339,18 @@ const actions = {
 }
 
 const mutations = {
-    clearNoteOnBuffer (state) {
+    clearContinuousBuffers (state) {
         state.noteOnBuffer = [];
         state.midiEventBuffer = [];
         state.noteOffBuffer = [];
     }, 
+    clearPianoState(state) {
+        for (const i of pianoMidiNumbers) {
+            state.pianoState[i].status = false;
+            state.pianoState[i].timestamp = 0;
+        }
+        console.log("cleared pianoState");
+    }
 }
 
 export default {

@@ -155,13 +155,34 @@ onmessage = function(e) {
         self.first2B = self.states2B;
     }
 
-    // var human_midi_artic_token_ind = tokensDict.midi_artic.token2index[humanInp.midiArtic];
-    // console.log(humanInp)
-    const humanMidiArtic = humanInp.midi.toString() + '_' + humanInp.articulation.toString()
-    const humanMidiArticInd = tokensDict.midiArtic.token2index[humanMidiArtic]
+    if (humanInp.length == 0){
+        humanInp.push({type: "on", midi: 0})
+    }
+
+    console.log(humanInp[0])
+    let clipedMidi = humanInp[0].midi;
+
+    // console.log("clipedMidi", clipedMidi);
+    while (clipedMidi < 28 && clipedMidi > 0){
+        clipedMidi += 12
+    }
+    while (clipedMidi > 94){
+        clipedMidi -= 12
+    }
+
+    // console.log(clipedMidi);
+    // if humanInp.type is "on" then articulation is 1, if type = "hold" then articulation is 0
+    const humanArtic = humanInp[0].type === "on" ? 1 : 0;
+    let humanCpc = clipedMidi % 12;
+    if (clipedMidi == 0) {
+        humanCpc = 12;
+    }
+    const humanMidiArtic = clipedMidi.toString() + '_' + humanArtic.toString()
+    console.log(humanMidiArtic);
+    const humanMidiArticInd = tokensDict.midiArtic.token2index[humanMidiArtic];
 
     var midiInp = tf.tensor2d([[lastWorkerPrediction.midi_artic_token_ind, humanMidiArticInd]]);
-    var cpcInp = tf.tensor2d([[lastWorkerPrediction.cpc, humanInp.cpc]]); 
+    var cpcInp = tf.tensor2d([[lastWorkerPrediction.cpc, humanCpc]]); 
     var rhyInp = tf.tensor2d([[rhythmTokenInd]]);
     // console.log(`human input ${humanInp.midi}`);
 
@@ -219,12 +240,6 @@ onmessage = function(e) {
         midi_artic_token_ind: midi_artic_token_ind,
         cpc: cpc
     }
-    // or use note from tone.js to create a note object
-    // const note = {
-    //     midi: midi,
-    //     articulation: articulation,
-    //     cpc: cpc,
-    // }
     // console.log(`output ${lastWorkerPrediction.cpc}`);
     postMessage({
         messageType: messageType.INFERENCE,

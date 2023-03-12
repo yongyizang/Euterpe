@@ -339,6 +339,7 @@ else if (MODE === "CONTINUOUS") {
 }
 /****************************************************************************************
  * END OF CODE TO REMOVE
+*/
 
 
 // TODO : can these go to a central place ? I also define them in worker.js
@@ -542,6 +543,7 @@ export default {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
       // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
+          type: "noteOn",
           player : "human",
           note : noteName, //message.note.identifier,
           channel : 140, // this is channel midi channel 0
@@ -561,6 +563,7 @@ export default {
     keyboard.up(function (note) {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
       const midiEvent = {
+        type: "noteOff",
         player: "human",
         note: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
@@ -764,6 +767,7 @@ export default {
       inputDevice.addListener("noteon", (message) => {
         
         const midiEvent = {
+          type: "noteOn",
           player: "human",
           note: message.note.identifier,
           channel: message.data[0],
@@ -781,6 +785,7 @@ export default {
 
       inputDevice.addListener("noteoff", (message) => {
         const midiEvent = {
+          type: "noteOff",
           player: "human",
           note: message.note.identifier,
           channel: message.data[0],
@@ -815,11 +820,8 @@ export default {
 
     runTheWorker() {
       const vm = this;
-      // TODO : this is another thing that should be in the worker ????
-      // TODO : or maybe we can have it here as optional. Basically we provide the users 
-      // with a set of utilities for manimulatin user's input.
-      // For example, uncomment that for quantize the user's input to the current grid. 
-      // or we can quantize the input anyway, and give both the quantized note and unquantized buffer to the worker.
+      // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
+      // it's up to the worker to use it if it wants to.
       this.estimateHumanQuantizedNote();
 
       
@@ -829,9 +831,6 @@ export default {
 
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
       this.$root.$refs.scoreUI.draw();
-
-
-      // this.worker.postMessage(aiInp);
 
       this.worker.postMessage({
         tick: this.$store.getters.getLocalTick,
@@ -843,17 +842,6 @@ export default {
         reset: this.reset,
         write: this.write,
       })
-
-      // TODO : move to firebase.js
-      // try writing to firebase
-      // if (this.$store.getters.getDataCollectingState) {
-      //   vm.userNoteBuffer2Firebase.push({
-      //     tick: vm.$store.getters.getGlobalTick,
-      //     type: "User",
-      //     midiArticInd: aiInp.humanInp.midiArticInd,
-      //   });
-      // }
-
 
     },
 
@@ -889,21 +877,10 @@ export default {
           this.misalignErrCount += 1;
         }
 
-        this.$store.dispatch("newWorkerPrediction", workerPrediction);
+        this.$store.dispatch("storeWorkerQuantizedOutput", workerPrediction);
 
         this.reset = false; // for explanation see the comment about reset inside runTheWorker()
         this.write = false;
-
-        // TODO : move that to a function in firebase.js
-        // try writing to firebase, if there's user permission
-        // if (this.$store.getters.getDataCollectingState) {
-        //   vm.AINoteBuffer2Firebase.push({
-        //     tick: e.data.tick,
-        //     barNum: vm.$store.getters.getBarNumber,
-        //     type: "AI",
-        //     midiArticInd: e.data.midiArticInd,
-        //   });
-        // }
 
       }
       else if (e.data.messageType === messageType.STATUS) {
@@ -911,28 +888,7 @@ export default {
           vm.$refs.entryBtn.classList.add("fade-in");
           vm.$refs.entryBtn.style.visibility = "visible";
           vm.modelLoadTime = Date.now() - vm.modelLoadTime;
-          // TODO : move that to a function in firebase.js
-          // try writing to firebase
-          // try {
-          //   const docRef = await addDoc(collection(db, "data"), {
-          //     userAgent: vm.userAgent,
-          //     pageLoad: vm.pageLoadTime,
-          //     modelLoad: vm.modelLoadTime,
-          //     dataAddTime: Date.now(),
-          //     playData: [],
-          //     feedback: [],
-          //   });
-          //   vm.userDataID = docRef.id;
-          //   vm.$store.commit("writeSessionID", docRef.id);
-          // } catch (e) {
-          //   if (vm.firebaseErrCount < 10) {
-          //     this.$toasted.show(
-          //       "Error adding doc to firebase. Error Message in console."
-          //     );
-          //     console.log("Firebase error:", e);
-          //     vm.firebaseErrCount += 1;
-          //   }
-          // }
+
         }
         const workerStatus = vm.$refs.workerStatus;
         workerStatus.innerHTML = e.data.message;
@@ -1008,7 +964,7 @@ export default {
             };
             let delay = 0;
             this.$store.dispatch("samplerOff", { midiEvent, delay });
-            this.$root.$refs.pianoRollUI.keyUp(this.lastNoteOnAi, false);
+            this.$root.$refs.pianoRollUI.keyUp(midiEvent, false);
             this.lastNoteOnAi = ""; // TODO I don't like that. 
           }
         }
@@ -1016,68 +972,175 @@ export default {
     },
 
     estimateHumanQuantizedNote() {
-      // Here we are quantize and store the user's input
-      var midi;
-      var articulation;
-      var cpc;
-      var name;
-      // var startTick;
-      // var dur;
+      /* TODO:
+      everything written here is based on BachDuet specifically.
+      The whole purpose is to estimate the quantized input and send it to vuex dispatch("storeHumanQuantizedInput")
 
-      var activeNotes = this.$store.getters.getActiveNotes;
-      // console.log("activeNotes", activeNotes)
-      var lastNote = this.$store.getters.getLastNoteOnEvent;
-      console.log("lastNote", lastNote)
-      // check if keyboard is currently active, namely if there is at least one key pressed
-      // If keyboard NOT active
-      if (!this.$store.getters.keyboardIsActive) {
-        // if the buffer is empty
-        if (this.$store.getters.getNoteOnBuffer.length == 0) {
-          // then we have a REST
-          midi = 0;
-          articulation = 1;
-          cpc = 12;
-          name = "R";
-        }
-        // if the buffer is not empty
-        else {
-          // sanity check  notesBuffer.pop() === lastNote
-          midi = lastNote.midi;
-          articulation = 1;
-          cpc = midi % 12;
-          name = lastNote.note;
-        }
-      } else {
-        // there is at least one key pressed. We only care for the last key pressed so
-        if (activeNotes.includes(lastNote.midi)) {
-          // find artic
-          midi = lastNote.midi;
-          cpc = midi % 12;
-          name = lastNote.name;
-          if (this.$store.getters.getGlobalTick - this.$store.getters.getLastNoteOnEventTick > 1
-          ) {
-            // if the note is active for more than 1 tick
-            // then the articulation is set to 0
-            articulation = 0;
-          } else {
-            articulation = 1;
+      Currently only one monophonic quantization is supported. This needs to change. Let's see
+      For monophony, I get the active notes (this is polyphonic)
+      and the last note on event (this is monophonic)
+
+      I found it
+      1) Get the raw continuous buffers for the current tick (bufferOn, bufferOff, bufferEvent)
+      2) preprocess them before quantization
+          a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
+    
+      */
+      
+      const bufferEvent = this.$store.getters.getMidiEventBuffer;
+      // activePianoNotes are sorted by their "on" timestamp (newest to oldest)
+      const activePianoNotes = this.$store.getters.getActivePianoNotes;
+      let currentQuantizedEvents = [];
+      
+      // 2) preprocess them before quantization
+      //     a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
+      // TODO : move this to utilities or smth
+      let indexesToRemove = []; // the indexes of the events to be removed
+      for (let i = bufferEvent.length - 1; i >= 0; i--) {
+        let elem = bufferEvent[i];
+        if (elem.type === "noteOff") {
+          const matchingIndexes = bufferEvent
+                .map((e, i) => (e.type === "noteOn" && e.midi === elem.midi && e.timestamp < elem.timestamp) ? i : -1)
+                .filter(index => index !== -1);
+          if (matchingIndexes.length > 0){
+            indexesToRemove.push(i);
+            indexesToRemove.push(Math.max(...matchingIndexes));
           }
-        } else {
-          midi = 0;
-          articulation = 1;
-          cpc = 12;
-          name = "R";
         }
       }
+      indexesToRemove = Array.from(new Set([...indexesToRemove]));
+      const cleanedEventBuffer = bufferEvent.filter((el, index) => !indexesToRemove.includes(index));
+      // console.log(`bufferEvent ${bufferEvent.length} cleanedEventBuffer ${cleanedEventBuffer.length} activePianoNotes ${activePianoNotes.length}`);
+      // iterate over the active notes. If the note exists in the bufferEvent as an "on" event, then we have a note on
+      // if the note does not exist in the bufferEvent, then we have a continuation of the note (we assume it was activated in a previous tick)
+      for (let i = 0; i < activePianoNotes.length; i++) {
+        const midi = activePianoNotes[i].midi;
+        const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === "noteOn" && elem.midi === midi);
+        if (noteOnEvent) {
+          currentQuantizedEvents.push({
+            type: "on",
+            midi: midi,
+          })
+        }
+        else {
+          currentQuantizedEvents.push({
+            type: "hold",
+            midi: midi,
+          })
+        }
+      }
+      // now iterate over the bufferEvent and find all the noteOff notes and push them to currentQuantizedEvents as off events
+      // for (let i = 0; i < cleanedEventBuffer.length; i++) {
+      //   const elem = cleanedEventBuffer[i];
+      //   if (elem.type === "noteOff") {
+      //     currentQuantizedEvents.push({
+      //       type: "off",
+      //       midi: elem.midi,
+      //     })
+      //   }
+      // }
 
-      // convert midi/cpc/artic to indexes that the AI understands
-      console.log("midi", midi);
-      this.$store.dispatch("newHumanInputQuantized", {
-        midi: midi,
-        articulation: articulation,
-        cpc: cpc,
-        name: name,
-      });
+      // Due to the order we were pushing the events, the first elements of currentQuantizedEvents are the "on", 
+      // then the "hold" and finally the "off". Also because activeNotes are already sorted by their "noteOn" timestamp
+      // the events in currentQuantizedEvents are also sorted by their original "noteOn" timestamp
+
+      // Now if we want we can constraint the polyphony. If polyphony = 3, then we can only have 3 notes on at the same time
+      // the way to do that is to keep at most the first 3 "on" or "hold" events in currentQuantizedEvents and remove the rest "on" and "hold"
+      
+      // FOR NOW WE DON"T INCLUDE NOTE_OFF EVENTS IN THE QUANTIZED DATA.
+      let constrainedCurrentQuantizedEvents = [];
+      const polyphony = 2;
+      let onHoldEvents = currentQuantizedEvents.filter(elem => elem.type === "on" || elem.type === "hold");
+      // let offEvents = currentQuantizedEvents.filter(elem => elem.type === "off");
+      if (onHoldEvents.length > polyphony) {
+        // let onHoldEventsToRemove = onHoldEvents.slice(polyphony);
+        let onHoldEventsToKeep = onHoldEvents.slice(0, polyphony);
+        // let offEventsToAdd = onHoldEventsToRemove.map(elem => {
+        //   return {
+        //     type: "off",
+        //     midi: elem.midi,
+        //   }
+        // })
+        constrainedCurrentQuantizedEvents = [...onHoldEventsToKeep];//, ...offEventsToAdd, ...offEvents];
+      }
+      else{
+        constrainedCurrentQuantizedEvents = [...currentQuantizedEvents];
+      }
+
+      this.$store.dispatch("storeHumanQuantizedInput", constrainedCurrentQuantizedEvents);
+
+      this.$store.commit("clearContinuousBuffers");
+      // TODO : for the future, keep a reference to the active notes of the previous tick
+      // TODO : for more accuracy keep also a reference to the previous tick's quantized notes and constrained quantized notes
+      // TODO : and modify the logic accordingly.
+
+      // ****************************************************
+      // **************  OLD BACH DUET CODE *****************
+      // ****************************************************
+      // Here we are quantize and store the user's input
+      // var midi;
+      // var articulation;
+      // var cpc;
+      // var name;
+      // // var startTick;
+      // // var dur;
+
+      // var activePianoNotes = this.$store.getters.getActivePianoNotes;
+      // // console.log("activePianoNotes", activePianoNotes)
+      // var lastNote = this.$store.getters.getLastNoteOnEvent;
+      // console.log("lastNote", lastNote)
+      // // check if keyboard is currently active, namely if there is at least one key pressed
+      // // If keyboard NOT active
+      // if (!this.$store.getters.keyboardIsActive) {
+      //   // if the buffer is empty
+      //   if (this.$store.getters.getNoteOnBuffer.length == 0) {
+      //     // then we have a REST
+      //     midi = 0;
+      //     articulation = 1;
+      //     cpc = 12;
+      //     name = "R";
+      //   }
+      //   // if the buffer is not empty
+      //   else {
+      //     // sanity check  notesBuffer.pop() === lastNote
+      //     midi = lastNote.midi;
+      //     articulation = 1;
+      //     cpc = midi % 12;
+      //     name = lastNote.note;
+      //   }
+      // } else {
+      //   // there is at least one key pressed. We only care for the last key pressed so
+      //   if (activePianoNotes.includes(lastNote.midi)) {
+      //     // find artic
+      //     midi = lastNote.midi;
+      //     cpc = midi % 12;
+      //     name = lastNote.name;
+      //     if (this.$store.getters.getGlobalTick - this.$store.getters.getLastNoteOnEventTick > 1
+      //     ) {
+      //       // if the note is active for more than 1 tick
+      //       // then the articulation is set to 0
+      //       articulation = 0;
+      //     } else {
+      //       articulation = 1;
+      //     }
+      //   } else {
+      //     midi = 0;
+      //     articulation = 1;
+      //     cpc = 12;
+      //     name = "R";
+      //   }
+      // }
+
+      // // convert midi/cpc/artic to indexes that the AI understands
+      // console.log("midi", midi);
+
+      // this.$store.dispatch("storeHumanQuantizedInput", {
+      //   midi: midi,
+      //   articulation: articulation,
+      //   cpc: cpc,
+      //   name: name,
+      // });
+
     },
 
     // Initialize clock recursive function.
@@ -1087,6 +1150,9 @@ export default {
       vm.localSyncClockStatus = !vm.localSyncClockStatus;
       // Allowing tickNumber to add to itself.
       vm.$store.commit("changeClockStatus");
+      // clear pianoState
+      vm.$store.commit("clearPianoState");
+
 
       // If the clock is not yet initialized...
       if (!vm.$store.getters.getClockInitialized) {
@@ -1111,32 +1177,7 @@ export default {
               vm.runTheWorker();
             }, parseInt(((60 / vm.$store.getters.getBPM / vm.$store.getters.getGrid) * 1000) / 4));
 
-            // after every measure we send the data to firebase
-            // if (vm.$store.getters.getLocalTick % vm.$store.getters.getTicksPerMeasure === 0) {
-            //   try {
-            //     const updateBuffer = vm.userNoteBuffer2Firebase.concat(
-            //       vm.AINoteBuffer2Firebase
-            //     );
-            //     await updateDoc(
-            //       doc(db, "data", vm.$store.getters.getSessionID),
-            //       {
-            //         playData: arrayUnion.apply(this, updateBuffer),
-            //       }
-            //     );
-            //     vm.userNoteBuffer2Firebase = [];
-            //     vm.AINoteBuffer2Firebase = [];
-            //   } catch (e) {
-            //     if (vm.firebaseErrCount < 10) {
-            //       this.$toasted.show(
-            //         "Error adding doc to firebase. Error Message in console."
-            //       );
-            //       console.log("Firebase error:", e);
-            //       vm.firebaseErrCount += 1;
-            //     }
-            // }
-            // }
-
-            vm.$store.commit("clearNoteOnBuffer");
+            // vm.$store.commit("clearNoteOnBuffer");
           }
         }
 

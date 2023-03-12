@@ -37,6 +37,8 @@
 import * as Tone from "tone";
 import Instruments from "@/library/instruments";
 import { clamp } from "@/library/math";
+import {Note} from "@tonaljs/tonal";
+
 
 // Here, a set of constants are defined.
 const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"];
@@ -181,39 +183,46 @@ export default {
   methods: {
     noteActive(note) {
       // If the note is active, the state of that note is true.
-      return this.$store.getters.getPianoState[note] === true;
+      let midi = Note.midi(note);
+      return this.$store.getters.getPianoState[midi].status === true;
     },
 
     toggleAttack(currentNote) {
-      if (this.$store.getters.getClockStatus){
-      // Trigger the sampler.
-      // console.log("The CURRENT note IS ", currentNote)
-      // set the second parameter here to False for human.
-      this.$root.$refs.pianoRollUI.keyDown(currentNote, true);
-      this.$store.dispatch("noteOn", currentNote);
-      const payload = {
-        name: "user",
-        note: currentNote,
-        time: Tone.now()
-      };
-      this.$store.dispatch("samplerOn", payload);
-      // pianoSampler.triggerAttack(currentNote, Tone.now());
+
+      const midiEvent = {
+        type: "noteOn",
+        player : "human",
+        note : currentNote, //message.note.identifier,
+        channel : 140, // this is channel midi channel 0
+        midi : Note.midi(currentNote),
+        velocity : 127,
+        timestamp : Tone.now(),
+      }
+      let delay = 0;
+      this.$store.dispatch("samplerOn", {midiEvent, delay});
+      if (this.$store.getters.getClockStatus) {
+        this.$root.$refs.pianoRollUI.keyDown(midiEvent);
+        this.$store.dispatch("noteOn", midiEvent);
       }
     },
 
     toggleRelease(currentNote) {
-      // Release the sampler that's been triggered.
-      // console.log("The RELEASED note IS ", currentNote)
-      this.$root.$refs.pianoRollUI.keyUp(currentNote, true);
-      this.$store.dispatch("noteOff", currentNote);
-      const payload = {
-        name: "user",
-        note: currentNote,
-        time: Tone.now()
+      const midiEvent = {
+        type: "noteOff",
+        player: "human",
+        note: currentNote, //message.note.identifier,
+        channel: 140, // this is channel midi channel 0
+        midi : Note.midi(currentNote),
+        velocity: 127,
+        timestamp: Tone.now(),
       }
-      this.$store.dispatch("samplerOff", payload);
-      // pianoSampler.triggerRelease(currentNote, Tone.now());
-      // Also change the global piano-state.
+      let delay = 0;
+      this.$store.dispatch("samplerOff", {midiEvent, delay});
+      if (this.$store.getters.getClockStatus){
+        // this enters here, only when the clock has started
+        this.$root.$refs.pianoRollUI.keyUp(midiEvent);
+        this.$store.dispatch("noteOff", midiEvent);
+      }
     },
 
     calculateOctave(n) {
