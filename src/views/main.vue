@@ -251,7 +251,7 @@ export default {
       console.error(err);
     }
 
-    vm.worker = new Worker("worker.js");
+    vm.worker = new Worker("octavedoubler-worker.js");
     vm.worker.onmessage = vm.workerCallback;
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
