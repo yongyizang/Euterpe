@@ -12,10 +12,16 @@
 <script>
 // This project mainly uses Three.js to generate the canvas.
 import * as THREE from "three";
+import("../css/variables.css");
 
-// Define basic parameters.
-const colorForWorker = 0x7dd87d;
-const colorForHuman = 0x4c9173;
+// get --pianoRollUI-human-color and --pianoRollUI-worker-color from CSS.
+const colorForWorker = getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRollUI-worker-color"
+);
+const colorForHuman = getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRollUI-human-color"
+);
+
 const initialScaling = 10000; // a constant in scaling the noteblock.
 const KeyboardUIHeight = 210;
 const NoteAnimationMargin = 10; // margin of noteblock plane compared to the width of the key.

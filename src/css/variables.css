@@ -1,0 +1,21 @@
+:root {
+    --background-color:rgb(234, 205, 146);
+    --foreground-color:rgb(89, 50, 54);
+    --text-color:rgb(89, 50, 54);
+
+    --button-background-color:rgb(243, 225, 190);
+    --button-text-color:rgb(89, 50, 54);
+
+    --keyboard-white-color: #fff;
+    --keyboard-white-text-color: #000;
+    --keyboard-black-color: #000;
+    --keyboard-black-text-color: #fff;
+    --keyboard-border-radius: 5px;
+
+    --note-color:rgb(89, 50, 54);
+    --line-color:rgb(89, 50, 54);
+    --score-background-color:rgb(243, 225, 190);
+
+    --pianoRollUI-human-color:rgb(215, 143, 0);
+    --pianoRollUI-worker-color:rgb(73, 50, 5);
+}

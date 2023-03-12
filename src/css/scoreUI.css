@@ -1,0 +1,150 @@
+@import url('variables.css');
+
+#pianoScores {
+    overflow: hidden;
+    z-index: 1;
+    width: calc(100% - 20px);
+    height: 350px;
+    position: absolute;
+    left: 10px;
+    top: 0;
+  }
+  
+  #scoreWrapper {
+    position: absolute;
+    height: 300px;
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-box-shadow: -4px 6px 15px -9px #000000;
+    box-shadow: -4px 6px 15px -9px #000000;
+    background-color: var(--score-background-color);
+    -webkit-border-bottom-right-radius: 40px;
+    -webkit-border-bottom-left-radius: 40px;
+    -moz-border-radius-bottomright: 40px;
+    -moz-border-radius-bottomleft: 40px;
+    border-bottom-right-radius: 40px;
+    border-bottom-left-radius: 40px;
+  }
+  
+  #grandStaff {
+    z-index: 997;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  #noteBox {
+    z-index: 995;
+    position: absolute;
+    top: 0px;
+    left: 50px;
+  }
+  #staveBackground {
+    z-index: 993;
+    position: absolute;
+    top: 0px;
+    left: 50px;
+  }
+  
+  #collapseBtn {
+    z-index: 999;
+    width: 60px;
+    height: 40px;
+    position: absolute;
+    top: 300px;
+    left: calc(50% - 30px);
+    -webkit-box-shadow: -4px 6px 15px -9px #000000;
+    box-shadow: -4px 6px 15px -9px #000000;
+    background-color: var(--score-background-color);
+    color: var(--text-color);
+    font-size: 35px;
+    -webkit-border-bottom-right-radius: 20px;
+    -webkit-border-bottom-left-radius: 20px;
+    -moz-border-radius-bottomright: 20px;
+    -moz-border-radius-bottomleft: 20px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-style: hidden;
+  }
+  
+  #fadeBlockStart {
+    z-index: 996;
+    display: block;
+    width: 150px;
+    height: 300px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: linear-gradient(
+      270deg,
+      rgba(0,0,0, 0) 0%,
+      var(--score-background-color) 100%
+    );
+  }
+  
+  #fadeBlockEnd {
+    z-index: 999;
+    display: inline-block;
+    width: 60px;
+    height: 300px;
+    position: absolute;
+    top: 0;
+    left: calc(100% - 60px);
+    background: linear-gradient(
+      90deg,
+      rgba(0,0,0, 0) 0%,
+      var(--score-background-color) 100%
+    );
+  }
+  
+  .slide-up {
+    -webkit-animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+  
+  .slide-down {
+    -webkit-animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+  
+  @-webkit-keyframes slide-up {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    100% {
+      -webkit-transform: translateY(-300px);
+      transform: translateY(-300px);
+    }
+  }
+  @keyframes slide-up {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    100% {
+      -webkit-transform: translateY(-300px);
+      transform: translateY(-300px);
+    }
+  }
+  
+  @-webkit-keyframes slide-down {
+    0% {
+      -webkit-transform: translateY(-300px);
+      transform: translateY(-300px);
+    }
+    100% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+  }
+  @keyframes slide-down {
+    0% {
+      -webkit-transform: translateY(-300px);
+      transform: translateY(-300px);
+    }
+    100% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+  }

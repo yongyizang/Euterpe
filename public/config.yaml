@@ -1,9 +1,6 @@
 ---
-introTypewriter: true
-introTypewriterContent:
- - "Hi, I'm BachDuet!"
- - "I'm the YAML file that's working."
-
+title: "BachDuet"
+subtitle: "An Baroque-Style AI Music Interaction System"
 # Voices: integer, denotes the number of voices for input and output.
 inputVoices: 1
 outputVoices: 1
@@ -23,15 +20,10 @@ clockBased:
   tempo: 120 # beat per minute
   grid: 16 # ticks per beat
 
-# Data Collection
-# If dataCollection is true, the data will be collected and saved to firebase.
-dataCollection: false
-# We natively support firebase. Just provide credentials here.
-firebaseConfig:
-  apiKey: "AIzaSyDzY6lKHN69A8xFVljbJeDP75RL3Yz8Zfo"
-  authDomain: "bachduet-d6ca6.firebaseapp.com"
-  projectId: "bachduet-d6ca6"
-  storageBucket: "bachduet-d6ca6.appspot.com"
-  messagingSenderId: "630968840698"
-  appId: "1:630968840698:web:12c4589bb03536ec857443"
-  measurementId: "G-NGJWHLYCS3"
+# Intro Modal
+introModal: true
+introModalContent:
+ - "Hi! This is BachDuet."
+ - "Gotta love some Duet!"
+ - "Here is an example of using bold text."
+ - "And here is an example of using <i>italic</i> text."
