@@ -188,8 +188,8 @@ export default {
       messageType: null,
       statusType: null,
       // BPM and randomness here are the default values, they will be synced to vuex once they change.
-      BPM: 90,
-      randomness: 100,
+      BPM: null,
+      randomness: null,
       localSyncClockStatus: false, // used to trigger local UI change
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
@@ -244,9 +244,15 @@ export default {
 
 
     try {
-      await fetch('/config.yaml').then(response => response.text()).then(text => function () { vm.$store.commit("setConfig", yaml.load(text)); this.config = yaml.load(text); }.bind(this)());
+      await fetch('/config.yaml')
+      .then(response => response.text())
+      .then(text => function () { 
+        vm.$store.commit("setConfig", yaml.load(text)); 
+        this.config = yaml.load(text); 
+        this.BPM = this.config.clockBased.tempo; 
+      }.bind(this)());
       await fetch('/constants.json').then(response => response.json()).then(json => function () { this.messageType = json.messageType; this.statusType = json.statusType; }.bind(this)());
-      console.log("config and constants loaded");
+      // console.log("config and constants loaded");
     } catch (err) {
       console.error(err);
     }
