@@ -244,7 +244,13 @@ export default {
 
 
     try {
-      await fetch('/config.yaml').then(response => response.text()).then(text => function () { vm.$store.commit("setConfig", yaml.load(text)); this.config = yaml.load(text); this.BPM = this.config.clockBased.tempo; }.bind(this)());
+      await fetch('/config.yaml')
+      .then(response => response.text())
+      .then(text => function () { 
+        vm.$store.commit("setConfig", yaml.load(text)); 
+        this.config = yaml.load(text); 
+        this.BPM = this.config.clockBased.tempo; 
+      }.bind(this)());
       await fetch('/constants.json').then(response => response.json()).then(json => function () { this.messageType = json.messageType; this.statusType = json.statusType; }.bind(this)());
       // console.log("config and constants loaded");
     } catch (err) {
