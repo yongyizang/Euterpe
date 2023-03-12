@@ -7,19 +7,17 @@ import Vue from "vue";
 
 const state = {
   config: null,
-  isDataCollecting: true,
   sessionID: null,
   clockStatus: false,
   clockInitialized: false,
-  bpm: 90,
-  frequency: 4,
-  // temperature: 0.25,
-  workerParams: null,
+  bpm: null,
+  frequency: null,
+  randomness: null,
   modalStatus: false,
   // static
-  ts_nom: 4, // time signature numerator (number of beats)
-  ts_denom: 4, // time signature denominator (note value of a beat)
-  grid: 4, // grid resolution per beat (4 = 16th notes for a time signature of 4/4)
+  // ts_nom: 4, // time signature numerator (number of beats)
+  // ts_denom: 4, // time signature denominator (note value of a beat)
+  // grid: 4, // grid resolution per beat (4 = 16th notes for a time signature of 4/4)
 };
 
 const getters = {
@@ -32,12 +30,6 @@ const getters = {
   },
   getWorkerParams(state){
     return state.config.workerParams;
-  },
-  getDataCollectingState(state) {
-    return state.config.dataCollection;
-  },
-  getFirebaseConfig(state) {
-    return state.config.firebaseConfig;
   },
   getClockStatus(state){
     return state.clockStatus;
@@ -56,7 +48,7 @@ const getters = {
   },
   getTSNom(state){
     if (state.config.event-based) return null;
-    return state.config.clock-based.timeSignature.numerator;
+    return state.config.clockBased.timeSignature.numerator;
   },
   getTSDenom(state){
     return state.ts_denom;
@@ -74,10 +66,6 @@ const actions = {};
 const mutations = {
   setConfig (state, config){
     state.config = config;
-  },
-  changeDataCollectionState (state, status) {
-    state.isDataCollecting = status;
-    console.log(status);
   },
   writeSessionID(state, id){
     state.sessionID = id;
