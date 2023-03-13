@@ -893,11 +893,11 @@ export default {
       }
     },
     startRecording() {
-      this.audioRecorder.parameters.get('isRecording').setValueAtTime(1, this.audioContext.currentTime);
+      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
     },
 
     stopRecording() {
-      this.audioRecorder.parameters.get('isRecording').setValueAtTime(0, this.audioContext.currentTime);
+      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
     },
 
     showSettingsModal() {
