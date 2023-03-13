@@ -1,21 +1,23 @@
 importScripts("/tf.min.js");
+
+let constants = {};
+let externalJsonLoaded = false;
+let config = null;
+
+// BachDuet Specific variables
 const CHECKPOINT_BASE_URL = "@/../public/checkpoints/"
-// Maximum of the localTick
-const LOCALMAX = 16;
+let tokensDict = null;
 const bar = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1];
 const beat = [0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2];
 const accent = [0, -3, -2, -3, -2, -4, -3, -4, -1, -3, -2, -3, -2, -4, -3, -4];
 const rhythmTokens = bar.map((element, index) => `${element}_${beat[index]}_${accent[index]}`);
 let counter = 0;
-let externalJsonLoaded = false;
-let config = null;
 let lastWorkerPrediction = {
     midi_artic_token_ind: 96,
     cpc: 12
 }
-let constants = {};
-let tokensDict = {};
 
+// You can load any external JSON files you have here
 async function loadExternalJson() {
     // constants.json defines the messagetype and statustype constants
     await fetch('constants.json').then(response => {
@@ -28,7 +30,6 @@ async function loadExternalJson() {
     // For example, the rest token "0_1" is 96
     // other tokens are "60_1" (a C4 onset)
     // or "60_0" (a C4 hold)
-    // tokensDict: {}
     await fetch('globalTokenIndexDict.json').then(response => {
         return response.json();
     }).then(data => {
@@ -38,9 +39,11 @@ async function loadExternalJson() {
 
 async function loadConfig(config) {
     self.config = config;
+    self.ticksPerMeasure = config.ticksPerBeat * config.timeSignature.numerator;
 }
 
 async function loadModels() {
+
     // tf backend doc
     tf.setBackend('webgl');
 
@@ -51,7 +54,6 @@ async function loadModels() {
         console.error(error);
     }
 
-
     // Post this message to UI
     postMessage({
         messageType: self.constants.messageType.STATUS,
@@ -59,8 +61,7 @@ async function loadModels() {
         message: "Worker is loaded!",
     });
 
-    warmupRounds = 2; // TODO : this should be a global setting or smth
-
+    // If your model/worker needs to be initialized and warmed up, do it here
     var midiInp = tf.tensor2d([[96, 96]]);
     var cpcInp = tf.tensor2d([[12, 12]]);
     var rhyInp = tf.tensor2d([[4]]);
@@ -73,7 +74,7 @@ async function loadModels() {
     self.first2A = self.states2A;
     self.first2B = self.states2B;
 
-    for (let i = 0; i < warmupRounds; i++) {
+    for (let i = 0; i < self.config.worker.warmupRounds; i++) {
 
         var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
         var embMidi = exodos[0];
@@ -84,13 +85,15 @@ async function loadModels() {
         var totalInp = tf.concat([embMidiC, embCpcC, embRhy], 2);
         var out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
 
+        // you can sent WARMUP status messages to the UI if you want.
         postMessage({
             messageType: self.constants.messageType.STATUS,
             statusType: self.constants.statusType.WARMUP,
-            message: "Network is warming up. Current round: " + (i + 1) + "/" + warmupRounds,
+            message: "Network is warming up. Current round: " + (i + 1) + "/" + self.config.worker.warmupRounds,
         });
     }
 
+    // Once your model/worker is ready to play, post a success message to the UI
     postMessage({
         messageType: self.constants.messageType.STATUS,
         statusType: self.constants.statusType.SUCCESS,
@@ -112,10 +115,12 @@ async function inference(data) {
     // getTokensDict is BachDuet specific. 
     const rhythmTokenInd = self.tokensDict.rhythm.token2index[rhythmToken];
 
-    const temperature = data.randomness * 2;
+    // randomness is controlled by a slider in the UI and has values from 0 to 1
+    // here we map it to the sampling temperature of our model which needs to be between 0.2 and 2
+    const temperature = 0.2 + 1.8 * data.randomness;
     const currentTick = data.tick;
-    const humanInp = data.humanInp;
-
+    const humanInp = data.humanQuantizedInput;
+    
     if (data.reset) {
         self.states1A = tf.zeros([1, 600]);
         self.states1B = tf.zeros([1, 600]);
@@ -131,7 +136,7 @@ async function inference(data) {
         humanInp.push({type: "on", midi: 0})
     }
 
-    console.log(humanInp[0])
+    // console.log(humanInp[0])
     let clipedMidi = humanInp[0].midi;
 
     // console.log("clipedMidi", clipedMidi);
@@ -150,7 +155,7 @@ async function inference(data) {
         humanCpc = 12;
     }
     const humanMidiArtic = clipedMidi.toString() + '_' + humanArtic.toString()
-    console.log(humanMidiArtic);
+    // console.log(humanMidiArtic);
     const humanMidiArticInd = self.tokensDict.midiArtic.token2index[humanMidiArtic];
 
     var midiInp = tf.tensor2d([[lastWorkerPrediction.midi_artic_token_ind, humanMidiArticInd]]);
@@ -220,6 +225,7 @@ async function inference(data) {
             note: note
         }
     });
+    // console.log("worker prediction", note.midi, note.articulation, note.cpc);
 }
 
 async function onMessageFunction (obj) {

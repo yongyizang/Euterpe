@@ -1,90 +1,22 @@
 import Vue from "vue";
-import { Range } from "@tonaljs/tonal";
 
-// FROM Yongyi's yaml I get
-const MODE = "GRID"; // or "CONTINUOUS"
-// If GRID, then we need BPM, GRID, TS_NOM, TS_DEN
-// If CONTINUOUS, then we need PERIOD
-const BPM = 90;
-const TICKS_PER_BEAT = 4; // this is the number of ticks per beat
-const TS_NOM = 4; // this is the numerator of the time signature
-const TS_DEN = 4; // this is the denominator of the time signature
-let CLOCK_PERIOD = null;
-let TICKS_PER_MEASURE = null;
-let GRID_TICK_PERIOD = null;
-let QUANTIZED_BUFFER_SIZE = null;
-if (MODE === "GRID") {
-    // in GRID mode, the clock period is the same as the grid tick duration
-    // for example if we have a 4/4 time signature, and a 16th note grid, then
-    // the grid tick duration is 60 / 90 / 4 = 0.25 seconds
-    // and the clock ticks every 0.25 seconds as well
-    GRID_TICK_PERIOD = (60 / BPM / TICKS_PER_BEAT) * 1000;
-    CLOCK_PERIOD = GRID_TICK_PERIOD;
-    TICKS_PER_MEASURE = TS_NOM * TICKS_PER_BEAT;
-    // In GRID mode, the quantized buffer size is the same as the number of ticks per measure
-    QUANTIZED_BUFFER_SIZE = TICKS_PER_MEASURE;
-}
-else if (MODE === "CONTINUOUS") {
-    // CLOCK_PERIOD needs not to be null.
-    if (CLOCK_PERIOD === null) {
-        throw new Error("CLOCK_PERIOD cannot be null in CONTINUOUS mode.");
-    }
-    GRID_TICK_PERIOD = CLOCK_PERIOD;
-    // In CONTINUOUS mode, the quant buffer size doesn't have any physical meaning,
-    // I just set it to 16 for now
-    QUANTIZED_BUFFER_SIZE = 16;
-}
-
-const notes = Range.chromatic(["A0", "C8"], { sharps: true });
 // Create a range of midi numbers from 21 to 108 (piano keys)
 const pianoMidiNumbers = [...Array(88).keys()].map(i => i + 21);
-const measureTicks = [...Array(QUANTIZED_BUFFER_SIZE).keys()];
-
 let pianoState = pianoMidiNumbers.reduce((map, midi) => {
     map[midi] = {status: false, timestamp: 0};
     return map
-}, {})
-
-const emptyNote = {"midi" : -1, 
-                    "cpc" : -1, 
-                    "name" : "", 
-                    // "dur" : 0, 
-                    "articulation" : -1, 
-                    // "tick" : -1, 
-                    // "startTick" : -1,
-                }
-const restNote = {"midi" : 0,
-                    "cpc" : 12,
-                    "name" : "R",
-                    // "dur" : 0,
-                    "articulation" : 1,
-                    }
-
-let quantizedBufferWorker = measureTicks.reduce((map, tick) => {
-    map[tick] = restNote
-    return map
-}, {})
-let quantizedBufferHuman = measureTicks.reduce((map, tick) => {
-    map[tick] = restNote
-    return map
-}, {})
-
-
-pianoState = new Vue.observable(pianoState)
-quantizedBufferWorker = new Vue.observable(quantizedBufferWorker)
-quantizedBufferHuman = new Vue.observable(quantizedBufferHuman)
-// const lastNotePlayedObs = new Vue.observable("")
-// const lastEventTickObs = new Vue.observable(-1)
+}, {});
 
 const state = {
     // Define all basic states.
+    pianoMidiNumbers: [],
     pianoState: pianoState,
 
     // Buffers where we push the quantized notes played.
     // in grid mode, the quantized positions have a musical meaning
     // in continuous mode, the quantized positions are just the time and depend on the CLOCK_PERIOD
-    quantizedBufferWorker: quantizedBufferWorker,
-    quantizedBufferHuman: quantizedBufferHuman,
+    quantizedBufferWorker: [],
+    quantizedBufferHuman: [],
 
     // Buffers where we push the (continuous/unquantized) notes the human plays.
     // these are cleared after each clock tick
@@ -132,6 +64,7 @@ const getters = {
         return getters.getActivePianoNotes.length > 0;
     },
     getWorkerPredictionFor: (state) => (currentTick) => {
+        // print the length of quantizedBufferWorker
         return state.quantizedBufferWorker[currentTick]
     },
     getHumanInputFor: (state) => (currentTick) => {
@@ -342,6 +275,25 @@ const actions = {
 }
 
 const mutations = {
+    // initPianoState (state) {
+    //     // Create a range of midi numbers from 21 to 108 (piano keys)
+    //     state.pianoMidiNumbers = [...Array(88).keys()].map(i => i + 21);
+    //     state.pianoState = state.pianoMidiNumbers.reduce((map, midi) => {
+    //         map[midi] = {status: false, timestamp: 0};
+    //         return map
+    //     }, {});
+    // },
+    initQuantBuffers(state, config) {
+        const restNote = {"midi" : 0,
+                    "cpc" : 12,
+                    "name" : "R",
+                    "articulation" : 1,
+                    };
+        let ticksPerMeasure = config.ticksPerBeat * config.timeSignature.numerator;
+        // initialize quantizedBufferWorker and quantizedBufferHuman with 16 restNotes
+        state.quantizedBufferWorker =new Array(ticksPerMeasure).fill(restNote);
+        state.quantizedBufferHuman =new Array(ticksPerMeasure).fill(restNote);
+    },
     clearContinuousBuffers (state) {
         state.noteOnBuffer = [];
         state.midiEventBuffer = [];
@@ -352,7 +304,7 @@ const mutations = {
             state.pianoState[i].status = false;
             state.pianoState[i].timestamp = 0;
         }
-        console.log("cleared pianoState");
+        // console.log("cleared pianoState");
     }
 }
 

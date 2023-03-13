@@ -14,10 +14,6 @@ const state = {
   frequency: null,
   randomness: null,
   modalStatus: false,
-  // static
-  // ts_nom: 4, // time signature numerator (number of beats)
-  // ts_denom: 4, // time signature denominator (note value of a beat)
-  // grid: 4, // grid resolution per beat (4 = 16th notes for a time signature of 4/4)
 };
 
 const getters = {
@@ -27,9 +23,6 @@ const getters = {
   // get the intro type writer animation text
   getLoadingtext(state){
     return state.config.introTypewriterContent;
-  },
-  getWorkerParams(state){
-    return state.config.workerParams;
   },
   getClockStatus(state){
     return state.clockStatus;
@@ -47,17 +40,17 @@ const getters = {
     return state.modalStatus;
   },
   getTSNom(state){
-    if (state.config.event-based) return null;
-    return state.config.clockBased.timeSignature.numerator;
+    // if (state.config.event-based) return null;
+    return state.config.timeSignature.numerator;
   },
   getTSDenom(state){
-    return state.ts_denom;
+    return state.config.timeSignature.denominator;
   },
-  getGrid(state){
-    return state.grid;
+  getTicksPerBeat(state){
+    return state.config.ticksPerBeat;
   },
   getTicksPerMeasure(state){
-    return state.ts_nom * state.grid;
+    return state.config.timeSignature.numerator * state.config.ticksPerBeat;
   }
 };
 
