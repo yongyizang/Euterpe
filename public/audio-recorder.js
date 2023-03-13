@@ -2,7 +2,7 @@ class AudioRecorder extends AudioWorkletProcessor {
     static get parameterDescriptors () { // <1>
       return [
         {
-          name: 'isRecording',
+          name: 'recordingStatus',
           defaultValue: 0,
           minValue: 0,
           maxValue: 1,
