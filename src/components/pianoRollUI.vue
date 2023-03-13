@@ -15,12 +15,12 @@ import * as THREE from "three";
 import("../css/variables.css");
 
 // get --pianoRollUI-human-color and --pianoRollUI-worker-color from CSS.
-const colorForWorker = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRollUI-worker-color"
-);
-const colorForHuman = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRollUI-human-color"
-);
+const colorForWorker = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRollUI-worker-color".replace(/\s/g, "")
+));
+const colorForHuman = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRollUI-human-color".replace(/\s/g, "")
+));
 
 const initialScaling = 10000; // a constant in scaling the noteblock.
 const KeyboardUIHeight = 210;

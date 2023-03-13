@@ -26,8 +26,9 @@
     </div>
 
     <div ref="mainContent" id="mainContent" class="fade-in">
-      <div style="
-                            background-color: black;
+      <div class="statusBox">
+      </div>
+      <div style="background-color: black;
                             opacity: 0.5;
                             display: fixed;
                             top: 0;
@@ -263,7 +264,7 @@ export default {
       console.error(err);
     }
 
-    vm.worker = new Worker("audio-worker.js");
+    vm.worker = new Worker("worker.js");
     vm.worker.onmessage = vm.workerCallback;
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
@@ -665,6 +666,13 @@ export default {
         // play AudioBuffer
         vm.workerPlayer.buffer = audioBuffer;
         vm.workerPlayer.start();
+      } else if (e.data.messageType === vm.messageType.STATUS_MESSAGE){
+        let message = "";
+        for (let i = 0; i < e.data.message.length; i++) {
+          message += "<p>" + e.data.message[i] + "<p/>";
+        }
+        const element = document.getElementsByClassName("statusBox")[0];
+        element.innerHTML = message;
       }
     },
 

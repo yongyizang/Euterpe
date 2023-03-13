@@ -15,8 +15,11 @@
     --note-color: #e6a100;
     --line-color: #ffffff;
     --score-background-color: #1a1a1a;
+
+    --status-background-color: rgba(194, 122, 122, 0.866);
+    --status-text-color: #77c1d7c4;
   
-    --pianoRollUI-human-color: #00b2ff;
-    --pianoRollUI-worker-color: #ff3b3b;
+    --pianoRollUI-human-color:#835f0b;
+    --pianoRollUI-worker-color:#00c7e6;
   }
   

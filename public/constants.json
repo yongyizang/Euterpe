@@ -7,7 +7,8 @@
     "SET_PARAMS": 4,
     "NOTES": 5,
     "INSTANT_EVENTS": 6,
-    "RAW_AUDIO": 7
+    "RAW_AUDIO": 7,
+    "STATUS_MESSAGE": 8
   },
   "statusType": {
     "LOADED": 0,

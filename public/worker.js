@@ -223,6 +223,13 @@ async function inference(data) {
             note: note
         }
     });
+    postMessage({
+        messageType: self.constants.messageType.STATUS_MESSAGE,
+        message: [
+            'tick: ' + currentTick,
+            'predictTime: ' + predictTime.toFixed(2) + ' ms',
+        ]
+    })
     // console.log("worker prediction", note.midi, note.articulation, note.cpc);
 }
 
