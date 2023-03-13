@@ -237,7 +237,7 @@ export default {
     vm.audioContext = new AudioContext({
       lookAhead: 0
     });
-    Tone.content = vm.audioContext;
+    Tone.setContext(vm.audioContext);
 
     /*
      * Loading Animation: set initial status of both div
