@@ -65,7 +65,6 @@ const getters = {
     },
     getWorkerPredictionFor: (state) => (currentTick) => {
         // print the length of quantizedBufferWorker
-        console.log("get prediction is ",  state.quantizedBufferWorker[currentTick]);
         return state.quantizedBufferWorker[currentTick]
     },
     getHumanInputFor: (state) => (currentTick) => {
@@ -130,7 +129,6 @@ const actions = {
         //         cpc: cpc,
         //     },
         // }
-        console.log("I'm storing workerPrediction ", workerPrediction)
         const nextTick = getters.getNextLocalTick(workerPrediction.tick);
         // store the predicted note in the quantizedBufferWorker 
         state.quantizedBufferWorker[nextTick] = workerPrediction.note
@@ -291,10 +289,6 @@ const mutations = {
         // initialize quantizedBufferWorker and quantizedBufferHuman with 16 restNotes
         state.quantizedBufferWorker =new Array(ticksPerMeasure).fill(restNote);
         state.quantizedBufferHuman =new Array(ticksPerMeasure).fill(restNote);
-        // print all the 16 values of  state.quantizedBufferWorker
-        for (let i = 0; i < state.quantizedBufferWorker.length; i++) {
-            console.log(state.quantizedBufferWorker[i]);
-        }
     },
     clearContinuousBuffers (state) {
         state.noteOnBuffer = [];

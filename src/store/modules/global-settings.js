@@ -50,13 +50,11 @@ const getters = {
     return state.config.ticksPerBeat;
   },
   getTicksPerMeasure(state){
-    console.log("getTicksPerMeasure gives", state.config.timeSignature.numerator * state.config.ticksPerBeat);
     return state.config.timeSignature.numerator * state.config.ticksPerBeat;
   },
   // example getter. This will get BPM from global-settings module, then calculate the new clock period.
   getClockPeriod (state, getters, rootState, rootGetters) {
     // return (60 / rootGetters['global-settings/getBPM'] / rootGetters['global-settings/getTicksPerMeasure']) * 1000;
-    console.log("getClockPeriod gives", (60 / state.bpm / getters.getTicksPerBeat) * 1000);
     return (60 / state.bpm / getters.getTicksPerBeat) * 1000;
 },
 };

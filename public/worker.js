@@ -103,7 +103,6 @@ async function loadModels() {
 }
 
 async function inference(data) {
-    console.log("INSIDE WORKER INFERENCE");
     var predictTime = performance.now();
     // TODO e.data will contain only the user's midi numbers they played since the last tick
     // TODO it's the worker's job to convert the polyphonic input to monophonic (if needed) (We can do this on Euterpe also)
@@ -137,10 +136,8 @@ async function inference(data) {
         humanInp.push({type: "on", midi: 0})
     }
 
-    console.log(humanInp[0])
     let clipedMidi = humanInp[0].midi;
 
-    // console.log("clipedMidi", clipedMidi);
     while (clipedMidi < 28 && clipedMidi > 0){
         clipedMidi += 12
     }
@@ -229,6 +226,10 @@ async function inference(data) {
     // console.log("worker prediction", note.midi, note.articulation, note.cpc);
 }
 
+async function raw_audio(content){
+    // console.log("raw_audio", content);
+}
+
 async function onMessageFunction (obj) {
     if (!self.externalJsonLoaded) {
         await self.loadExternalJson();
@@ -241,6 +242,8 @@ async function onMessageFunction (obj) {
             await this.loadModels();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.RAW_AUDIO) {
+            await this.raw_audio(obj.data.content);
         }
     }
 }
