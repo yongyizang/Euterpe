@@ -51,9 +51,9 @@ const actions = {
             // let skata = Tone.now();
             // console.log(skata);
             // console.log(delay);
-            humanSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity);
+            humanSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
         } else if (midiEvent.player == "worker"){
-            workerSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity);
+            workerSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
         } else if (midiEvent.player == "metronome"){
             metronomeSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
             // release the note 0.5s after the attack
