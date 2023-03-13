@@ -12,7 +12,7 @@ class AudioRecorder extends AudioWorkletProcessor {
   
     process (inputs, outputs, parameters) {
       const channel = 0
-      if (parameters.isRecording[0] === 1) {
+      if (parameters.recordingStatus[0] === 1) {
         this.port.postMessage(inputs[channel][0]);
       }
       return true;
