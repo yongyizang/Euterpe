@@ -103,6 +103,7 @@ async function loadModels() {
 }
 
 async function inference(data) {
+    console.log("INSIDE WORKER INFERENCE");
     var predictTime = performance.now();
     // TODO e.data will contain only the user's midi numbers they played since the last tick
     // TODO it's the worker's job to convert the polyphonic input to monophonic (if needed) (We can do this on Euterpe also)
@@ -136,7 +137,7 @@ async function inference(data) {
         humanInp.push({type: "on", midi: 0})
     }
 
-    // console.log(humanInp[0])
+    console.log(humanInp[0])
     let clipedMidi = humanInp[0].midi;
 
     // console.log("clipedMidi", clipedMidi);

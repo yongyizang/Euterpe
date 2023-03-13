@@ -245,10 +245,10 @@ export default {
       await fetch('/config.yaml')
       .then(response => response.text())
       .then(text => function () { 
-        
-        vm.$store.commit("setConfig", yaml.load(text)); 
-        vm.$store.commit("initQuantBuffers",yaml.load(text));
         this.config = yaml.load(text);
+        vm.$store.commit("setConfig", this.config); 
+        vm.$store.commit("initQuantBuffers",this.config);
+        vm.$store.commit("setTicksPerMeasure", this.config);
         this.BPM = this.config.tempo; 
       }.bind(this)());
       await fetch('/constants.json')
@@ -538,6 +538,7 @@ export default {
      */
 
     runTheWorker() {
+      console.log("INSIDE runTheWorker");
       const vm = this;
       // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
       // it's up to the worker to use it if it wants to.
@@ -571,6 +572,7 @@ export default {
         // If the worker is giving us a prediction (inference)
         const workerPrediction = e.data.message;
         vm.modelInferenceTimes.push(workerPrediction.predictTime);
+        
 
         // Misalignment Check
         // Will block first 2 ticks' misalignment error msg
@@ -619,7 +621,7 @@ export default {
       const workerPrediction = this.$store.getters.getWorkerPredictionFor(
         this.$store.getters.getLocalTick
       );
-
+      console.log("workerPrediction", workerPrediction);
       if (workerPrediction.articulation == 1) {
         if (workerPrediction.midi != 0) {
           if (!(this.lastNoteOnAi === "")) {
@@ -789,24 +791,27 @@ export default {
         async function tickBehavior() {
           if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
+            
 
             vm.metronomeTrigger();
             // in grid-based mode, the worker's sampler is triggered in sync with the clock
+            
             vm.triggerWorkerSampler();
-
+            
+            
             // run the worker with a small delay of tick/4 in order to include 
             // any notes that the user played very close to the tick change.
             // this makes the grid a bit more flexible, and the human input is correctly parsed
             // In terms of playability, the human finds it much more easy to play along the metronome on the grid
             setTimeout(function () {
               vm.runTheWorker();
-            }, parseInt(((60 / vm.$store.getters.getBPM / vm.$store.getters.getTicksPerBeat) * 1000) / 4));
+            }, parseInt(vm.$store.getters.getClockPeriod / 4));
           }
         }
 
         function sendOutTicks() {
           tickBehavior();
-          setTimeout(sendOutTicks, (60 / vm.$store.getters.getBPM / vm.$store.getters.getTicksPerBeat) * 1000);
+          setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod);
         }
 
         sendOutTicks();
@@ -838,6 +843,7 @@ export default {
         };
         let delay = 0;
         this.$store.dispatch("samplerOn", { midiEvent, delay });
+        this.calculateMaxBPM();
       }
     },
 
@@ -869,8 +875,9 @@ export default {
 
     calculateMaxBPM() {
       const vm = this;
-      var dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
-      vm.maxBPM = Math.round(60 / dt / vm.$store.getters.getTicksPerBeat);
+      const dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
+      vm.maxBPM = Math.round(1000* 60 / dt / vm.$store.getters.getTicksPerBeat);
+      console.log("maxBPM", vm.maxBPM);
     },
   },
 };

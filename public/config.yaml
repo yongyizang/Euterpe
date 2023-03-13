@@ -12,7 +12,7 @@ ticksPerBeat: 4
 timeSignature:
   numerator: 4
   denominator: 4
-tempo: 120
+tempo: 60
 # In general, clockPeriod will be determined by Euterpe using tempo and ticksPerBeat
 # if you manually choose a value for clockPeriod ... then what ? 
 # clockPeriod: null
