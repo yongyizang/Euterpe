@@ -6,6 +6,7 @@ localTick is the Tick number for only one measure, cannot be greater than 16
 barTick is the number of the measures played
  */
 const state = {
+    ticksPerMeasure: null,
     globalTick: -1,
     localTick: -1,
     localTickDelayed: -1,
@@ -42,13 +43,13 @@ const getters = {
         return state.barNumber;
     },
     isNewBar (state){
-        return state.localTick % 16 === 0;
+        return state.localTick % state.ticksPerMeasure === 0;
     },
     getNextLocalTickAfter: (state) => (currentTick) => {
-        return (currentTick + 1) % 16;
+        return (currentTick + 1) % state.ticksPerMeasure;
     },
     getNextLocalTick: (state) => () => {
-        return (state.localTick + 1) % 16;
+        return (state.localTick + 1) % state.ticksPerMeasure;
     }
 }
 
@@ -59,20 +60,23 @@ const actions = {
 AddTick is the func. for changing the value of the three Tick number.
  */
 const mutations = {
+    setTicksPerMeasure (state, config){
+        state.ticksPerMeasure = config.ticksPerBeat * config.timeSignature.numerator;
+    },
     incrementTick (state) {
         state.globalTick += 1;
         state.localTick += 1;
         state.barTick += 1;
-        state.localTick = state.localTick % 16;
+        state.localTick = state.localTick % state.ticksPerMeasure;
         if (state.localTick == 0){
             state.barNumber += 1;
         };
-        state.barTick = Math.floor(state.globalTick / 16); 
+        state.barTick = Math.floor(state.globalTick / state.ticksPerMeasure); 
         // console.log('incrementTick to ', state.localTick)
     },
     incrementTickDelayed (state) {
         state.localTickDelayed += 1;
-        state.localTickDelayed = state.localTickDelayed % 16;
+        state.localTickDelayed = state.localTickDelayed % state.ticksPerMeasure;
         state.globalTickDelayed += 1;
         // console.log('incrementDelayedTick to ', state.localTickDelayed)
     }

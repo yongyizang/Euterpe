@@ -181,7 +181,6 @@ export default {
       },
       messageType: null,
       statusType: null,
-      // BPM and randomness here are the default values, they will be synced to vuex once they change.
       BPM: null,
       randomness: null,
       localSyncClockStatus: false, // used to trigger local UI change
@@ -201,7 +200,6 @@ export default {
       // metronomeStatus: true,
       lastNoteOnAi: "", //TODO: this is is used only by triggerWorkerSample
       reset: false, // reset signal to notify the AI worker to reset
-      write: false, // write signal to notify the AI worker to save its hidden state (bachDuet specific)
 
       WebMIDISupport: false,
       pageLoadTime: null,
@@ -250,11 +248,19 @@ export default {
       await fetch('/config.yaml')
       .then(response => response.text())
       .then(text => function () { 
-        vm.$store.commit("setConfig", yaml.load(text)); 
-        this.config = yaml.load(text); 
-        this.BPM = this.config.clockBased.tempo; 
+        this.config = yaml.load(text);
+        vm.$store.commit("setConfig", this.config); 
+        vm.$store.commit("initQuantBuffers",this.config);
+        vm.$store.commit("setTicksPerMeasure", this.config);
+        this.BPM = this.config.tempo; 
       }.bind(this)());
-      await fetch('/constants.json').then(response => response.json()).then(json => function () { this.messageType = json.messageType; this.statusType = json.statusType; }.bind(this)());
+      await fetch('/constants.json')
+        .then(response => response.json())
+        .then(json => function () { 
+          this.messageType = json.messageType; 
+          this.statusType = json.statusType;
+        }.bind(this)());
+      // console.log("config and constants loaded");
     } catch (err) {
       console.error(err);
     }
@@ -582,11 +588,10 @@ export default {
         messageType: vm.messageType.INFERENCE,
         content: {
           tick: this.$store.getters.getLocalTick,
-          humanInp: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
-          // TODO : add the human input buffer also.
+          humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
+          humanContinuousBuffer: this.$store.getters.getMidiEventBuffer,
           randomness: this.$store.getters.getRandomness,
           reset: this.reset,
-          write: this.write,
         }
       })
     },
@@ -599,6 +604,7 @@ export default {
         // If the worker is giving us a prediction (inference)
         const workerPrediction = e.data.message;
         vm.modelInferenceTimes.push(workerPrediction.predictTime);
+        
 
         // Misalignment Check
         // Will block first 2 ticks' misalignment error msg
@@ -615,7 +621,6 @@ export default {
         this.$store.dispatch("storeWorkerQuantizedOutput", workerPrediction);
 
         this.reset = false; // for explanation see the comment about reset inside runTheWorker()
-        this.write = false;
       }
       else if (e.data.messageType === vm.messageType.STATUS) {
         if (e.data.statusType == vm.statusType.SUCCESS) {
@@ -644,9 +649,6 @@ export default {
     resetNetwork() {
       this.reset = true;
     },
-    writeStates() {
-      this.write = true;
-    },
 
     triggerWorkerSampler() {
       // here, we check the note the AI predicted in the previous tick,
@@ -663,7 +665,6 @@ export default {
       const workerPrediction = this.$store.getters.getWorkerPredictionFor(
         this.$store.getters.getLocalTick
       );
-
       if (workerPrediction.articulation == 1) {
         if (workerPrediction.midi != 0) {
           if (!(this.lastNoteOnAi === "")) {
@@ -838,24 +839,27 @@ export default {
         async function tickBehavior() {
           if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
+            
 
             vm.metronomeTrigger();
             // in grid-based mode, the worker's sampler is triggered in sync with the clock
+            
             vm.triggerWorkerSampler();
-
+            
+            
             // run the worker with a small delay of tick/4 in order to include 
             // any notes that the user played very close to the tick change.
             // this makes the grid a bit more flexible, and the human input is correctly parsed
             // In terms of playability, the human finds it much more easy to play along the metronome on the grid
             setTimeout(function () {
               vm.runTheWorker();
-            }, parseInt(((60 / vm.$store.getters.getBPM / vm.$store.getters.getGrid) * 1000) / 4));
+            }, parseInt(vm.$store.getters.getClockPeriod / 4));
           }
         }
 
         function sendOutTicks() {
           tickBehavior();
-          setTimeout(sendOutTicks, (60 / vm.$store.getters.getBPM / vm.$store.getters.getGrid) * 1000);
+          setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod);
         }
 
         sendOutTicks();
@@ -873,9 +877,9 @@ export default {
     metronomeTrigger() {
       // This method would trigger the metronome sampler.
       if (
-        // getGrid returns the number of ticks per beat
+        // getTicksPerBeat returns the number of ticks per beat
         // and we want the metronome to trigger every beat
-        this.$store.getters.getLocalTick % this.$store.getters.getGrid ==
+        this.$store.getters.getLocalTick % this.$store.getters.getTicksPerBeat ==
         0
       ) {
         var currentNote =
@@ -887,14 +891,15 @@ export default {
         };
         let delay = 0;
         this.$store.dispatch("samplerOn", { midiEvent, delay });
+        this.calculateMaxBPM();
       }
     },
     startRecording() {
-      this.audioRecorder.parameters.get('isRecording').setValueAtTime(1, this.audioContext.currentTime);
+      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
     },
 
     stopRecording() {
-      this.audioRecorder.parameters.get('isRecording').setValueAtTime(0, this.audioContext.currentTime);
+      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
     },
 
     showSettingsModal() {
@@ -925,8 +930,9 @@ export default {
 
     calculateMaxBPM() {
       const vm = this;
-      var dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
-      vm.maxBPM = Math.round(60 / dt / vm.$store.getters.getGrid);
+      const dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
+      vm.maxBPM = Math.round(1000* 60 / dt / vm.$store.getters.getTicksPerBeat);
+      // console.log("maxBPM", vm.maxBPM);
     },
   },
 };

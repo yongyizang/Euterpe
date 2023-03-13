@@ -2,26 +2,62 @@
 title: "Euterpe"
 subtitle: "An AI music interaction system framework"
 # Voices: integer, denotes the number of voices for input and output.
-inputVoices: 1
-outputVoices: 1
+polyphony:
+  input: 1
+  output: 1
 
-# timeUnit: string, denotes the time unit for the input and output. Should be either "seconds" or "ticks".
-timeUnit: "seconds"
+mode: "grid" # or "continuous"
 
-# Event-based on clock-based.
-# If event-based is true, clock-based config will be ignored.
-# If clock-based is true, timeSignature, tempo and grid will be used to calculate the time unit.
-# timeSignature will affect the metronome sound and the time unit.
-eventBased: false
-clockBased:
-  timeSignature:
-    numerator: 4
-    denominator: 4
-  tempo: 120 # beat per minute
-  grid: 16 # ticks per beat
+ticksPerBeat: 4
+timeSignature:
+  numerator: 4
+  denominator: 4
+tempo: 60
+# In general, clockPeriod will be determined by Euterpe using tempo and ticksPerBeat
+# if you manually choose a value for clockPeriod ... then what ? 
+# clockPeriod: null
+
+# Worker specific values
+worker:
+  warmupRounds: 2
+  randomness: 0
 
 # Intro Modal
 introModal: true
 introModalContent:
  - "Hi! This is Euterpe."
  - "I am a general AI music interaction system framework."
+
+#  // // FROM Yongyi's yaml I get
+# // const MODE = "GRID"; // or "CONTINUOUS"
+# // // If GRID, then we need BPM, GRID, TS_NOM, TS_DEN
+# // // If CONTINUOUS, then we need PERIOD
+# // const BPM = 90;
+# // const TICKS_PER_BEAT = 4; // this is the number of ticks per beat
+# // const TS_NOM = 4; // this is the numerator of the time signature
+# // const TS_DEN = 4; // this is the denominator of the time signature
+# // let CLOCK_PERIOD = null;
+# // let TICKS_PER_MEASURE = null;
+# // let GRID_TICK_PERIOD = null;
+# // let QUANTIZED_BUFFER_SIZE = null;
+# // if (MODE === "GRID") {
+# //     // in GRID mode, the clock period is the same as the grid tick duration
+# //     // for example if we have a 4/4 time signature, and a 16th note grid, then
+# //     // the grid tick duration is 60 / 90 / 4 = 0.25 seconds
+# //     // and the clock ticks every 0.25 seconds as well
+# //     GRID_TICK_PERIOD = (60 / BPM / TICKS_PER_BEAT) * 1000;
+# //     CLOCK_PERIOD = GRID_TICK_PERIOD;
+# //     TICKS_PER_MEASURE = TS_NOM * TICKS_PER_BEAT;
+# //     // In GRID mode, the quantized buffer size is the same as the number of ticks per measure
+# //     QUANTIZED_BUFFER_SIZE = TICKS_PER_MEASURE;
+# // }
+# // else if (MODE === "CONTINUOUS") {
+# //     // CLOCK_PERIOD needs not to be null.
+# //     if (CLOCK_PERIOD === null) {
+# //         throw new Error("CLOCK_PERIOD cannot be null in CONTINUOUS mode.");
+# //     }
+# //     GRID_TICK_PERIOD = CLOCK_PERIOD;
+# //     // In CONTINUOUS mode, the quant buffer size doesn't have any physical meaning,
+# //     // I just set it to 16 for now
+# //     QUANTIZED_BUFFER_SIZE = 16;
+# // }
