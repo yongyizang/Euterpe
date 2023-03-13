@@ -236,10 +236,8 @@ export default {
 
   async mounted() {
     var vm = this;
-    vm.audioContext = new AudioContext({
-      lookAhead: 0
-    });
-    Tone.content = vm.audioContext;
+    vm.audioContext = new AudioContext();
+    Tone.context.lookAhead = 0.01;
 
     /*
      * Loading Animation: set initial status of both div
@@ -335,7 +333,7 @@ export default {
     vm.audioRecorder.port.start();
     vm.mediaStreamSource.connect(vm.audioRecorder);
     vm.audioRecorder.connect(vm.audioContext.destination);
-
+    vm.workerPlayer = new Tone.Player().toDestination();
     /*
      * Web MIDI logic
      */
@@ -638,10 +636,9 @@ export default {
         });
         audioBuffer.copyToChannel(audio, 0);
         // play AudioBuffer
-        vm.workerPlayer = new Tone.Player(audioBuffer).toDestination();
+        vm.workerPlayer.buffer = audioBuffer;
         vm.workerPlayer.start();
       }
-
     },
 
     resetNetwork() {
@@ -893,11 +890,11 @@ export default {
       }
     },
     startRecording() {
-      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
+      this.audioRecorder.parameters.get('isRecording').setValueAtTime(1, this.audioContext.currentTime);
     },
 
     stopRecording() {
-      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
+      this.audioRecorder.parameters.get('isRecording').setValueAtTime(0, this.audioContext.currentTime);
     },
 
     showSettingsModal() {
