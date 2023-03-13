@@ -230,6 +230,10 @@ async function raw_audio(content){
     // console.log("raw_audio", content);
 }
 
+async function instant_events(content){
+    // console.log("instant_events", content);
+}
+
 async function onMessageFunction (obj) {
     if (!self.externalJsonLoaded) {
         await self.loadExternalJson();
@@ -244,6 +248,8 @@ async function onMessageFunction (obj) {
             await this.loadConfig(obj.data.content);
         } else if (obj.data.messageType == self.constants.messageType.RAW_AUDIO) {
             await this.raw_audio(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.INSTANT_EVENTS){
+            await this.instant_events(obj.data.content);
         }
     }
 }

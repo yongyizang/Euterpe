@@ -8,6 +8,8 @@ polyphony:
 
 mode: "grid" # or "continuous"
 
+# if eventBased is set to true, the worker will also receive midi events (note on and note off) the moment they happen without any delay.
+eventBased: true
 ticksPerBeat: 4
 timeSignature:
   numerator: 4

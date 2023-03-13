@@ -18,6 +18,10 @@ async function loadConfig(config) {
 }
 
 async function inference(data) {
+}
+
+async function instant_events(content){
+    // console.log("instant_events", content);
     // var predictTime = performance.now();
     let currentTick = data.tick;
     let humanInp = data.humanInp;
@@ -69,6 +73,8 @@ async function onMessageFunction (obj) {
             });
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.INSTANT_EVENTS){
+            await this.instant_events(obj.data.content);
         }
     }
 }

@@ -1,4 +1,4 @@
-'<template>
+<template>
   <!--
       main.vue, the application's main UI file.
   -->
@@ -27,13 +27,13 @@
 
     <div ref="mainContent" id="mainContent" class="fade-in">
       <div style="
-                          background-color: black;
-                          opacity: 0.5;
-                          display: fixed;
-                          top: 0;
-                          right: 0;
-                          z-index: 999;
-                        "></div>
+                            background-color: black;
+                            opacity: 0.5;
+                            display: fixed;
+                            top: 0;
+                            right: 0;
+                            z-index: 999;
+                          "></div>
       <scoreUI />
       <pianoRollUI />
       <div style="position: absolute; bottom: 230px; right: 20px">
@@ -124,8 +124,8 @@
               </div>
               <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
                 <md-button @click="resetNetwork" style="width: 100%">
-                  <md-icon class="forceTextColor" >close</md-icon>
-                  <span class="forceTextColor" >Reset Network</span>
+                  <md-icon class="forceTextColor">close</md-icon>
+                  <span class="forceTextColor">Reset Network</span>
                 </md-button>
               </div>
             </div>
@@ -166,7 +166,6 @@ import yaml from "js-yaml";
 window.onclick = () => {
   Tone.start();
 };
-
 
 export default {
   name: "mainScreen",
@@ -243,21 +242,20 @@ export default {
     this.$refs.mainContent.style.display = "none";
     this.$refs.entryBtn.style.visibility = "hidden";
 
-
     try {
       await fetch('/config.yaml')
-      .then(response => response.text())
-      .then(text => function () { 
-        this.config = yaml.load(text);
-        vm.$store.commit("setConfig", this.config); 
-        vm.$store.commit("initQuantBuffers",this.config);
-        vm.$store.commit("setTicksPerMeasure", this.config);
-        this.BPM = this.config.tempo; 
-      }.bind(this)());
+        .then(response => response.text())
+        .then(text => function () {
+          this.config = yaml.load(text);
+          vm.$store.commit("setConfig", this.config);
+          vm.$store.commit("initQuantBuffers", this.config);
+          vm.$store.commit("setTicksPerMeasure", this.config);
+          this.BPM = this.config.tempo;
+        }.bind(this)());
       await fetch('/constants.json')
         .then(response => response.json())
-        .then(json => function () { 
-          this.messageType = json.messageType; 
+        .then(json => function () {
+          this.messageType = json.messageType;
           this.statusType = json.statusType;
         }.bind(this)());
       // console.log("config and constants loaded");
@@ -370,14 +368,20 @@ export default {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
       // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
-          type: "noteOn",
-          player : "human",
-          note : noteName, //message.note.identifier,
-          channel : 140, // this is channel midi channel 0
-          midi : note.note,
-          velocity : 127,
-          timestamp : Tone.now(),
-        }
+        type: "noteOn",
+        player: "human",
+        note: noteName, //message.note.identifier,
+        channel: 140, // this is channel midi channel 0
+        midi: note.note,
+        velocity: 127,
+        timestamp: Tone.now(),
+      }
+      if (vm.config.eventBased) {
+        vm.worker.postMessage({
+          messageType: vm.messageType.INSTANT_EVENTS,
+          content: midiEvent,
+        });
+      };
       let delay = 0;
       vm.$store.dispatch("samplerOn", { midiEvent, delay });
       if (vm.$store.getters.getClockStatus) {
@@ -399,6 +403,12 @@ export default {
         velocity: 127,
         timestamp: Tone.now(),
       }
+      if (vm.config.eventBased) {
+        vm.worker.postMessage({
+          messageType: vm.messageType.INSTANT_EVENTS,
+          content: midiEvent,
+        });
+      };
       let delay = 0;
       vm.$store.dispatch("samplerOff", { midiEvent, delay });
       if (vm.$store.getters.getClockStatus) {
@@ -527,6 +537,12 @@ export default {
           velocity: message.data[2],
           timestamp: message.timestamp,
         }
+        if (vm.config.eventBased) {
+          vm.worker.postMessage({
+            messageType: vm.messageType.INSTANT_EVENTS,
+            content: midiEvent,
+          });
+        };
         let delay = 0;
         this.$store.dispatch("samplerOn", { midiEvent, delay });
         if (this.$store.getters.getClockStatus) {
@@ -545,6 +561,12 @@ export default {
           velocity: message.data[2],
           timestamp: message.timestamp,
         }
+        if (vm.config.eventBased) {
+          vm.worker.postMessage({
+            messageType: vm.messageType.INSTANT_EVENTS,
+            content: midiEvent,
+          });
+        };
         let delay = 0;
         this.$store.dispatch("samplerOff", { midiEvent, delay });
         if (this.$store.getters.getClockStatus) {
@@ -604,7 +626,7 @@ export default {
         // If the worker is giving us a prediction (inference)
         const workerPrediction = e.data.message;
         vm.modelInferenceTimes.push(workerPrediction.predictTime);
-        
+
 
         // Misalignment Check
         // Will block first 2 ticks' misalignment error msg
@@ -630,7 +652,7 @@ export default {
         }
         const workerStatus = vm.$refs.workerStatus;
         workerStatus.innerHTML = e.data.message;
-      } 
+      }
       else if (e.data.messageType === vm.messageType.RAW_AUDIO) {
         const audio = new Float32Array(e.data.content);
         // create an AudioBuffer from the audio
@@ -709,7 +731,7 @@ export default {
       }
     },
 
-    
+
     estimateHumanQuantizedNote() {
       /* TODO:
       everything written here is based on BachDuet specifically.
@@ -725,12 +747,12 @@ export default {
           a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
     
       */
-      
+
       const bufferEvent = this.$store.getters.getMidiEventBuffer;
       // activePianoNotes are sorted by their "on" timestamp (newest to oldest)
       const activePianoNotes = this.$store.getters.getActivePianoNotes;
       let currentQuantizedEvents = [];
-      
+
       // 2) preprocess them before quantization
       //     a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
       // TODO : move this to utilities or smth
@@ -739,9 +761,9 @@ export default {
         let elem = bufferEvent[i];
         if (elem.type === "noteOff") {
           const matchingIndexes = bufferEvent
-                .map((e, i) => (e.type === "noteOn" && e.midi === elem.midi && e.timestamp < elem.timestamp) ? i : -1)
-                .filter(index => index !== -1);
-          if (matchingIndexes.length > 0){
+            .map((e, i) => (e.type === "noteOn" && e.midi === elem.midi && e.timestamp < elem.timestamp) ? i : -1)
+            .filter(index => index !== -1);
+          if (matchingIndexes.length > 0) {
             indexesToRemove.push(i);
             indexesToRemove.push(Math.max(...matchingIndexes));
           }
@@ -785,7 +807,7 @@ export default {
 
       // Now if we want we can constraint the polyphony. If polyphony = 3, then we can only have 3 notes on at the same time
       // the way to do that is to keep at most the first 3 "on" or "hold" events in currentQuantizedEvents and remove the rest "on" and "hold"
-      
+
       // FOR NOW WE DON"T INCLUDE NOTE_OFF EVENTS IN THE QUANTIZED DATA.
       let constrainedCurrentQuantizedEvents = [];
       const polyphony = 2;
@@ -802,7 +824,7 @@ export default {
         // })
         constrainedCurrentQuantizedEvents = [...onHoldEventsToKeep];//, ...offEventsToAdd, ...offEvents];
       }
-      else{
+      else {
         constrainedCurrentQuantizedEvents = [...currentQuantizedEvents];
       }
 
@@ -818,7 +840,7 @@ export default {
     // At each clock tick, this method would wait for a tick's time to call next tick.
     async toggleClock() {
       var vm = this;
-      if (!vm.localSyncClockStatus){
+      if (!vm.localSyncClockStatus) {
         vm.startRecording();
       } else {
         vm.stopRecording();
@@ -839,14 +861,14 @@ export default {
         async function tickBehavior() {
           if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
-            
+
 
             vm.metronomeTrigger();
             // in grid-based mode, the worker's sampler is triggered in sync with the clock
-            
+
             vm.triggerWorkerSampler();
-            
-            
+
+
             // run the worker with a small delay of tick/4 in order to include 
             // any notes that the user played very close to the tick change.
             // this makes the grid a bit more flexible, and the human input is correctly parsed
@@ -931,7 +953,7 @@ export default {
     calculateMaxBPM() {
       const vm = this;
       const dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
-      vm.maxBPM = Math.round(1000* 60 / dt / vm.$store.getters.getTicksPerBeat);
+      vm.maxBPM = Math.round(1000 * 60 / dt / vm.$store.getters.getTicksPerBeat);
       // console.log("maxBPM", vm.maxBPM);
     },
   },

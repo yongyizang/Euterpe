@@ -205,6 +205,7 @@ export default {
         this.$root.$refs.pianoRollUI.keyDown(midiEvent);
         this.$store.dispatch("noteOn", midiEvent);
       }
+      
     },
 
     toggleRelease(currentNote) {
