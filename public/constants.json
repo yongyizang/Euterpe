@@ -5,7 +5,8 @@
     "LOAD_MODEL": 2,
     "LOAD_CONFIG": 3,
     "SET_PARAMS": 4,
-    "NOTES": 5
+    "NOTES": 5,
+    "RAW_AUDIO": 6
   },
   "statusType": {
     "LOADED": 0,

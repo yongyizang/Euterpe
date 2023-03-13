@@ -1,4 +1,4 @@
-<template>
+'<template>
   <!--
       main.vue, the application's main UI file.
   -->
@@ -12,11 +12,6 @@
         <p ref="workerStatus" class="loadingStatus">
           Loading the Worker...
         </p>
-        <div v-if="config.dataCollection" style="padding-bottom: 20px">
-          <toggle-button color="#74601c" :value="true" @change="onPrivacyAgreeBtn($event)" />
-          <span>
-            Send us data of your interaction anonymously.</span>
-        </div>
         <button @click="entryProgram" ref="entryBtn" class="entryBtn">
           Play
         </button>
@@ -170,9 +165,8 @@ import yaml from "js-yaml";
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
   Tone.start();
-  Tone.context.lookAhead = 0;
-
 };
+
 
 export default {
   name: "mainScreen",
@@ -196,6 +190,13 @@ export default {
       keyboardUIKey: 0,
       keyboardUIoctaveStart: 2,
       keyboardUIoctaveEnd: 6,
+
+      audioContext: null,
+      mediaStreamSource: null,
+      audioSettings: null,
+      audioRecorder: null,
+      audioBuffers: [],
+      workerPlayer: null,
 
       // metronomeStatus: true,
       lastNoteOnAi: "", //TODO: this is is used only by triggerWorkerSample
@@ -235,6 +236,10 @@ export default {
 
   async mounted() {
     var vm = this;
+    vm.audioContext = new AudioContext({
+      lookAhead: 0
+    });
+    Tone.content = vm.audioContext;
 
     /*
      * Loading Animation: set initial status of both div
@@ -256,7 +261,7 @@ export default {
       console.error(err);
     }
 
-    vm.worker = new Worker("worker.js");
+    vm.worker = new Worker("audio-worker.js");
     vm.worker.onmessage = vm.workerCallback;
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
@@ -300,6 +305,36 @@ export default {
       window.performance.timing.domContentLoadedEventEnd -
       window.performance.timing.navigationStart;
     vm.modelLoadTime = Date.now();
+
+    /*
+     * Initialize Audio Recorder (for audio recording).
+     */
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false,
+    });
+    vm.recorderStream = stream;
+    await vm.audioContext.audioWorklet.addModule(
+      "/audio-recorder.js"
+    );
+    vm.mediaStreamSource = vm.audioContext.createMediaStreamSource(
+      stream
+    );
+    vm.audioRecorder = new AudioWorkletNode(
+      vm.audioContext,
+      "audio-recorder"
+    );
+    vm.audioBuffers = [];
+
+    vm.audioRecorder.port.addEventListener("message", (event) => {
+      vm.worker.postMessage({
+        messageType: vm.messageType.RAW_AUDIO,
+        content: event.data,
+      });
+    });
+    vm.audioRecorder.port.start();
+    vm.mediaStreamSource.connect(vm.audioRecorder);
+    vm.audioRecorder.connect(vm.audioContext.destination);
 
     /*
      * Web MIDI logic
@@ -592,6 +627,19 @@ export default {
         }
         const workerStatus = vm.$refs.workerStatus;
         workerStatus.innerHTML = e.data.message;
+      } 
+      else if (e.data.messageType === vm.messageType.RAW_AUDIO) {
+        const audio = new Float32Array(e.data.content);
+        // create an AudioBuffer from the audio
+        const audioBuffer = new AudioBuffer({
+          numberOfChannels: 1,
+          length: audio.length,
+          sampleRate: 44100
+        });
+        audioBuffer.copyToChannel(audio, 0);
+        // play AudioBuffer
+        vm.workerPlayer = new Tone.Player(audioBuffer).toDestination();
+        vm.workerPlayer.start();
       }
 
     },
@@ -772,12 +820,16 @@ export default {
     // At each clock tick, this method would wait for a tick's time to call next tick.
     async toggleClock() {
       var vm = this;
+      if (!vm.localSyncClockStatus){
+        vm.startRecording();
+      } else {
+        vm.stopRecording();
+      }
       vm.localSyncClockStatus = !vm.localSyncClockStatus;
       // Allowing tickNumber to add to itself.
       vm.$store.commit("changeClockStatus");
       // clear pianoState
       vm.$store.commit("clearPianoState");
-
 
       // If the clock is not yet initialized...
       if (!vm.$store.getters.getClockInitialized) {
@@ -840,6 +892,13 @@ export default {
         this.$store.dispatch("samplerOn", { midiEvent, delay });
       }
     },
+    startRecording() {
+      this.audioRecorder.parameters.get('isRecording').setValueAtTime(1, this.audioContext.currentTime);
+    },
+
+    stopRecording() {
+      this.audioRecorder.parameters.get('isRecording').setValueAtTime(0, this.audioContext.currentTime);
+    },
 
     showSettingsModal() {
       this.$modal.show("settingsModal");
@@ -874,4 +933,4 @@ export default {
     },
   },
 };
-</script>
+</script>'

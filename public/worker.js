@@ -112,7 +112,8 @@ async function inference(data) {
     // getTokensDict is BachDuet specific. 
     const rhythmTokenInd = self.tokensDict.rhythm.token2index[rhythmToken];
 
-    const temperature = data.randomness * 2;
+    // const temperature = data.randomness * 2;
+    const temperature = 0.2;
     const currentTick = data.tick;
     const humanInp = data.humanInp;
 
@@ -222,6 +223,10 @@ async function inference(data) {
     });
 }
 
+async function raw_audio(content){
+    console.log("raw_audio", content);
+}
+
 async function onMessageFunction (obj) {
     if (!self.externalJsonLoaded) {
         await self.loadExternalJson();
@@ -234,6 +239,8 @@ async function onMessageFunction (obj) {
             await this.loadModels();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.RAW_AUDIO) {
+            await this.raw_audio(obj.data.content);
         }
     }
 }
