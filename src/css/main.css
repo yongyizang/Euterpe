@@ -275,16 +275,3 @@
     background-color: var(--button-background-color);
     color: var(--button-text-color);
 }
-
-.statusBox {
-    height: auto;
-    width: 200px;
-    padding: 10px;
-    position: fixed;
-    top: 40px;
-    right: 40px;
-    border-radius: 10px;
-    z-index: 999;
-    background: var(--status-background-color);
-    color: var(--status-text-color);
-}
