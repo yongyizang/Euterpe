@@ -703,7 +703,7 @@ export default {
               note: this.lastNoteOnAi,
               // channel : message.data[0],
               // midi : message.data[1],
-              // velocity : message.data[2],
+              velocity : 127,
               timestamp: Tone.now(),
             }
             const delay = 0;
@@ -717,6 +717,7 @@ export default {
           const midiEvent = {
             player: "worker",
             note: currentNote,
+            velocity : 127,
             timestamp: Tone.now(),
           }
           const delay = 0;

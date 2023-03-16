@@ -51,8 +51,10 @@ const actions = {
             // let skata = Tone.now();
             // console.log(skata);
             // console.log(delay);
+            // console.log(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
             humanSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
         } else if (midiEvent.player == "worker"){
+            // console.log(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
             workerSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
         } else if (midiEvent.player == "metronome"){
             metronomeSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
