@@ -210,6 +210,7 @@ async function processEventsBuffer(content) {
     // Note that this prediction is to be played at the next tick
     // var tick = workerPrediction.tick
     const midi_artic = self.tokensDict.midiArtic.index2token[midi_artic_token_ind];
+    console.log(midi_artic)
     // split the midiArtic token to get the midi number and the articulation
     let midi = parseInt(midi_artic.split("_")[0]);
     const articulation = parseInt(midi_artic.split("_")[1]);
@@ -247,7 +248,7 @@ async function processEventsBuffer(content) {
         velocity: 127, // BachDuet uses 127 for all notes
         timestamp: {
             tick: currentTick, // note was generated at this tick
-            seconds: performance.now() // note was generated at this time (seconds)
+            seconds: null,//Tone.now() // note was generated at this time (seconds)
         },
         playAfter: {
             tick: 1, // play the note at the next tick
@@ -266,10 +267,10 @@ async function processEventsBuffer(content) {
             midi: lastWorkerPrediction.midi,
             chroma: lastWorkerPrediction.cpc,
             velocity: 127,
-            // timestamp: {
-            //     tick: currentTick, // note was generated at this tick
-            //     seconds: performance.now() // note was generated at this time (seconds)
-            // },
+            timestamp: {
+                tick: currentTick, // note was generated at this tick
+                seconds: null,//Tone.now() // note was generated at this time (seconds)
+            },
             playAfter: {
                 tick: 1, // play the note at the next tick
                 seconds: 0 // time is not used by BachDuet

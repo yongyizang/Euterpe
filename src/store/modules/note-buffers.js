@@ -10,9 +10,9 @@ class NoteEventSortedArray {
     let right = this.array.length - 1;
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
-        if (this.array[mid].timestamp.tick < noteEvent.timestamp.tick) {
+        if (this.array[mid].timestamp.tick > noteEvent.timestamp.tick) {
             left = mid + 1;
-        } else if (this.array[mid].timestamp.tick > noteEvent.timestamp.tick){
+        } else if (this.array[mid].timestamp.tick < noteEvent.timestamp.tick){
             right = mid - 1;
         }
         else{
@@ -187,17 +187,18 @@ const actions = {
         // increase noteEvent.timestamp.tick by state.globalTick
         // this will be its actual tick when it's supposed to be played
         // and the SortedArray will use that to sort the notes correctly based on their globalTick
+        console.log("inside storeWorkerQuantizedOutput", workerNoteEvent)
         workerNoteEvent.timestamp = {
             tick: workerNoteEvent.playAfter.tick + getters.getGlobalTick,
             seconds: workerNoteEvent.playAfter.seconds
         }
         state.workerNotesToBePlayed.insert(workerNoteEvent);
-
+        console.log("notesToBePlayed", state.workerNotesToBePlayed);
         const nextTick = getters.getNextLocalTick;//(noteEvent.tick);
         // console.log("currentTick", getters.getLocalTick);
         // console.log("nextTick", nextTick);
         // store the predicted note in the quantizedBufferWorker 
-        state.quantizedBufferWorker[nextTick] = workerNoteEvent.note
+        state.quantizedBufferWorker[nextTick] = workerNoteEvent
 
         // now update the lastWorkerNote
         // this is only used in scoreUI.js to display the notes

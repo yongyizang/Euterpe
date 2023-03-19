@@ -372,7 +372,7 @@ export default {
       const midiEvent = {
         type: vm.noteTypes.NOTE_ON,
         player: "human",
-        note: noteName, //message.note.identifier,
+        name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: note.note,
         velocity: 127,
@@ -405,7 +405,7 @@ export default {
       const midiEvent = {
         type: vm.noteTypes.NOTE_OFF,
         player: "human",
-        note: noteName, //message.note.identifier,
+        name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: note.note,
         velocity: 127,
@@ -545,7 +545,7 @@ export default {
         const midiEvent = {
           type: vm.noteTypes.NOTE_ON,
           player: "human",
-          note: message.note.identifier,
+          name: message.note.identifier,
           channel: message.data[0],
           midi: message.data[1],
           velocity: message.data[2],
@@ -575,7 +575,7 @@ export default {
         const midiEvent = {
           type: vm.noteTypes.NOTE_OFF,
           player: "human",
-          note: message.note.identifier,
+          name: message.note.identifier,
           channel: message.data[0],
           midi: message.data[1],
           velocity: message.data[2],
@@ -651,7 +651,6 @@ export default {
         // Currently BachDuet gives a single prediction per tick
         const workerPrediction = e.data.content;
         vm.modelInferenceTimes.push(workerPrediction.predictTime);
-
         const noteEventsList = workerPrediction.events;
         noteEventsList.forEach((noteEvent) => {
           if (noteEvent.playAfter.tick > 0) {
@@ -762,7 +761,7 @@ export default {
       //     if (!(this.lastNoteOnAi === "")) {
       //       const midiEvent = {
       //         player: "worker",
-      //         note: this.lastNoteOnAi,
+      //         name: this.lastNoteOnAi,
       //         // channel : message.data[0],
       //         // midi : message.data[1],
       //         // velocity : message.data[2],
@@ -779,7 +778,7 @@ export default {
       //     });
       //     const midiEvent = {
       //       player: "worker",
-      //       note: currentNote,
+      //       name: currentNote,
       //       velocity: 127,
       //       timestamp: Tone.now(),
       //     }
@@ -791,7 +790,7 @@ export default {
       //     if (!(this.lastNoteOnAi === "")) {
       //       const midiEvent = {
       //         player: "worker",
-      //         note: this.lastNoteOnAi,
+      //         name: this.lastNoteOnAi,
       //         velocity: 127,
       //         timestamp: Tone.now(),
       //       };
@@ -806,15 +805,17 @@ export default {
       const workerNotesToBePlayed = this.$store.getters.popWorkerNotesToBePlayedAt(
         this.$store.getters.getGlobalTick
       );
-      if (workerNotesToBePlayed) {
+      if (workerNotesToBePlayed.length > 0) {
         workerNotesToBePlayed.forEach((noteEvent) => {
           if (noteEvent.type === vm.noteTypes.NOTE_ON) {
+            console.log("worker note on", noteEvent)
             this.$store.dispatch("samplerOn", noteEvent);
             setTimeout(() => {
                 this.$root.$refs.pianoRollUI.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             // this.$root.$refs.pianoRollUI.keyDown(note);
           } else if (noteEvent.type === vm.noteTypes.NOTE_OFF) {
+            console.log("worker note off", noteEvent)
             this.$store.dispatch("samplerOff", noteEvent);
             // this.$root.$refs.pianoRollUI.keyUp(note);
             setTimeout(() => {
@@ -1018,12 +1019,12 @@ export default {
           this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
         // const midiEvent = {
         //   player: "metronome",
-        //   note: currentNote,
+        //   name: currentNote,
         //   timestamp: Tone.now(),
         // };
         const metronomeNote = {
             player: "metronome",
-            note: currentNote,
+            name: currentNote,
             type: this.noteTypes.NOTE_ON,
             midi: null,
             chroma: null,

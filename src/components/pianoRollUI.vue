@@ -123,7 +123,7 @@ export default {
     },
 
     keyDown(noteEvent) {
-      let noteInput = noteEvent.note;
+      let noteInput = noteEvent.name;
       if (this.$store.getters.getClockStatus) {
         // TODO pianoRoll should be based on Midi number. 
         if (document.getElementsByClassName(noteInput.replace("#", "s"))[0]) {
@@ -161,7 +161,7 @@ export default {
     },
 
     keyUp(noteEvent) {
-      let noteInput = noteEvent.note;
+      let noteInput = noteEvent.name;
       const selector = (noteEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {
