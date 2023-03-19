@@ -18,11 +18,11 @@ async function loadConfig(config) {
     self.config = config;
 }
 
-async function loadModels() {
+async function loadAlgorithm() {
     postMessage({
         messageType: self.constants.messageType.STATUS,
         statusType: self.constants.statusType.SUCCESS,
-        message: "Worker is ready to play with you!",
+        content: "Worker is ready to play with you!",
     });
 
 }
@@ -37,7 +37,7 @@ async function raw_audio(content){
         audioCounter++;
     } else {
         postMessage({
-            messageType: self.constants.messageType.RAW_AUDIO,
+            messageType: self.constants.messageType.AUDIO_BUFFER,
             content: audioBuffer,
         });
         audioBuffer = [];
@@ -51,13 +51,13 @@ async function onMessageFunction (obj) {
         self.externalJsonLoaded = true;
         onMessageFunction(obj);
     } else {
-        if (obj.data.messageType == self.constants.messageType.INFERENCE) {
+        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
             await this.inference(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.LOAD_MODEL) {
-            await this.loadModels();
+        } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
+            await this.loadAlgorithm();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.RAW_AUDIO) {
+        } else if (obj.data.messageType == self.constants.messageType.AUDIO_BUFFER) {
             await this.raw_audio(obj.data.content);
         }
     }

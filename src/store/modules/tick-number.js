@@ -26,14 +26,7 @@ const getters = {
     getLocalTickDelayed (state){
         return state.localTickDelayed;
     },
-    // TODO : here there are two ways to write a getter.
-    // For the first way, we use the function as var tick = getGlobalTickDelayed;
-    // For the second we have to use it like : var tick = getGlobalTickDelayed();
-    // I prefer the second way. What do you think ? 
-    // getGlobalTickDelayed (state){
-    //     return state.globalTickDelayed;
-    // },
-    getGlobalTickDelayed: (state) => () => {
+    getGlobalTickDelayed (state){
         return state.globalTickDelayed;
     },
     getBarTick (state){
@@ -48,7 +41,7 @@ const getters = {
     getNextLocalTickAfter: (state) => (currentTick) => {
         return (currentTick + 1) % state.ticksPerMeasure;
     },
-    getNextLocalTick: (state) => () => {
+    getNextLocalTick (state){
         return (state.localTick + 1) % state.ticksPerMeasure;
     }
 }

@@ -122,16 +122,17 @@ export default {
         this.renderer.render(this.scene, this.camera);
     },
 
-    keyDown(midiEvent) {
-      let noteInput = midiEvent.note;
+    keyDown(noteEvent) {
+      let noteInput = noteEvent.note;
       if (this.$store.getters.getClockStatus) {
+        // TODO pianoRoll should be based on Midi number. 
         if (document.getElementsByClassName(noteInput.replace("#", "s"))[0]) {
           const notePosition = document
             .getElementsByClassName(noteInput.replace("#", "s"))[0]
             .getBoundingClientRect();
 
           // Define the noteblock plane.
-          const plane = new THREE.Mesh(geometry, (midiEvent.player == "worker") ? workerMaterial : humanMaterial);
+          const plane = new THREE.Mesh(geometry, (noteEvent.player == "worker") ? workerMaterial : humanMaterial);
           const noteWidth =
             notePosition.right - notePosition.left - NoteAnimationMargin * 2;
           plane.scale.set(noteWidth, initialScaling, 1);
@@ -147,7 +148,7 @@ export default {
           this.scene.add(plane);
 
           // Register this noteblock to the currentNotes data.
-          const selector = (midiEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
+          const selector = (noteEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
           if (!this.currentNotes.hasOwnProperty(selector)) {
             this.currentNotes[selector] = [];
           }
@@ -159,9 +160,9 @@ export default {
       }
     },
 
-    keyUp(midiEvent) {
-      let noteInput = midiEvent.note;
-      const selector = (midiEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
+    keyUp(noteEvent) {
+      let noteInput = noteEvent.note;
+      const selector = (noteEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {
         const note = this.currentNotes[selector].shift();

@@ -20,8 +20,8 @@ async function loadConfig(config) {
 async function inference(data) {
 }
 
-async function instant_events(content){
-    // console.log("instant_events", content);
+async function NOTE_EVENT(content){
+    // console.log("NOTE_EVENT", content);
     // var predictTime = performance.now();
     let currentTick = data.tick;
     let humanInp = data.humanInp;
@@ -33,8 +33,8 @@ async function instant_events(content){
             cpc: null
         }
         postMessage({
-            messageType: self.constants.messageType.INFERENCE,
-            message: {
+            messageType: self.constants.messageType.EVENTS_BUFFER,
+            content: {
                 predictTime: 0,
                 tick: currentTick,
                 note: note
@@ -47,8 +47,8 @@ async function instant_events(content){
             cpc: null
         }
         postMessage({
-            messageType: self.constants.messageType.INFERENCE,
-            message: {
+            messageType: self.constants.messageType.EVENTS_BUFFER,
+            content: {
                 predictTime: 0,
                 tick: currentTick,
                 note: note
@@ -63,18 +63,18 @@ async function onMessageFunction (obj) {
         self.externalJsonLoaded = true;
         onMessageFunction(obj);
     } else {
-        if (obj.data.messageType == self.constants.messageType.INFERENCE) {
+        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
             await this.inference(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.LOAD_MODEL) {
+        } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
             postMessage({
                 messageType: self.constants.messageType.STATUS,
                 statusType: self.constants.statusType.SUCCESS,
-                message: "Neural Network is ready to play with you!",
+                content: "Neural Network is ready to play with you!",
             });
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.INSTANT_EVENTS){
-            await this.instant_events(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.NOTE_EVENT){
+            await this.NOTE_EVENT(obj.data.content);
         }
     }
 }

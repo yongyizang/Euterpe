@@ -9,7 +9,7 @@ polyphony:
 mode: "grid" # or "continuous"
 
 # if eventBased is set to true, the worker will also receive midi events (note on and note off) the moment they happen without any delay.
-eventBased: true
+eventBased: false
 ticksPerBeat: 4
 timeSignature:
   numerator: 4
@@ -27,8 +27,8 @@ worker:
 # Intro Modal
 introModal: true
 introModalContent:
- - "Hi! This is Euterpe."
- - "I am a general AI music interaction system framework."
+  - "Hi! This is Euterpe."
+  - "I am a general AI music interaction system framework."
 
 #  // // FROM Yongyi's yaml I get
 # // const MODE = "GRID"; // or "CONTINUOUS"
