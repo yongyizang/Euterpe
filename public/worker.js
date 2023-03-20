@@ -107,7 +107,7 @@ async function loadAlgorithm() {
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
 async function processEventsBuffer(content) {
-    // console.log("processEventsBuffer called with content: ", content);
+    // console.log("processEventsBuffer called at tick: ", content.tick);
     var predictTime = performance.now();
 
     /////////////////////////////////////////////////
@@ -152,6 +152,8 @@ async function processEventsBuffer(content) {
         }
         humanArtic = humanInp[0].type === self.constants.noteTypes.NOTE_ON ? 1 : 0;
         clipedMidi % 12;
+
+        humanCpc = clipedMidi % 12;
     }
     
 
@@ -166,7 +168,7 @@ async function processEventsBuffer(content) {
     //     humanCpc = 12;
     // }
     const humanMidiArtic = clipedMidi.toString() + '_' + humanArtic.toString()
-    // console.log(humanMidiArtic);
+    console.log(humanMidiArtic, humanCpc);
     const humanMidiArticInd = self.tokensDict.midiArtic.token2index[humanMidiArtic];
 
     var midiInp = tf.tensor2d([[lastWorkerPrediction.midi_artic_token_ind, humanMidiArticInd]]);
@@ -210,7 +212,7 @@ async function processEventsBuffer(content) {
     // Note that this prediction is to be played at the next tick
     // var tick = workerPrediction.tick
     const midi_artic = self.tokensDict.midiArtic.index2token[midi_artic_token_ind];
-    console.log(midi_artic)
+    // console.log(midi_artic)
     // split the midiArtic token to get the midi number and the articulation
     let midi = parseInt(midi_artic.split("_")[0]);
     const articulation = parseInt(midi_artic.split("_")[1]);
@@ -229,14 +231,7 @@ async function processEventsBuffer(content) {
         type = articulation === 1 ? self.constants.noteTypes.NOTE_ON : self.constants.noteTypes.NOTE_HOLD;
     }
     
-      // to be used for the next inference step by the worker itself
-    // this is an internal state of the worker. BachDuet needs to keep track of the last prediction
-    lastWorkerPrediction = {
-        midi_artic_token_ind: midi_artic_token_ind,
-        cpc: cpc,
-        midi: midi,
-        type: type
-    }
+    
     
 
     const note = {
@@ -256,10 +251,12 @@ async function processEventsBuffer(content) {
         }
     }
 
-    let noteList = [note];
-    // BachDuet is a monophonic model. If the current prediction is a noteON
+    let noteList = [];//[note];
+    // BachDuet is a monophonic model. If the current prediction is a noteON and the previous prediction was not a rest
     // then we need to send a noteOFF for the previous note
-    if (note.type == self.constants.noteTypes.NOTE_ON && lastWorkerPrediction.type != self.constants.noteTypes.REST) {
+    // We need to do the same if the current prediction is a REST and the previous prediction was not a rest
+    if (note.type == self.constants.noteTypes.NOTE_ON && lastWorkerPrediction.type != self.constants.noteTypes.REST ||
+        note.type == self.constants.noteTypes.REST && lastWorkerPrediction.type != self.constants.noteTypes.REST) {
         const noteOff = {
             player: "worker",
             name: null,
@@ -277,10 +274,21 @@ async function processEventsBuffer(content) {
             }
         }
         noteList.push(noteOff);
+        console.log("Tick ", currentTick, "worker ALSO gives noteOFF", noteOff.midi, "/", noteOff.type)
     }
-    
+
+    noteList.push(note);
     // console.log("worker prediction", noteList);
 
+      // to be used for the next inference step by the worker itself
+    // this is an internal state of the worker. BachDuet needs to keep track of the last prediction
+    lastWorkerPrediction = {
+        midi_artic_token_ind: midi_artic_token_ind,
+        cpc: cpc,
+        midi: midi,
+        type: type
+    }
+    console.log("Tick ", currentTick, "worker gives", note.midi, "/", note.type, " ")
     postMessage({
         messageType: self.constants.messageType.EVENTS_BUFFER,
         content: {

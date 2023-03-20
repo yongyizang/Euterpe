@@ -55,9 +55,10 @@ const actions = {
             // if noteEvent.name is null then use tonal.js to get the name of the note from noteEvent.midi
             let name = noteEvent.name;
             if (name == null){
-                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true }).replace("#", "s");
-                console.log(name)
+                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+                
             }
+            // console.log("NAME TO SAMPLER ON IS ", name)
             workerSampler.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
         } else if (noteEvent.player == "metronome"){
             // console.log("metronome", noteEvent)
@@ -73,10 +74,10 @@ const actions = {
         } else if (noteEvent.player == "worker"){
             let name = noteEvent.name;
             if (name == null){
-                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true }).replace("#", "s");
-                console.log(name)
+                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });   
             }
-            workerSampler.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+            // console.log("NAME TO SAMPLER OFF IS ", name)
+            workerSampler.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
         }
     },
 };

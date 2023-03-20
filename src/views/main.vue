@@ -630,7 +630,7 @@ export default {
       this.$store.commit("incrementTickDelayed");
 
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
-      this.$root.$refs.scoreUI.draw();
+      // this.$root.$refs.scoreUI.draw();
 
       this.worker.postMessage({
         messageType: vm.messageType.EVENTS_BUFFER,
@@ -646,8 +646,9 @@ export default {
 
     async workerCallback(e) {
       const vm = this;
-
       if (e.data.messageType === vm.messageType.EVENTS_BUFFER) {
+        // console.log("worker callback EVENTS BUFFER for tick", e.data.content.tick);
+
         // Currently BachDuet gives a single prediction per tick
         const workerPrediction = e.data.content;
         vm.modelInferenceTimes.push(workerPrediction.predictTime);
@@ -690,6 +691,8 @@ export default {
         this.reset = false; // for explanation see the comment about reset inside runTheWorker()
       }
       else if(e.data.messageType == vm.messageType.NOTE_EVENT) {
+      // console.log("worker callback NOTE_EVENT on tick", this.$store.getters.getLocalTick, "/", this.$store.getters.getGlobalTick, ", del:", this.$store.getters.getLocalTickDelayed, this.$store.getters.getGlobalTickDelayed);
+
         const noteEventsList = workerPrediction.events;
         noteEventsList.forEach((noteEvent) => {
           if (note.playAfter.tick > 0) {
@@ -722,6 +725,8 @@ export default {
         workerStatus.innerHTML = e.data.content;
       }
       else if (e.data.messageType === vm.messageType.AUDIO_BUFFER) {
+        // console.log("worker callback AUDIO BUFFER on tick", this.$store.getters.getLocalTick, "/", this.$store.getters.getGlobalTick, ", del:", this.$store.getters.getLocalTickDelayed, this.$store.getters.getGlobalTickDelayed);
+
         const audio = new Float32Array(e.data.content);
         // create an AudioBuffer from the audio
         const audioBuffer = new AudioBuffer({
@@ -802,20 +807,30 @@ export default {
       //   }
       // }
       var vm = this;
+      // console.log("workerNotesToBePlayed", this.$store.getters.getWorkerNotesToBePlayed);
+      // print the timestamp.tick of all the notes in workerNotesToBePlayed
+      // let aaa = this.$store.getters.getWorkerNotesToBePlayed;
+      // use i index for for loop
+      // console.log("length of aaa", aaa.length);
+      // for ( let i = 0; i < aaa.length; i++) {
+      //       console.log("workerTriggerSampler at", this.$store.getters.getGlobalTick, " Sees ", aaa.get(i).timestamp.tick);
+      //   }
       const workerNotesToBePlayed = this.$store.getters.popWorkerNotesToBePlayedAt(
         this.$store.getters.getGlobalTick
       );
+
       if (workerNotesToBePlayed.length > 0) {
         workerNotesToBePlayed.forEach((noteEvent) => {
+          // console.log("a note to be played", noteEvent);
           if (noteEvent.type === vm.noteTypes.NOTE_ON) {
-            console.log("worker note on", noteEvent)
+            // console.log("worker note on", noteEvent)
             this.$store.dispatch("samplerOn", noteEvent);
             setTimeout(() => {
                 this.$root.$refs.pianoRollUI.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             // this.$root.$refs.pianoRollUI.keyDown(note);
           } else if (noteEvent.type === vm.noteTypes.NOTE_OFF) {
-            console.log("worker note off", noteEvent)
+            // console.log("WORKER NOTE OFF", noteEvent)
             this.$store.dispatch("samplerOff", noteEvent);
             // this.$root.$refs.pianoRollUI.keyUp(note);
             setTimeout(() => {
@@ -986,6 +1001,7 @@ export default {
             setTimeout(function () {
               vm.runTheWorker();
             }, parseInt(vm.$store.getters.getClockPeriod / 4));
+            // vm.runTheWorker();
           }
         }
 
@@ -1007,6 +1023,7 @@ export default {
       this.$store.commit("flipMetronomeStatus");
     },
     metronomeTrigger() {
+      // console.log("in metronomeTrigger for ", this.$store.getters.getLocalTick);
       // var vm = this;
       // This method would trigger the metronome sampler.
       if (

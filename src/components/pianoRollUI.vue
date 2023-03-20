@@ -12,6 +12,8 @@
 <script>
 // This project mainly uses Three.js to generate the canvas.
 import * as THREE from "three";
+import { Midi } from "@tonaljs/tonal";
+
 import("../css/variables.css");
 
 // get --pianoRollUI-human-color and --pianoRollUI-worker-color from CSS.
@@ -124,6 +126,11 @@ export default {
 
     keyDown(noteEvent) {
       let noteInput = noteEvent.name;
+      if (noteInput == null){
+        noteInput = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+          
+      }
+      // console.log("player", noteEvent.player, "sent keyDown note ", noteInput, noteEvent.type, noteEvent.midi);
       if (this.$store.getters.getClockStatus) {
         // TODO pianoRoll should be based on Midi number. 
         if (document.getElementsByClassName(noteInput.replace("#", "s"))[0]) {
@@ -162,6 +169,11 @@ export default {
 
     keyUp(noteEvent) {
       let noteInput = noteEvent.name;
+      if (noteInput == null){
+        noteInput = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+          
+      }
+      // console.log("player", noteEvent.player, "sent keyUp note ", noteInput, noteEvent.type, noteEvent.midi);
       const selector = (noteEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {

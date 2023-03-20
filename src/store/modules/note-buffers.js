@@ -162,8 +162,12 @@ const getters = {
     },
     popWorkerNotesToBePlayedAt: (state) => (currentGlobalTick) => {
         const notesToBePlayed = [];
-        while (state.workerNotesToBePlayed.length > 0 && state.workerNotesToBePlayed.get(0).playAfter.tick == currentGlobalTick){
-            notesToBePlayed.push(state.workerNotesToBePlayed.remove(0));
+        while (state.workerNotesToBePlayed.length > 0){
+            if (state.workerNotesToBePlayed.get(0).timestamp.tick < currentGlobalTick){
+                let discard = state.workerNotesToBePlayed.remove(0);
+            } else if (state.workerNotesToBePlayed.get(0).timestamp.tick === currentGlobalTick){
+                notesToBePlayed.push(state.workerNotesToBePlayed.remove(0));
+            }
         }
         return notesToBePlayed;
     }
@@ -187,13 +191,16 @@ const actions = {
         // increase noteEvent.timestamp.tick by state.globalTick
         // this will be its actual tick when it's supposed to be played
         // and the SortedArray will use that to sort the notes correctly based on their globalTick
-        console.log("inside storeWorkerQuantizedOutput", workerNoteEvent)
+        // console.log("inside storeWorkerQuantizedOutput", workerNoteEvent)
         workerNoteEvent.timestamp = {
             tick: workerNoteEvent.playAfter.tick + getters.getGlobalTick,
             seconds: workerNoteEvent.playAfter.seconds
         }
         state.workerNotesToBePlayed.insert(workerNoteEvent);
-        console.log("notesToBePlayed", state.workerNotesToBePlayed);
+        // console.log("inside storeWorkerQuantizedOutput insert to play at globalTick", workerNoteEvent.timestamp.tick)
+        
+
+        // console.log("notesToBePlayed", state.workerNotesToBePlayed);
         const nextTick = getters.getNextLocalTick;//(noteEvent.tick);
         // console.log("currentTick", getters.getLocalTick);
         // console.log("nextTick", nextTick);
@@ -207,7 +214,7 @@ const actions = {
         const cpc = workerNoteEvent.chroma;
         const articulation =  workerNoteEvent.type === state.noteTypes.NOTE_ON ? 1 : 0;
 
-        if (midi == 0) {
+        if (midi == 128) {
             if (state.lastWorkerNote.midi == 0){
                 state.lastWorkerNote.dur += 1
             }

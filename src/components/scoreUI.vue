@@ -632,7 +632,7 @@ export default {
 
         default:
           vm.$toasted.show("ScoreUI error: Invalid Duration.");
-          console.error("Invalid duration");
+          console.error("Invalid duration", duration);
       }
       return [durationTokens, newDurations];
     },
