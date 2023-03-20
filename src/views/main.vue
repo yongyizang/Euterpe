@@ -27,13 +27,14 @@
 
     <div ref="mainContent" id="mainContent" class="fade-in">
       <div style="
-                            background-color: black;
-                            opacity: 0.5;
-                            display: fixed;
-                            top: 0;
-                            right: 0;
-                            z-index: 999;
-                          "></div>
+          background-color: black;
+          opacity: 0.5;
+          display: fixed;
+          top: 0;
+          right: 0;
+          z-index: 999;
+          ">
+      </div>
       <scoreUI />
       <pianoRollUI />
       <div style="position: absolute; bottom: 230px; right: 20px">
@@ -95,8 +96,8 @@
               <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Network Piano Volume</p>
-                  <p class="settingsValue">{{ WorkerVolume }}</p>
-                  <vue-slider v-model="WorkerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
+                  <p class="settingsValue">{{ workerVolume }}</p>
+                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
               </div>
             </div>
@@ -164,6 +165,7 @@ import yaml from "js-yaml";
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
+  // TODO : this calls Tone.start() every time the user clicks on the screen.
   Tone.start();
 };
 
@@ -196,9 +198,9 @@ export default {
       audioBuffers: [],
       workerPlayer: null,
 
-      // metronomeStatus: true,
-      lastNoteOnAi: "", //TODO: this is is used only by triggerWorkerSample
-      reset: false, // reset signal to notify the AI worker to reset
+      // reset signal to notify the Worker to reset.
+      // If your worker doesn't support reseting, you can ignore this.
+      reset: false,
 
       WebMIDISupport: false,
       pageLoadTime: null,
@@ -207,10 +209,15 @@ export default {
       selectedMIDIDevice: "",
 
       userPianoVolume: 10,
-      WorkerVolume: 10,
+      workerVolume: 10,
 
-      modelInferenceTimes: [], // used to calculate the average inference time and estimate maxBPM
-      maxBPM: 0, // maxBPM supported by the current device
+      // used to calculate the average worker inference time (clockBased mode) 
+      // and estimate maxBPM
+      modelInferenceTimes: [], 
+      // maxBPM (or min clock period) supported by the current device
+      maxBPM: 0,
+      // counter for the number of times the worker inference time exceeds the clock period
+      misalignErrCount: 0,
 
       isNotChrome: navigator.userAgent.indexOf("Chrome") <= -1,
       isMobile:
@@ -220,7 +227,7 @@ export default {
         /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(
           navigator.userAgent.substr(0, 4)
         ),
-      misalignErrCount: 0,
+      
     };
   },
 
@@ -242,6 +249,8 @@ export default {
     this.$refs.mainContent.style.display = "none";
     this.$refs.entryBtn.style.visibility = "hidden";
 
+    // load config.yaml and constants.json
+    // then commit them to any vuex store that needs them
     try {
       await fetch('/config.yaml')
         .then(response => response.text())
@@ -250,7 +259,7 @@ export default {
           vm.$store.commit("setConfig", this.config);
           vm.$store.commit("initQuantBuffers", this.config);
           vm.$store.commit("setTicksPerMeasure", this.config);
-          this.BPM = this.config.tempo;
+          this.BPM = this.config.clockBasedSettings.tempo;
         }.bind(this)());
       await fetch('/constants.json')
         .then(response => response.json())
@@ -260,17 +269,22 @@ export default {
           this.noteTypes = json.noteTypes;
           vm.$store.commit("setNoteTypes", this.noteTypes);
         }.bind(this)());
-      // console.log("config and constants loaded");
+      console.log("config and constants loaded");
     } catch (err) {
       console.error(err);
     }
 
+    // Initialize worker
     vm.worker = new Worker("worker.js");
+    // set worker callback
+    // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;
+    // Send a message to worker with the config file to store in worker
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
       content: vm.$store.getters.getConfig,
     });
+    // Tell the worker to load the algorithm
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_ALGORITHM,
       content: null,
@@ -301,6 +315,7 @@ export default {
         "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but we only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>";
     }
 
+    // TODO: Do we need those?
     /*
      * Initialize page load data collections
      */
@@ -340,10 +355,10 @@ export default {
     vm.mediaStreamSource.connect(vm.audioRecorder);
     vm.audioRecorder.connect(vm.audioContext.destination);
     vm.workerPlayer = new Tone.Player().toDestination();
+
     /*
      * Web MIDI logic
      */
-
     if (navigator.requestMIDIAccess) {
       navigator.requestMIDIAccess().then(function (access) {
         vm.WebMIDISupport = true;
@@ -357,11 +372,14 @@ export default {
 
     /*
      * Initialize computer keyboard logic
+     * AudioKeys maps the computer keyboard to midi values
      */
     var keyboard = new AudioKeys({
-      polyphony: 100, // set it to a very high number. We will handle the polyphony ourselves.
+      // set polyphony it to a very high number. 
+      // we will handle the polyphony ourselves.
+      polyphony: 100,
       rows: 2,
-      priority: "last", // "last" applies only when polyphony is exceeded
+      priority: "last",
       rootNote: 60,
     });
 
@@ -378,20 +396,25 @@ export default {
         velocity: 127,
         timestamp: {
             seconds: Tone.now(),
-            tick: 0,//this.$store.getters.getGlobalTickDelayed
+            tick: null,
           },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       }
-      if (vm.config.eventBased) {
+      // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+      // this packet will be sent to the processNoteEvent hook.
+      if (vm.config.noteBasedMode.eventBased) {
         vm.worker.postMessage({
           messageType: vm.messageType.NOTE_EVENT,
           content: midiEvent,
         });
       };
+      // We always send the user's input directly to the sampler
+      // for immediate playback
       vm.$store.dispatch("samplerOn", midiEvent);
+      // If the clock is running, send the note to the piano roll
       if (vm.$store.getters.getClockStatus) {
         vm.$root.$refs.pianoRollUI.keyDown(midiEvent);
         vm.$store.dispatch("noteOn", midiEvent);
@@ -411,14 +434,14 @@ export default {
         velocity: 127,
         timestamp: {
             seconds: Tone.now(),
-            tick: 0,//this.$store.getters.getGlobalTickDelayed
+            tick: null,//this.$store.getters.getGlobalTickDelayed
           },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       }
-      if (vm.config.eventBased) {
+      if (vm.config.noteBasedMode.eventBased) {
         vm.worker.postMessage({
           messageType: vm.messageType.NOTE_EVENT,
           content: midiEvent,
@@ -431,6 +454,7 @@ export default {
         vm.$store.dispatch("noteOff", midiEvent);
       }
     });
+    // TODO: window.onclick is outside mounted(). How about this one.
     // When window resize, self-update this data.
     window.onresize = () => {
       return (() => {
@@ -501,7 +525,7 @@ export default {
         this.$store.commit("setHumanVolume", newValue);
       },
     },
-    WorkerVolume: {
+    workerVolume: {
       immediate: true,
       handler(newValue) {
         this.$store.commit("setWorkerVolume", newValue);
@@ -558,7 +582,7 @@ export default {
             tick: 0
           }
         }
-        if (vm.config.eventBased) {
+        if (vm.config.noteBasedMode.eventBased) {
           vm.worker.postMessage({
             messageType: vm.messageType.NOTE_EVENT,
             content: midiEvent,
@@ -588,7 +612,7 @@ export default {
             tick: 0
           }
         }
-        if (vm.config.eventBased) {
+        if (vm.config.noteBasedMode.eventBased) {
           vm.worker.postMessage({
             messageType: vm.messageType.NOTE_EVENT,
             content: midiEvent,
@@ -630,7 +654,7 @@ export default {
       this.$store.commit("incrementTickDelayed");
 
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
-      // this.$root.$refs.scoreUI.draw();
+      this.$root.$refs.scoreUI.draw();
 
       this.worker.postMessage({
         messageType: vm.messageType.EVENTS_BUFFER,

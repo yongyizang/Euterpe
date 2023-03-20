@@ -219,8 +219,8 @@ const actions = {
                 state.lastWorkerNote.dur += 1
             }
             else {
-                state.lastWorkerNote.midi = midi;
-                state.lastWorkerNote.cpc = cpc;
+                state.lastWorkerNote.midi = 0;
+                state.lastWorkerNote.cpc = 12;
                 // state.lastWorkerNote.name = name;
                 state.lastWorkerNote.dur = 1;
                 state.lastWorkerNote.startTick = getters.getGlobalTick;
@@ -364,7 +364,7 @@ const mutations = {
             name : "R",
             type : state.noteTypes.REST,
         };
-        let ticksPerMeasure = config.ticksPerBeat * config.timeSignature.numerator;
+        let ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
         // initialize quantizedBufferWorker and quantizedBufferHuman with 16 restNotes
         state.quantizedBufferWorker =new Array(ticksPerMeasure).fill(restNote);
         state.quantizedBufferHuman =new Array(ticksPerMeasure).fill(restNote);

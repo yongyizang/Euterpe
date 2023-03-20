@@ -39,7 +39,7 @@ async function loadExternalJson() {
 
 async function loadConfig(config) {
     self.config = config;
-    self.ticksPerMeasure = config.ticksPerBeat * config.timeSignature.numerator;
+    self.ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
 }
 
 async function loadAlgorithm() {
@@ -74,7 +74,7 @@ async function loadAlgorithm() {
     self.first2A = self.states2A;
     self.first2B = self.states2B;
 
-    for (let i = 0; i < self.config.worker.warmupRounds; i++) {
+    for (let i = 0; i < self.config.workerSettings.warmupRounds; i++) {
 
         var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
         var embMidi = exodos[0];
@@ -89,7 +89,7 @@ async function loadAlgorithm() {
         postMessage({
             messageType: self.constants.messageType.STATUS,
             statusType: self.constants.statusType.WARMUP,
-            content: "Network is warming up. Current round: " + (i + 1) + "/" + self.config.worker.warmupRounds,
+            content: "Network is warming up. Current round: " + (i + 1) + "/" + self.config.workerSettings.warmupRounds,
         });
     }
 
@@ -307,7 +307,7 @@ async function processAudioBuffer(content){
 
 // Hook for processing single note events.
 // This hook is called every time a note is played
-async function process_note_event(content){
+async function processNoteEvent(content){
     // console.log("NOTE_EVENT", content);
     const note = {
         player: "worker",
@@ -354,7 +354,7 @@ async function onMessageFunction (obj) {
         } else if (obj.data.messageType == self.constants.messageType.AUDIO_BUFFER) {
             await this.processAudioBuffer(obj.data.content);
         } else if (obj.data.messageType == self.constants.messageType.NOTE_EVENT){
-            await this.process_note_event(obj.data.content);
+            await this.processNoteEvent(obj.data.content);
         }
     }
 }
