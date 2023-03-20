@@ -51,6 +51,8 @@ const actions = {
         // {samplerName, currentNote, time}
         if (noteEvent.player == "human"){
             humanSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+            console.log("NAME TO SAMPLER ON IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+
         } else if (noteEvent.player == "worker"){
             // if noteEvent.name is null then use tonal.js to get the name of the note from noteEvent.midi
             let name = noteEvent.name;
@@ -58,7 +60,7 @@ const actions = {
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
                 
             }
-            // console.log("NAME TO SAMPLER ON IS ", name)
+            console.log("NAME TO SAMPLER ON IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
             workerSampler.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
         } else if (noteEvent.player == "metronome"){
             // console.log("metronome", noteEvent)
@@ -71,12 +73,14 @@ const actions = {
     samplerOff(state, noteEvent){
         if (noteEvent.player == "human"){
             humanSampler.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+            console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+
         } else if (noteEvent.player == "worker"){
             let name = noteEvent.name;
             if (name == null){
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });   
             }
-            // console.log("NAME TO SAMPLER OFF IS ", name)
+            console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
             workerSampler.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
         }
     },

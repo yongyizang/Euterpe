@@ -125,45 +125,31 @@ async function processAudioBuffer(content){
 // This hook is called every time a note is played
 async function processNoteEvent(content){
     // content is a midiEvent object
-    const midiEvent = {
-        type: vm.noteTypes.NOTE_ON,
-        player: "human",
-        name: noteName, //message.note.identifier,
-        channel: 140, // this is channel midi channel 0
-        midi: note.note,
-        velocity: 127,
-        timestamp: {
-            seconds: Tone.now(),
-            tick: null,
-          },
-        playAfter: {
-          seconds: 0,
-          tick: 0
+    let noteList = [];
+    // An example of a simple MIDI processor
+    // take the user's input and create an arpeggio
+    // the arpeggio should be 4, 8, 12, 16, 8, 4, 0 above the user's input
+    // and every note played with a delay of 0.1 seconds from the previous note
+    let arpeggio = [3,6,8,6,3,0];
+    for (let i = 0; i < arpeggio.length; i++) {
+        let arp_note = {
+            player: "worker",
+            name: null,
+            type: content.type,
+            midi: content.midi + arpeggio[i],
+            chroma: null,
+            velocity: 127,
+            playAfter: {
+                tick: 0,
+                seconds: 0.1 * (i+1)
+            },
+            // timestamp: {
+            //     tick: 0,
+            //     seconds: content.timestamp.seconds + 0.1 * (i+1)
+            // }
         }
-      }
-
-    // console.log("NOTE_EVENT", content);
-    const note = {
-        player: "worker",
-        name: content.noteName,
-        type: content.type,
-        midi: content.midi - 12,
-        chroma: null,
-        velocity: 127,
-        // timestamp: {
-        //     tick: content.timestamp.tick, // note was generated at this globalTick
-        //     seconds: performance.now() // note was generated at this time (seconds)
-        // },
-        // When to play the note. Ticks and seconds are added together
-        playAfter: {
-            // play the note at the next tick
-            tick: 0, 
-            // play the note after this many seconds
-            seconds: 0 
-        }
+        noteList.push(arp_note);
     }
-
-    let noteList = [note];
 
     postMessage({
         messageType: self.constants.messageType.NOTE_EVENT,

@@ -8,12 +8,12 @@ subtitle: "An AI music interaction system framework"
 noteBasedMode: 
   # If eventBased: true, then the worker's processNoteEvent() hook is active
   # for instant processing of each user's MIDI event.
-  eventBased: false
+  eventBased: true
   # If clockBased: true, then the worker's processEventsBuffer() hook is active
   # for processing raw and quantized MIDI events buffers at every "clock-tick"
   # If clockBased = false, the processEventsBuffer() is not active, but we still
   # create a clock to "power" the scrolling functionality of the PianoRoll and Score UIs
-  clockBased: true
+  clockBased: false
 
 # If audioBasedMode = true, the worker's processAudioBuffer() hook is active.
 audioBasedMode: false

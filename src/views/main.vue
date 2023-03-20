@@ -275,7 +275,7 @@ export default {
     }
 
     // Initialize worker
-    vm.worker = new Worker("worker.js");
+    vm.worker = new Worker("template-worker.js");
     // set worker callback
     // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;
@@ -716,10 +716,10 @@ export default {
       }
       else if(e.data.messageType == vm.messageType.NOTE_EVENT) {
       // console.log("worker callback NOTE_EVENT on tick", this.$store.getters.getLocalTick, "/", this.$store.getters.getGlobalTick, ", del:", this.$store.getters.getLocalTickDelayed, this.$store.getters.getGlobalTickDelayed);
-
+        const workerPrediction = e.data.content;
         const noteEventsList = workerPrediction.events;
         noteEventsList.forEach((noteEvent) => {
-          if (note.playAfter.tick > 0) {
+          if (noteEvent.playAfter.tick > 0) {
             this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
           } else {
             if (noteEvent.type === vm.noteTypes.NOTE_ON){
@@ -1022,9 +1022,11 @@ export default {
             // any notes that the user played very close to the tick change.
             // this makes the grid a bit more flexible, and the human input is correctly parsed
             // In terms of playability, the human finds it much more easy to play along the metronome on the grid
-            setTimeout(function () {
-              vm.runTheWorker();
-            }, parseInt(vm.$store.getters.getClockPeriod / 4));
+            if (vm.config.noteBasedMode.clockBased) {
+              setTimeout(function () {
+                vm.runTheWorker();
+              }, parseInt(vm.$store.getters.getClockPeriod / 4));
+            }
             // vm.runTheWorker();
           }
         }
