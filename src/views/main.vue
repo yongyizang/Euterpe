@@ -673,7 +673,6 @@ export default {
       if (e.data.messageType === vm.messageType.EVENTS_BUFFER) {
         // console.log("worker callback EVENTS BUFFER for tick", e.data.content.tick);
 
-        // Currently BachDuet gives a single prediction per tick
         const workerPrediction = e.data.content;
         vm.modelInferenceTimes.push(workerPrediction.predictTime);
         const noteEventsList = workerPrediction.events;
@@ -868,19 +867,10 @@ export default {
 
     estimateHumanQuantizedNote() {
       var vm = this;
-      /* TODO:
-      everything written here is based on BachDuet specifically.
-      The whole purpose is to estimate the quantized input and send it to vuex dispatch("storeHumanQuantizedInput")
-
-      Currently only one monophonic quantization is supported. This needs to change. Let's see
-      For monophony, I get the active notes (this is polyphonic)
-      and the last note on event (this is monophonic)
-
-      I found it
+      /* 
       1) Get the raw continuous buffers for the current tick (bufferOn, bufferOff, bufferEvent)
       2) preprocess them before quantization
           a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
-    
       */
 
       const bufferEvent = this.$store.getters.getMidiEventBuffer;

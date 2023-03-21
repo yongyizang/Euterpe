@@ -178,14 +178,14 @@ const actions = {
         // noteEvent is a dict like this
         // const note = {
         //     player: "worker",
-        //     name: null, // BachDuet doesn't generate the note's name
+        //     name: null, // 
         //     type: articulation === 1 ? noteType.ON : noteType.HOLD,
         //     midi: midi,
         //     chroma: cpc,
-        //     velocity: 127, // BachDuet uses 127 for all notes
+        //     velocity: 127, 
         //     playAfter: {
                 // tick: 1, // play the note at the next tick
-                // seconds: 0 // time is not used by BachDuet
+                // seconds: 0 
         // }
 
         // increase noteEvent.timestamp.tick by state.globalTick
