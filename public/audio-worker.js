@@ -1,4 +1,3 @@
-importScripts("/tf.min.js");
 let externalJsonLoaded = false;
 let config = null;
 let constants = {};
