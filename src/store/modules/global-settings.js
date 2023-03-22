@@ -1,10 +1,5 @@
 import Vue from "vue";
 
-/*
- Work in progress.
- We should move every "global" setting (for example, BPM, color, gain levels, etc.) in here.
-*/
-
 const state = {
   config: null,
   sessionID: null,
@@ -19,10 +14,6 @@ const state = {
 const getters = {
   getConfig(state) {
     return state.config;
-  },
-  // get the intro type writer animation text
-  getLoadingtext(state){
-    return state.config.introTypewriterContent;
   },
   getClockStatus(state){
     return state.clockStatus;
@@ -41,16 +32,16 @@ const getters = {
   },
   getTSNom(state){
     // if (state.config.event-based) return null;
-    return state.config.timeSignature.numerator;
+    return state.config.clockBasedSettings.timeSignature.numerator;
   },
   getTSDenom(state){
-    return state.config.timeSignature.denominator;
+    return state.config.clockBasedSettings.timeSignature.denominator;
   },
   getTicksPerBeat(state){
-    return state.config.ticksPerBeat;
+    return state.config.clockBasedSettings.ticksPerBeat;
   },
   getTicksPerMeasure(state){
-    return state.config.timeSignature.numerator * state.config.ticksPerBeat;
+    return state.config.clockBasedSettings.timeSignature.numerator * state.config.clockBasedSettings.ticksPerBeat;
   },
   // example getter. This will get BPM from global-settings module, then calculate the new clock period.
   getClockPeriod (state, getters, rootState, rootGetters) {

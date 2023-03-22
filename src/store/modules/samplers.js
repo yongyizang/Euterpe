@@ -1,11 +1,12 @@
 import Vue from "vue";
 import * as Tone from "tone";
 import Instruments from "@/library/instruments";
+import { Midi } from "@tonaljs/tonal";
 
 window.onclick = () => {
     Tone.start();
     Tone.context.lookAhead = 0;
-  };
+};
 
 const humanSampler = new Instruments().createSampler("piano", (piano) => {
     piano.toDestination();
@@ -18,7 +19,7 @@ const workerSampler = new Instruments().createSampler("piano", (piano) => {
 const metronomeSampler = new Instruments().createSampler(
     "metronome",
     (metronome) => {
-      metronome.release = 0.2;
+        metronome.release = 0.2;
     }
 );
 
@@ -45,27 +46,42 @@ const getters = {
 };
 
 const actions = {
-    samplerOn(state, {midiEvent, delay}){
+    samplerOn(state, noteEvent){
+        // console.log("samplerOn", noteEvent)
         // {samplerName, currentNote, time}
-        if (midiEvent.player == "human"){
-            // let skata = Tone.now();
-            // console.log(skata);
-            // console.log(delay);
-            humanSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
-        } else if (midiEvent.player == "worker"){
-            workerSampler.triggerAttack(midiEvent.note, Tone.now() + delay, midiEvent.velocity / 127);
-        } else if (midiEvent.player == "metronome"){
-            metronomeSampler.triggerAttack(midiEvent.note, Tone.now() + delay);
+        if (noteEvent.player == "human"){
+            humanSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+            console.log("NAME TO SAMPLER ON IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+
+        } else if (noteEvent.player == "worker"){
+            // if noteEvent.name is null then use tonal.js to get the name of the note from noteEvent.midi
+            let name = noteEvent.name;
+            if (name == null){
+                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+                
+            }
+            console.log("NAME TO SAMPLER ON IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+            workerSampler.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+        } else if (noteEvent.player == "metronome"){
+            // console.log("metronome", noteEvent)
+            metronomeSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
             // release the note 0.5s after the attack
             // TODO : make that depend on the beat duration
-            metronomeSampler.triggerRelease(midiEvent.note, Tone.now() + delay + 500);
+            metronomeSampler.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 500);
         }
     },
-    samplerOff(state, {midiEvent, delay}){
-        if (midiEvent.player == "human"){
-            humanSampler.triggerRelease(midiEvent.note, Tone.now() + delay);
-        } else if (midiEvent.player == "worker"){
-            workerSampler.triggerRelease(midiEvent.note, Tone.now() + delay);
+    samplerOff(state, noteEvent){
+        if (noteEvent.player == "human"){
+            humanSampler.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+            console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+
+        } else if (noteEvent.player == "worker"){
+            let name = noteEvent.name;
+            if (name == null){
+                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });   
+            }
+            console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+            workerSampler.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
         }
     },
 };
@@ -99,8 +115,8 @@ const mutations = {
 };
 
 export default {
-  state,
-  getters,
-  actions,
-  mutations,
+    state,
+    getters,
+    actions,
+    mutations,
 };

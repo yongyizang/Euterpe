@@ -1,4 +1,3 @@
-importScripts("/tf.min.js");
 let externalJsonLoaded = false;
 let config = null;
 let constants = {};
@@ -18,26 +17,43 @@ async function loadConfig(config) {
     self.config = config;
 }
 
-async function loadModels() {
+async function loadAlgorithm() {
     postMessage({
         messageType: self.constants.messageType.STATUS,
         statusType: self.constants.statusType.SUCCESS,
-        message: "Worker is ready to play with you!",
+        content: "Worker is ready to play with you!",
     });
 
 }
 
-async function inference(data) {
+/* Hook for processing note/MIDI events from the user.
+ * This hook is called in sync with the clock, and provides
+ * 1) a buffer with all the raw events since the last clock tick
+ * 2) a list of all the quantized events for the current tick
+ * It is only used if clockBased: true in the config.yaml
+ */
+async function processEventsBuffer(content) {
     
 }
 
-async function raw_audio(content){
+/* Hook for processing single note events.
+ * This hook is called every time a note is played (noteOn or noteOff)
+ * It is only used if eventBased: true in the config.yaml
+ */
+async function processNoteEvent(content){
+}
+
+/* Hook for processing the audioBuffer received from the main thread
+ * This hook is called every Fs/buffer_size seconds
+ * It is only used if audioBasedMode: true in the config.yaml
+ */
+async function processAudioBuffer(content){
     if (audioCounter < 100) {
         audioBuffer.push(...content);
         audioCounter++;
     } else {
         postMessage({
-            messageType: self.constants.messageType.RAW_AUDIO,
+            messageType: self.constants.messageType.AUDIO_BUFFER,
             content: audioBuffer,
         });
         audioBuffer = [];
@@ -45,20 +61,23 @@ async function raw_audio(content){
     }
 }
 
+// Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
     if (!self.externalJsonLoaded) {
         await self.loadExternalJson();
         self.externalJsonLoaded = true;
         onMessageFunction(obj);
     } else {
-        if (obj.data.messageType == self.constants.messageType.INFERENCE) {
-            await this.inference(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.LOAD_MODEL) {
-            await this.loadModels();
+        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
+            await this.processEventsBuffer(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
+            await this.loadAlgorithm();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.RAW_AUDIO) {
-            await this.raw_audio(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.AUDIO_BUFFER) {
+            await this.processAudioBuffer(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.NOTE_EVENT){
+            await this.processNoteEvent(obj.data.content);
         }
     }
 }

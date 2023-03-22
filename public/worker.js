@@ -39,10 +39,10 @@ async function loadExternalJson() {
 
 async function loadConfig(config) {
     self.config = config;
-    self.ticksPerMeasure = config.ticksPerBeat * config.timeSignature.numerator;
+    self.ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
 }
 
-async function loadModels() {
+async function loadAlgorithm() {
 
     // tf backend doc
     tf.setBackend('webgl');
@@ -58,7 +58,7 @@ async function loadModels() {
     postMessage({
         messageType: self.constants.messageType.STATUS,
         statusType: self.constants.statusType.LOADED,
-        message: "Worker is loaded!",
+        content: "Worker is loaded!",
     });
 
     // If your model/worker needs to be initialized and warmed up, do it here
@@ -74,7 +74,7 @@ async function loadModels() {
     self.first2A = self.states2A;
     self.first2B = self.states2B;
 
-    for (let i = 0; i < self.config.worker.warmupRounds; i++) {
+    for (let i = 0; i < self.config.workerSettings.warmupRounds; i++) {
 
         var exodos = self.modelEmb.predict([midiInp, cpcInp, rhyInp]);
         var embMidi = exodos[0];
@@ -89,7 +89,7 @@ async function loadModels() {
         postMessage({
             messageType: self.constants.messageType.STATUS,
             statusType: self.constants.statusType.WARMUP,
-            message: "Network is warming up. Current round: " + (i + 1) + "/" + self.config.worker.warmupRounds,
+            content: "Network is warming up. Current round: " + (i + 1) + "/" + self.config.workerSettings.warmupRounds,
         });
     }
 
@@ -97,31 +97,32 @@ async function loadModels() {
     postMessage({
         messageType: self.constants.messageType.STATUS,
         statusType: self.constants.statusType.SUCCESS,
-        message: "Neural Network is ready to play with you!",
+        content: "Neural Network is ready to play with you!",
     });
 
 }
 
-async function inference(data) {
+// Hook for processing note/MIDI events from the user.
+// This hook is called in sync with the clock, and provides
+// 1) a buffer with all the raw events since the last clock tick
+// 2) a list of all the quantized events for the current tick
+async function processEventsBuffer(content) {
+    // console.log("processEventsBuffer called at tick: ", content.tick);
     var predictTime = performance.now();
-    // TODO e.data will contain only the user's midi numbers they played since the last tick
-    // TODO it's the worker's job to convert the polyphonic input to monophonic (if needed) (We can do this on Euterpe also)
-    // TODO it's the workers job to use the TokensDict to convert the midi numbers to the tokens the AI understands
-    // TODO it's also the workers job to convert the AI's output tokens back to midi numbers
 
     /////////////////////////////////////////////////
-    // TODO : all this is BachDuet specific and should move into the Worker
-    const rhythmToken = rhythmTokens[data.tick];
+    // TODO : all this is BachDuet specific 
+    const rhythmToken = rhythmTokens[content.tick];
     // getTokensDict is BachDuet specific. 
     const rhythmTokenInd = self.tokensDict.rhythm.token2index[rhythmToken];
 
     // randomness is controlled by a slider in the UI and has values from 0 to 1
     // here we map it to the sampling temperature of our model which needs to be between 0.2 and 2
-    const temperature = 0.2 + 1.8 * data.randomness;
-    const currentTick = data.tick;
-    const humanInp = data.humanQuantizedInput;
+    const temperature = 0.2 + 1.8 * content.randomness;
+    const currentTick = content.tick;
+    const humanInp = content.humanQuantizedInput;
     
-    if (data.reset) {
+    if (content.reset) {
         self.states1A = tf.zeros([1, 600]);
         self.states1B = tf.zeros([1, 600]);
         self.states2A = tf.zeros([1, 600]);
@@ -132,28 +133,42 @@ async function inference(data) {
         self.first2B = self.states2B;
     }
 
+    let clipedMidi = -1;
+    let humanArtic = -1;
+    let humanCpc = -1;
     if (humanInp.length == 0){
-        humanInp.push({type: "on", midi: 0})
+        humanInp.push({type: self.constants.noteTypes.REST, midi: 128})
+        clipedMidi = 0
+        humanArtic = 1
+        humanCpc = 12
     }
+    else {
+        clipedMidi = humanInp[0].midi
+        while (clipedMidi < 28 && clipedMidi > 0){
+            clipedMidi += 12
+        }
+        while (clipedMidi > 94 && clipedMidi < 128){
+            clipedMidi -= 12
+        }
+        humanArtic = humanInp[0].type === self.constants.noteTypes.NOTE_ON ? 1 : 0;
+        clipedMidi % 12;
 
-    let clipedMidi = humanInp[0].midi;
-
-    while (clipedMidi < 28 && clipedMidi > 0){
-        clipedMidi += 12
+        humanCpc = clipedMidi % 12;
     }
-    while (clipedMidi > 94){
-        clipedMidi -= 12
-    }
+    
 
     // console.log(clipedMidi);
     // if humanInp.type is "on" then articulation is 1, if type = "hold" then articulation is 0
-    const humanArtic = humanInp[0].type === "on" ? 1 : 0;
-    let humanCpc = clipedMidi % 12;
-    if (clipedMidi == 0) {
-        humanCpc = 12;
-    }
+    // const humanArtic = humanInp[0].type === "on" ? 1 : 0;
+    // if the humanInp type is "on" or "rest", then articulation is 1, if type = "hold" then articulation is 0
+    // const humanArtic = humanInp[0].type === self.constants.noteTypes.NOTE_ON || humanInp[0].type === self.constants.noteTypes.NOTE_HOLD ? 1 : 0;
+    // if 
+    // let humanCpc = clipedMidi % 12;
+    // if (clipedMidi == 0) {
+    //     humanCpc = 12;
+    // }
     const humanMidiArtic = clipedMidi.toString() + '_' + humanArtic.toString()
-    // console.log(humanMidiArtic);
+    console.log(humanMidiArtic, humanCpc);
     const humanMidiArticInd = self.tokensDict.midiArtic.token2index[humanMidiArtic];
 
     var midiInp = tf.tensor2d([[lastWorkerPrediction.midi_artic_token_ind, humanMidiArticInd]]);
@@ -197,59 +212,149 @@ async function inference(data) {
     // Note that this prediction is to be played at the next tick
     // var tick = workerPrediction.tick
     const midi_artic = self.tokensDict.midiArtic.index2token[midi_artic_token_ind];
+    // console.log(midi_artic)
     // split the midiArtic token to get the midi number and the articulation
-    const midi = parseInt(midi_artic.split("_")[0]);
+    let midi = parseInt(midi_artic.split("_")[0]);
     const articulation = parseInt(midi_artic.split("_")[1]);
     let cpc = midi % 12;
+
     if (midi == 0) {
+        midi = 128; // BachDuet uses 0 for rest but Euterpe expects 128 for rest
         cpc = 12;
     }
-    const note = {
-        midi: midi,
-        articulation: articulation,
-        cpc: cpc,
+
+    // if midi = 128, the it is a rest
+    let type = null;
+    if (midi==128){
+        type = self.constants.noteTypes.REST;
+    } else{
+        type = articulation === 1 ? self.constants.noteTypes.NOTE_ON : self.constants.noteTypes.NOTE_HOLD;
     }
-    // to be used for the next inference step by the worker itself
+    
+    
+    
+
+    const note = {
+        player: "worker",
+        name: null, // BachDuet doesn't generate the note's name
+        type: type,
+        midi: midi,
+        chroma: cpc,
+        velocity: 127, // BachDuet uses 127 for all notes
+        timestamp: {
+            tick: currentTick, // note was generated at this tick
+            seconds: null,//Tone.now() // note was generated at this time (seconds)
+        },
+        playAfter: {
+            tick: 1, // play the note at the next tick
+            seconds: 0 // time is not used by BachDuet
+        }
+    }
+
+    let noteList = [];//[note];
+    // BachDuet is a monophonic model. If the current prediction is a noteON and the previous prediction was not a rest
+    // then we need to send a noteOFF for the previous note
+    // We need to do the same if the current prediction is a REST and the previous prediction was not a rest
+    if (note.type == self.constants.noteTypes.NOTE_ON && lastWorkerPrediction.type != self.constants.noteTypes.REST ||
+        note.type == self.constants.noteTypes.REST && lastWorkerPrediction.type != self.constants.noteTypes.REST) {
+        const noteOff = {
+            player: "worker",
+            name: null,
+            type: self.constants.noteTypes.NOTE_OFF,
+            midi: lastWorkerPrediction.midi,
+            chroma: lastWorkerPrediction.cpc,
+            velocity: 127,
+            timestamp: {
+                tick: currentTick, // note was generated at this tick
+                seconds: null,//Tone.now() // note was generated at this time (seconds)
+            },
+            playAfter: {
+                tick: 1, // play the note at the next tick
+                seconds: 0 // time is not used by BachDuet
+            }
+        }
+        noteList.push(noteOff);
+        console.log("Tick ", currentTick, "worker ALSO gives noteOFF", noteOff.midi, "/", noteOff.type)
+    }
+
+    noteList.push(note);
+    // console.log("worker prediction", noteList);
+
+      // to be used for the next inference step by the worker itself
+    // this is an internal state of the worker. BachDuet needs to keep track of the last prediction
     lastWorkerPrediction = {
         midi_artic_token_ind: midi_artic_token_ind,
-        cpc: cpc
+        cpc: cpc,
+        midi: midi,
+        type: type
     }
-    // console.log(`output ${lastWorkerPrediction.cpc}`);
+    console.log("Tick ", currentTick, "worker gives", note.midi, "/", note.type, " ")
     postMessage({
-        messageType: self.constants.messageType.INFERENCE,
-        message: {
+        messageType: self.constants.messageType.EVENTS_BUFFER,
+        content: {
             predictTime: predictTime,
             tick: currentTick,
-            note: note
+            events: noteList,
         }
     });
-    // console.log("worker prediction", note.midi, note.articulation, note.cpc);
 }
 
-async function raw_audio(content){
+// Hook for processing the audioBuffer received from the main thread
+// This hook is called every Fs/buffer_size seconds
+async function processAudioBuffer(content){
     // console.log("raw_audio", content);
 }
 
-async function instant_events(content){
-    // console.log("instant_events", content);
+// Hook for processing single note events.
+// This hook is called every time a note is played
+async function processNoteEvent(content){
+    // console.log("NOTE_EVENT", content);
+    const note = {
+        player: "worker",
+        name: null, // BachDuet doesn't generate the note's name
+        type: articulation === 1 ? self.constants.noteTypes.NOTE_ON : self.constants.noteTypes.NOTE_HOLD,
+        midi: midi,
+        chroma: cpc,
+        velocity: 127, // BachDuet uses 127 for all notes
+        // timestamp: {
+        //     tick: content.timestamp.tick, // note was generated at this globalTick
+        //     seconds: performance.now() // note was generated at this time (seconds)
+        // },
+        playAfter: {
+            tick: 0, // play the note at the next tick
+            seconds: 0 // time is not used by BachDuet
+        }
+    }
+
+    let noteList = [note];
+
+    postMessage({
+        messageType: self.constants.messageType.NOTE_EVENT,
+        content: {
+            // predictTime: predictTime,
+            // tick: currentTick,
+            events: noteList,
+        }
+    });
 }
 
+// Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
     if (!self.externalJsonLoaded) {
         await self.loadExternalJson();
         self.externalJsonLoaded = true;
         onMessageFunction(obj);
     } else {
-        if (obj.data.messageType == self.constants.messageType.INFERENCE) {
-            await this.inference(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.LOAD_MODEL) {
-            await this.loadModels();
+        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
+            await this.processEventsBuffer(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
+            await this.loadAlgorithm();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.RAW_AUDIO) {
-            await this.raw_audio(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.INSTANT_EVENTS){
-            await this.instant_events(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.AUDIO_BUFFER) {
+            await this.processAudioBuffer(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.NOTE_EVENT){
+            await this.processNoteEvent(obj.data.content);
         }
     }
 }

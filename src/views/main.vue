@@ -27,13 +27,14 @@
 
     <div ref="mainContent" id="mainContent" class="fade-in">
       <div style="
-                            background-color: black;
-                            opacity: 0.5;
-                            display: fixed;
-                            top: 0;
-                            right: 0;
-                            z-index: 999;
-                          "></div>
+          background-color: black;
+          opacity: 0.5;
+          display: fixed;
+          top: 0;
+          right: 0;
+          z-index: 999;
+          ">
+      </div>
       <scoreUI />
       <pianoRollUI />
       <div style="position: absolute; bottom: 230px; right: 20px">
@@ -95,8 +96,8 @@
               <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Network Piano Volume</p>
-                  <p class="settingsValue">{{ WorkerVolume }}</p>
-                  <vue-slider v-model="WorkerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
+                  <p class="settingsValue">{{ workerVolume }}</p>
+                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
               </div>
             </div>
@@ -164,6 +165,7 @@ import yaml from "js-yaml";
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
+  // TODO : this calls Tone.start() every time the user clicks on the screen.
   Tone.start();
 };
 
@@ -196,9 +198,9 @@ export default {
       audioBuffers: [],
       workerPlayer: null,
 
-      // metronomeStatus: true,
-      lastNoteOnAi: "", //TODO: this is is used only by triggerWorkerSample
-      reset: false, // reset signal to notify the AI worker to reset
+      // reset signal to notify the Worker to reset.
+      // If your worker doesn't support reseting, you can ignore this.
+      reset: false,
 
       WebMIDISupport: false,
       pageLoadTime: null,
@@ -207,10 +209,15 @@ export default {
       selectedMIDIDevice: "",
 
       userPianoVolume: 10,
-      WorkerVolume: 10,
+      workerVolume: 10,
 
-      modelInferenceTimes: [], // used to calculate the average inference time and estimate maxBPM
-      maxBPM: 0, // maxBPM supported by the current device
+      // used to calculate the average worker inference time (clockBased mode) 
+      // and estimate maxBPM
+      modelInferenceTimes: [], 
+      // maxBPM (or min clock period) supported by the current device
+      maxBPM: 0,
+      // counter for the number of times the worker inference time exceeds the clock period
+      misalignErrCount: 0,
 
       isNotChrome: navigator.userAgent.indexOf("Chrome") <= -1,
       isMobile:
@@ -220,7 +227,7 @@ export default {
         /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(
           navigator.userAgent.substr(0, 4)
         ),
-      misalignErrCount: 0,
+      
     };
   },
 
@@ -242,6 +249,8 @@ export default {
     this.$refs.mainContent.style.display = "none";
     this.$refs.entryBtn.style.visibility = "hidden";
 
+    // load config.yaml and constants.json
+    // then commit them to any vuex store that needs them
     try {
       await fetch('/config.yaml')
         .then(response => response.text())
@@ -250,27 +259,34 @@ export default {
           vm.$store.commit("setConfig", this.config);
           vm.$store.commit("initQuantBuffers", this.config);
           vm.$store.commit("setTicksPerMeasure", this.config);
-          this.BPM = this.config.tempo;
+          this.BPM = this.config.clockBasedSettings.tempo;
         }.bind(this)());
       await fetch('/constants.json')
         .then(response => response.json())
         .then(json => function () {
           this.messageType = json.messageType;
           this.statusType = json.statusType;
+          this.noteTypes = json.noteTypes;
+          vm.$store.commit("setNoteTypes", this.noteTypes);
         }.bind(this)());
-      // console.log("config and constants loaded");
+      console.log("config and constants loaded");
     } catch (err) {
       console.error(err);
     }
 
-    vm.worker = new Worker("worker.js");
+    // Initialize worker
+    vm.worker = new Worker("template-worker.js");
+    // set worker callback
+    // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;
+    // Send a message to worker with the config file to store in worker
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
       content: vm.$store.getters.getConfig,
     });
+    // Tell the worker to load the algorithm
     await vm.worker.postMessage({
-      messageType: vm.messageType.LOAD_MODEL,
+      messageType: vm.messageType.LOAD_ALGORITHM,
       content: null,
     });
 
@@ -296,9 +312,10 @@ export default {
     const loadingScreen = document.getElementById("loadingScreenInjection");
     if (vm.screenWidth < 450 || vm.screenHeight < 450) {
       loadingScreen.innerHTML =
-        "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but BachDuet Web only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>";
+        "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but we only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>";
     }
 
+    // TODO: Do we need those?
     /*
      * Initialize page load data collections
      */
@@ -330,7 +347,7 @@ export default {
 
     vm.audioRecorder.port.addEventListener("message", (event) => {
       vm.worker.postMessage({
-        messageType: vm.messageType.RAW_AUDIO,
+        messageType: vm.messageType.AUDIO_BUFFER,
         content: event.data,
       });
     });
@@ -338,10 +355,10 @@ export default {
     vm.mediaStreamSource.connect(vm.audioRecorder);
     vm.audioRecorder.connect(vm.audioContext.destination);
     vm.workerPlayer = new Tone.Player().toDestination();
+
     /*
      * Web MIDI logic
      */
-
     if (navigator.requestMIDIAccess) {
       navigator.requestMIDIAccess().then(function (access) {
         vm.WebMIDISupport = true;
@@ -355,11 +372,14 @@ export default {
 
     /*
      * Initialize computer keyboard logic
+     * AudioKeys maps the computer keyboard to midi values
      */
     var keyboard = new AudioKeys({
-      polyphony: 100, // set it to a very high number. We will handle the polyphony ourselves.
+      // set polyphony it to a very high number. 
+      // we will handle the polyphony ourselves.
+      polyphony: 100,
       rows: 2,
-      priority: "last", // "last" applies only when polyphony is exceeded
+      priority: "last",
       rootNote: 60,
     });
 
@@ -368,22 +388,33 @@ export default {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
       // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
-        type: "noteOn",
+        type: vm.noteTypes.NOTE_ON,
         player: "human",
-        note: noteName, //message.note.identifier,
+        name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: note.note,
         velocity: 127,
-        timestamp: Tone.now(),
+        timestamp: {
+            seconds: Tone.now(),
+            tick: null,
+          },
+        playAfter: {
+          seconds: 0,
+          tick: 0
+        }
       }
-      if (vm.config.eventBased) {
+      // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+      // this packet will be sent to the processNoteEvent hook.
+      if (vm.config.noteBasedMode.eventBased) {
         vm.worker.postMessage({
-          messageType: vm.messageType.INSTANT_EVENTS,
+          messageType: vm.messageType.NOTE_EVENT,
           content: midiEvent,
         });
       };
-      let delay = 0;
-      vm.$store.dispatch("samplerOn", { midiEvent, delay });
+      // We always send the user's input directly to the sampler
+      // for immediate playback
+      vm.$store.dispatch("samplerOn", midiEvent);
+      // If the clock is running, send the note to the piano roll
       if (vm.$store.getters.getClockStatus) {
         vm.$root.$refs.pianoRollUI.keyDown(midiEvent);
         vm.$store.dispatch("noteOn", midiEvent);
@@ -395,28 +426,35 @@ export default {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
 
       const midiEvent = {
-        type: "noteOff",
+        type: vm.noteTypes.NOTE_OFF,
         player: "human",
-        note: noteName, //message.note.identifier,
+        name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: note.note,
         velocity: 127,
-        timestamp: Tone.now(),
+        timestamp: {
+            seconds: Tone.now(),
+            tick: null,//this.$store.getters.getGlobalTickDelayed
+          },
+        playAfter: {
+          seconds: 0,
+          tick: 0
+        }
       }
-      if (vm.config.eventBased) {
+      if (vm.config.noteBasedMode.eventBased) {
         vm.worker.postMessage({
-          messageType: vm.messageType.INSTANT_EVENTS,
+          messageType: vm.messageType.NOTE_EVENT,
           content: midiEvent,
         });
       };
-      let delay = 0;
-      vm.$store.dispatch("samplerOff", { midiEvent, delay });
+      vm.$store.dispatch("samplerOff", midiEvent);
       if (vm.$store.getters.getClockStatus) {
         // this enters here, only when the clock has started
         vm.$root.$refs.pianoRollUI.keyUp(midiEvent);
         vm.$store.dispatch("noteOff", midiEvent);
       }
     });
+    // TODO: window.onclick is outside mounted(). How about this one.
     // When window resize, self-update this data.
     window.onresize = () => {
       return (() => {
@@ -487,7 +525,7 @@ export default {
         this.$store.commit("setHumanVolume", newValue);
       },
     },
-    WorkerVolume: {
+    workerVolume: {
       immediate: true,
       handler(newValue) {
         this.$store.commit("setWorkerVolume", newValue);
@@ -529,22 +567,28 @@ export default {
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
       inputDevice.addListener("noteon", (message) => {
         const midiEvent = {
-          type: "noteOn",
+          type: vm.noteTypes.NOTE_ON,
           player: "human",
-          note: message.note.identifier,
+          name: message.note.identifier,
           channel: message.data[0],
           midi: message.data[1],
           velocity: message.data[2],
-          timestamp: message.timestamp,
+          timestamp: {
+            seconds: message.timestamp,
+            tick: this.$store.getters.getGlobalTickDelayed
+          },
+          playAfter: {
+            seconds: 0,
+            tick: 0
+          }
         }
-        if (vm.config.eventBased) {
+        if (vm.config.noteBasedMode.eventBased) {
           vm.worker.postMessage({
-            messageType: vm.messageType.INSTANT_EVENTS,
+            messageType: vm.messageType.NOTE_EVENT,
             content: midiEvent,
           });
         };
-        let delay = 0;
-        this.$store.dispatch("samplerOn", { midiEvent, delay });
+        this.$store.dispatch("samplerOn", midiEvent);
         if (this.$store.getters.getClockStatus) {
           this.$root.$refs.pianoRollUI.keyDown(midiEvent);
           this.$store.dispatch("noteOn", midiEvent);
@@ -553,22 +597,28 @@ export default {
 
       inputDevice.addListener("noteoff", (message) => {
         const midiEvent = {
-          type: "noteOff",
+          type: vm.noteTypes.NOTE_OFF,
           player: "human",
-          note: message.note.identifier,
+          name: message.note.identifier,
           channel: message.data[0],
           midi: message.data[1],
           velocity: message.data[2],
-          timestamp: message.timestamp,
+          timestamp: {
+            seconds: message.timestamp,
+            tick: this.$store.getters.getGlobalTickDelayed
+          },
+          playAfter: {
+            seconds: 0,
+            tick: 0
+          }
         }
-        if (vm.config.eventBased) {
+        if (vm.config.noteBasedMode.eventBased) {
           vm.worker.postMessage({
-            messageType: vm.messageType.INSTANT_EVENTS,
+            messageType: vm.messageType.NOTE_EVENT,
             content: midiEvent,
           });
         };
-        let delay = 0;
-        this.$store.dispatch("samplerOff", { midiEvent, delay });
+        this.$store.dispatch("samplerOff", midiEvent);
         if (this.$store.getters.getClockStatus) {
           this.$root.$refs.pianoRollUI.keyUp(midiEvent);
           this.$store.dispatch("noteOff", midiEvent);
@@ -607,7 +657,7 @@ export default {
       this.$root.$refs.scoreUI.draw();
 
       this.worker.postMessage({
-        messageType: vm.messageType.INFERENCE,
+        messageType: vm.messageType.EVENTS_BUFFER,
         content: {
           tick: this.$store.getters.getLocalTick,
           humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
@@ -620,13 +670,32 @@ export default {
 
     async workerCallback(e) {
       const vm = this;
-      // If the worker is giving us only string
-      // if (typeof e.data === "string" || e.data instanceof String)
-      if (e.data.messageType === vm.messageType.INFERENCE) {
-        // If the worker is giving us a prediction (inference)
-        const workerPrediction = e.data.message;
-        vm.modelInferenceTimes.push(workerPrediction.predictTime);
+      if (e.data.messageType === vm.messageType.EVENTS_BUFFER) {
+        // console.log("worker callback EVENTS BUFFER for tick", e.data.content.tick);
 
+        const workerPrediction = e.data.content;
+        vm.modelInferenceTimes.push(workerPrediction.predictTime);
+        const noteEventsList = workerPrediction.events;
+        noteEventsList.forEach((noteEvent) => {
+          if (noteEvent.playAfter.tick > 0) {
+            this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
+          } else {
+            if (noteEvent.type === vm.noteTypes.NOTE_ON){
+              this.$store.dispatch("samplerOn", noteEvent);
+              // set a timeout to call keyDown based on noteEvent.timestamp.seconds
+              setTimeout(() => {
+                this.$root.$refs.pianoRollUI.keyDown(noteEvent);
+              }, noteEvent.playAfter.seconds * 1000);
+            }
+            else if (noteEvent.type === vm.noteTypes.NOTE_OFF){
+              this.$store.dispatch("samplerOff", noteEvent);
+              // set a timeout to call keyUp based on noteEvent.timestamp.seconds
+              setTimeout(() => {
+                this.$root.$refs.pianoRollUI.keyUp(noteEvent);
+              }, noteEvent.playAfter.seconds * 1000);
+            }
+          }
+        });
 
         // Misalignment Check
         // Will block first 2 ticks' misalignment error msg
@@ -640,9 +709,34 @@ export default {
           this.misalignErrCount += 1;
         }
 
-        this.$store.dispatch("storeWorkerQuantizedOutput", workerPrediction);
+        // this.$store.dispatch("storeWorkerQuantizedOutput", workerPrediction);
 
         this.reset = false; // for explanation see the comment about reset inside runTheWorker()
+      }
+      else if(e.data.messageType == vm.messageType.NOTE_EVENT) {
+      // console.log("worker callback NOTE_EVENT on tick", this.$store.getters.getLocalTick, "/", this.$store.getters.getGlobalTick, ", del:", this.$store.getters.getLocalTickDelayed, this.$store.getters.getGlobalTickDelayed);
+        const workerPrediction = e.data.content;
+        const noteEventsList = workerPrediction.events;
+        noteEventsList.forEach((noteEvent) => {
+          if (noteEvent.playAfter.tick > 0) {
+            this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
+          } else {
+            if (noteEvent.type === vm.noteTypes.NOTE_ON){
+              this.$store.dispatch("samplerOn", noteEvent);
+              // set a timeout to call keyDown based on noteEvent.timestamp.seconds
+              setTimeout(() => {
+                this.$root.$refs.pianoRollUI.keyDown(noteEvent);
+              }, noteEvent.playAfter.seconds * 1000);
+            }
+            else if (noteEvent.type === vm.noteTypes.NOTE_OFF){
+              this.$store.dispatch("samplerOff", noteEvent);
+              // set a timeout to call keyUp based on noteEvent.timestamp.seconds
+              setTimeout(() => {
+                this.$root.$refs.pianoRollUI.keyUp(noteEvent);
+              }, noteEvent.playAfter.seconds * 1000);
+            }
+          }
+        });
       }
       else if (e.data.messageType === vm.messageType.STATUS) {
         if (e.data.statusType == vm.statusType.SUCCESS) {
@@ -651,9 +745,11 @@ export default {
           vm.modelLoadTime = Date.now() - vm.modelLoadTime;
         }
         const workerStatus = vm.$refs.workerStatus;
-        workerStatus.innerHTML = e.data.message;
+        workerStatus.innerHTML = e.data.content;
       }
-      else if (e.data.messageType === vm.messageType.RAW_AUDIO) {
+      else if (e.data.messageType === vm.messageType.AUDIO_BUFFER) {
+        // console.log("worker callback AUDIO BUFFER on tick", this.$store.getters.getLocalTick, "/", this.$store.getters.getGlobalTick, ", del:", this.$store.getters.getLocalTickDelayed, this.$store.getters.getGlobalTickDelayed);
+
         const audio = new Float32Array(e.data.content);
         // create an AudioBuffer from the audio
         const audioBuffer = new AudioBuffer({
@@ -672,80 +768,41 @@ export default {
       this.reset = true;
     },
 
-    triggerWorkerSampler() {
-      // here, we check the note the AI predicted in the previous tick,
-      // for the tick we are now. If the articulation of the predicted note
-      // is 1 (hit), then we trigger the AI sampler to play the note.
-      // if there is already a note active, we have to triggerRelease first
-      // if the predicted note is a rest ... blablabla.
-
-      // TODO : for Euterpe/polyphony, if the number of active notes exceeds te polyphony limit (set by the developer)
-      // then we have to triggerRelease the oldest note first. which means we need to keep track of the order of the notes
-
-      // TODO : fix the payloads
-      // TODO : A worker that supports polyphony should be able to send note off events also. 
-      const workerPrediction = this.$store.getters.getWorkerPredictionFor(
-        this.$store.getters.getLocalTick
+    triggerWorkerSamplerSync() {
+      var vm = this;
+      const workerNotesToBePlayed = this.$store.getters.popWorkerNotesToBePlayedAt(
+        this.$store.getters.getGlobalTick
       );
-      if (workerPrediction.articulation == 1) {
-        if (workerPrediction.midi != 0) {
-          if (!(this.lastNoteOnAi === "")) {
-            const midiEvent = {
-              player: "worker",
-              note: this.lastNoteOnAi,
-              // channel : message.data[0],
-              // midi : message.data[1],
-              // velocity : message.data[2],
-              timestamp: Tone.now(),
-            }
-            const delay = 0;
-            this.$store.dispatch("samplerOff", { midiEvent, delay });
 
-            this.$root.$refs.pianoRollUI.keyUp(midiEvent);
+      if (workerNotesToBePlayed.length > 0) {
+        workerNotesToBePlayed.forEach((noteEvent) => {
+          // console.log("a note to be played", noteEvent);
+          if (noteEvent.type === vm.noteTypes.NOTE_ON) {
+            // console.log("worker note on", noteEvent)
+            this.$store.dispatch("samplerOn", noteEvent);
+            setTimeout(() => {
+                this.$root.$refs.pianoRollUI.keyDown(noteEvent);
+              }, noteEvent.playAfter.seconds * 1000);
+            // this.$root.$refs.pianoRollUI.keyDown(note);
+          } else if (noteEvent.type === vm.noteTypes.NOTE_OFF) {
+            // console.log("WORKER NOTE OFF", noteEvent)
+            this.$store.dispatch("samplerOff", noteEvent);
+            // this.$root.$refs.pianoRollUI.keyUp(note);
+            setTimeout(() => {
+                this.$root.$refs.pianoRollUI.keyUp(noteEvent);
+              }, noteEvent.playAfter.seconds * 1000);
           }
-          const currentNote = Midi.midiToNoteName(workerPrediction.midi, {
-            sharps: true,
-          });
-          const midiEvent = {
-            player: "worker",
-            note: currentNote,
-            timestamp: Tone.now(),
-          }
-          const delay = 0;
-          this.$store.dispatch("samplerOn", { midiEvent, delay });
-          this.$root.$refs.pianoRollUI.keyDown(midiEvent);
-          this.lastNoteOnAi = currentNote;
-        } else {
-          if (!(this.lastNoteOnAi === "")) {
-            const midiEvent = {
-              player: "worker",
-              note: this.lastNoteOnAi,
-              timestamp: Tone.now(),
-            };
-            let delay = 0;
-            this.$store.dispatch("samplerOff", { midiEvent, delay });
-            this.$root.$refs.pianoRollUI.keyUp(midiEvent);
-            this.lastNoteOnAi = ""; // TODO I don't like that. 
-          }
-        }
+        });
       }
     },
 
 
     estimateHumanQuantizedNote() {
-      /* TODO:
-      everything written here is based on BachDuet specifically.
-      The whole purpose is to estimate the quantized input and send it to vuex dispatch("storeHumanQuantizedInput")
-
-      Currently only one monophonic quantization is supported. This needs to change. Let's see
-      For monophony, I get the active notes (this is polyphonic)
-      and the last note on event (this is monophonic)
-
-      I found it
+      var vm = this;
+      /* 
       1) Get the raw continuous buffers for the current tick (bufferOn, bufferOff, bufferEvent)
       2) preprocess them before quantization
           a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
-    
       */
 
       const bufferEvent = this.$store.getters.getMidiEventBuffer;
@@ -759,9 +816,9 @@ export default {
       let indexesToRemove = []; // the indexes of the events to be removed
       for (let i = bufferEvent.length - 1; i >= 0; i--) {
         let elem = bufferEvent[i];
-        if (elem.type === "noteOff") {
+        if (elem.type === vm.noteTypes.NOTE_OFF) {
           const matchingIndexes = bufferEvent
-            .map((e, i) => (e.type === "noteOn" && e.midi === elem.midi && e.timestamp < elem.timestamp) ? i : -1)
+            .map((e, i) => (e.type === vm.noteTypes.NOTE_ON && e.midi === elem.midi && e.timestamp.seconds < elem.timestamp.seconds) ? i : -1)
             .filter(index => index !== -1);
           if (matchingIndexes.length > 0) {
             indexesToRemove.push(i);
@@ -776,20 +833,35 @@ export default {
       // if the note does not exist in the bufferEvent, then we have a continuation of the note (we assume it was activated in a previous tick)
       for (let i = 0; i < activePianoNotes.length; i++) {
         const midi = activePianoNotes[i].midi;
-        const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === "noteOn" && elem.midi === midi);
+        const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === vm.noteTypes.NOTE_ON && elem.midi === midi);
         if (noteOnEvent) {
-          currentQuantizedEvents.push({
-            type: "on",
-            midi: midi,
-          })
+          // currentQuantizedEvents.push({
+          //   type: "on",
+          //   midi: midi,
+          // })
+          currentQuantizedEvents.push(noteOnEvent)
         }
         else {
-          currentQuantizedEvents.push({
-            type: "hold",
+          const noteHoldEvent = {
+            type: vm.noteTypes.NOTE_HOLD,
+            player: "human",
             midi: midi,
-          })
+            chroma: null,
+            velocity: null,
+            timestamp: {
+              seconds: null,
+              ticks: null,
+            },
+          }
+          currentQuantizedEvents.push(noteHoldEvent);
+          // currentQuantizedEvents.push({
+          //   type: "hold",
+          //   midi: midi,
+          // })
         }
       }
+      // TODO : it seems I ignore rests. If no active notes, then currentQuantizedEvents will be empty
+
       // now iterate over the bufferEvent and find all the noteOff notes and push them to currentQuantizedEvents as off events
       // for (let i = 0; i < cleanedEventBuffer.length; i++) {
       //   const elem = cleanedEventBuffer[i];
@@ -810,12 +882,11 @@ export default {
 
       // FOR NOW WE DON"T INCLUDE NOTE_OFF EVENTS IN THE QUANTIZED DATA.
       let constrainedCurrentQuantizedEvents = [];
-      const polyphony = 2;
-      let onHoldEvents = currentQuantizedEvents.filter(elem => elem.type === "on" || elem.type === "hold");
+      let onHoldEvents = currentQuantizedEvents.filter(elem => elem.type === vm.noteTypes.NOTE_ON || elem.type === vm.noteTypes.NOTE_HOLD);
       // let offEvents = currentQuantizedEvents.filter(elem => elem.type === "off");
-      if (onHoldEvents.length > polyphony) {
+      if (onHoldEvents.length > vm.config.polyphony.input) {
         // let onHoldEventsToRemove = onHoldEvents.slice(polyphony);
-        let onHoldEventsToKeep = onHoldEvents.slice(0, polyphony);
+        let onHoldEventsToKeep = onHoldEvents.slice(0, vm.config.polyphony.input);
         // let offEventsToAdd = onHoldEventsToRemove.map(elem => {
         //   return {
         //     type: "off",
@@ -866,16 +937,19 @@ export default {
             vm.metronomeTrigger();
             // in grid-based mode, the worker's sampler is triggered in sync with the clock
 
-            vm.triggerWorkerSampler();
+            vm.triggerWorkerSamplerSync();
 
 
             // run the worker with a small delay of tick/4 in order to include 
             // any notes that the user played very close to the tick change.
             // this makes the grid a bit more flexible, and the human input is correctly parsed
             // In terms of playability, the human finds it much more easy to play along the metronome on the grid
-            setTimeout(function () {
-              vm.runTheWorker();
-            }, parseInt(vm.$store.getters.getClockPeriod / 4));
+            if (vm.config.noteBasedMode.clockBased) {
+              setTimeout(function () {
+                vm.runTheWorker();
+              }, parseInt(vm.$store.getters.getClockPeriod / 4));
+            }
+            // vm.runTheWorker();
           }
         }
 
@@ -897,6 +971,8 @@ export default {
       this.$store.commit("flipMetronomeStatus");
     },
     metronomeTrigger() {
+      // console.log("in metronomeTrigger for ", this.$store.getters.getLocalTick);
+      // var vm = this;
       // This method would trigger the metronome sampler.
       if (
         // getTicksPerBeat returns the number of ticks per beat
@@ -906,13 +982,19 @@ export default {
       ) {
         var currentNote =
           this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
-        const midiEvent = {
-          player: "metronome",
-          note: currentNote,
-          timestamp: Tone.now(),
-        };
-        let delay = 0;
-        this.$store.dispatch("samplerOn", { midiEvent, delay });
+        const metronomeNote = {
+            player: "metronome",
+            name: currentNote,
+            type: this.noteTypes.NOTE_ON,
+            midi: null,
+            chroma: null,
+            velocity: 127,
+            playAfter: {
+                tick: 0,
+                seconds: 0
+            }
+        }
+        this.$store.dispatch("samplerOn", metronomeNote);
         this.calculateMaxBPM();
       }
     },
