@@ -1,5 +1,5 @@
 class AudioRecorder extends AudioWorkletProcessor {
-    static get parameterDescriptors () { // <1>
+    static get parameterDescriptors () {
       return [
         {
           name: 'recordingStatus',
@@ -19,4 +19,4 @@ class AudioRecorder extends AudioWorkletProcessor {
     }
   }
   
-  registerProcessor('audio-recorder', AudioRecorder) // <4>
+  registerProcessor('audio-recorder', AudioRecorder)
