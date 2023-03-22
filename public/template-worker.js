@@ -60,6 +60,9 @@ async function loadAlgorithm() {
 async function processEventsBuffer(content) {
     var predictTime = performance.now();
 
+    // The list of notes to be sent to the UI
+    let noteList = [];
+
     const randomness = content.randomness;
     const currentTick = content.tick;
     const humanQUantizedInput = content.humanQuantizedInput;
@@ -70,34 +73,32 @@ async function processEventsBuffer(content) {
     }
     
     // An example of the Note object the UI expects
-    const note = {
-        player: "worker",
-        name: null, 
-        // Note type can be NOTE_ON, NOTE_OFF, NOTE_HOLD, REST
-        type: self.constants.noteTypes.NOTE_ON,
-        // a number 0-127. 128 is a rest
-        midi: 60,
-        // a number 0-11. 12 is a rest
-        chroma: 0,
-        // a number 0-127
-        velocity: 127, 
-        timestamp: {
-            // note was generated at this tick
-            tick: currentTick, 
-            //Tone.now() // note was generated at this time (seconds)
-            seconds: null,
-        },
-        // When to play the note. Ticks and seconds are added together
-        playAfter: {
-            // play the note at the next tick
-            tick: 1,
-            // add extra delay to the note (seconds)
-            seconds: 0
-        }
-    }
-
-    let noteList = [];
-    noteList.push(note);
+    // const note = {
+    //     player: "worker",
+    //     name: null, 
+    //     // Note type can be NOTE_ON, NOTE_OFF, NOTE_HOLD, REST
+    //     type: self.constants.noteTypes.NOTE_ON,
+    //     // a number 0-127. 128 is a rest
+    //     midi: 60,
+    //     // a number 0-11. 12 is a rest
+    //     chroma: 0,
+    //     // a number 0-127
+    //     velocity: 127, 
+    //     timestamp: {
+    //         // note was generated at this tick
+    //         tick: currentTick, 
+    //         //Tone.now() // note was generated at this time (seconds)
+    //         seconds: null,
+    //     },
+    //     // When to play the note. Ticks and seconds are added together
+    //     playAfter: {
+    //         // play the note at the next tick
+    //         tick: 1,
+    //         // add extra delay to the note (seconds)
+    //         seconds: 0
+    //     }
+    // }
+    // noteList.push(note);
 
     // estimate the inference time of your algorithm
     // the UI keeps track of this, and will warn the user
@@ -126,30 +127,32 @@ async function processAudioBuffer(content){
 async function processNoteEvent(content){
     // content is a midiEvent object
     let noteList = [];
-    // An example of a simple MIDI processor
-    // take the user's input and create an arpeggio
-    // the arpeggio should be 4, 8, 12, 16, 8, 4, 0 above the user's input
-    // and every note played with a delay of 0.1 seconds from the previous note
-    let arpeggio = [3,6,8,6,3,0];
-    for (let i = 0; i < arpeggio.length; i++) {
-        let arp_note = {
-            player: "worker",
-            name: null,
-            type: content.type,
-            midi: content.midi + arpeggio[i],
-            chroma: null,
-            velocity: 127,
-            playAfter: {
-                tick: 0,
-                seconds: 0.1 * (i+1)
-            },
-            // timestamp: {
-            //     tick: 0,
-            //     seconds: content.timestamp.seconds + 0.1 * (i+1)
-            // }
-        }
-        noteList.push(arp_note);
-    }
+
+    /* An example of a simple MIDI processor
+     * take the user's input and create an arpeggio
+     * the arpeggio should be 4, 8, 12, 16, 8, 4, 0 above the user's input
+     * and every note played with a delay of 0.1 seconds from the previous note
+     */
+    // let arpeggio = [3,6,8,6,3,0];
+    // for (let i = 0; i < arpeggio.length; i++) {
+    //     let arp_note = {
+    //         player: "worker",
+    //         name: null,
+    //         type: content.type,
+    //         midi: content.midi + arpeggio[i],
+    //         chroma: null,
+    //         velocity: 127,
+    //         playAfter: {
+    //             tick: 0,
+    //             seconds: 0.1 * (i+1)
+    //         },
+    //         // timestamp: {
+    //         //     tick: 0,
+    //         //     seconds: content.timestamp.seconds + 0.1 * (i+1)
+    //         // }
+    //     }
+    //     noteList.push(arp_note);
+    // }
 
     postMessage({
         messageType: self.constants.messageType.NOTE_EVENT,

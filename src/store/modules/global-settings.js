@@ -1,10 +1,5 @@
 import Vue from "vue";
 
-/*
-  Work in progress.
-  We should move every "global" setting (for example, BPM, color, gain levels, etc.) in here.
-*/
-
 const state = {
   config: null,
   sessionID: null,

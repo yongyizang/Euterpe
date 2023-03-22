@@ -769,75 +769,7 @@ export default {
     },
 
     triggerWorkerSamplerSync() {
-      // here, we check the note the AI predicted in the previous tick,
-      // for the tick we are now. If the articulation of the predicted note
-      // is 1 (hit), then we trigger the AI sampler to play the note.
-      // if there is already a note active, we have to triggerRelease first
-      // if the predicted note is a rest ... blablabla.
-
-      // TODO : for Euterpe/polyphony, if the number of active notes exceeds te polyphony limit (set by the developer)
-      // then we have to triggerRelease the oldest note first. which means we need to keep track of the order of the notes
-
-      // TODO : fix the payloads
-      // TODO : A worker that supports polyphony should be able to send note off events also. 
-
-      // const workerPrediction = this.$store.getters.getWorkerPredictionFor(
-      //   this.$store.getters.getLocalTick
-      // );
-      // if (workerPrediction.articulation == 1) {
-      //   if (workerPrediction.midi != 0) {
-      //     if (!(this.lastNoteOnAi === "")) {
-      //       const midiEvent = {
-      //         player: "worker",
-      //         name: this.lastNoteOnAi,
-      //         // channel : message.data[0],
-      //         // midi : message.data[1],
-      //         // velocity : message.data[2],
-      //         velocity: 127,
-      //         timestamp: Tone.now(),
-      //       }
-      //       const delay = 0;
-      //       this.$store.dispatch("samplerOff", { midiEvent, delay });
-
-      //       this.$root.$refs.pianoRollUI.keyUp(midiEvent);
-      //     }
-      //     const currentNote = Midi.midiToNoteName(workerPrediction.midi, {
-      //       sharps: true,
-      //     });
-      //     const midiEvent = {
-      //       player: "worker",
-      //       name: currentNote,
-      //       velocity: 127,
-      //       timestamp: Tone.now(),
-      //     }
-      //     const delay = 0;
-      //     this.$store.dispatch("samplerOn", { midiEvent, delay });
-      //     this.$root.$refs.pianoRollUI.keyDown(midiEvent);
-      //     this.lastNoteOnAi = currentNote;
-      //   } else {
-      //     if (!(this.lastNoteOnAi === "")) {
-      //       const midiEvent = {
-      //         player: "worker",
-      //         name: this.lastNoteOnAi,
-      //         velocity: 127,
-      //         timestamp: Tone.now(),
-      //       };
-      //       let delay = 0;
-      //       this.$store.dispatch("samplerOff", { midiEvent, delay });
-      //       this.$root.$refs.pianoRollUI.keyUp(midiEvent);
-      //       this.lastNoteOnAi = ""; // TODO I don't like that. 
-      //     }
-      //   }
-      // }
       var vm = this;
-      // console.log("workerNotesToBePlayed", this.$store.getters.getWorkerNotesToBePlayed);
-      // print the timestamp.tick of all the notes in workerNotesToBePlayed
-      // let aaa = this.$store.getters.getWorkerNotesToBePlayed;
-      // use i index for for loop
-      // console.log("length of aaa", aaa.length);
-      // for ( let i = 0; i < aaa.length; i++) {
-      //       console.log("workerTriggerSampler at", this.$store.getters.getGlobalTick, " Sees ", aaa.get(i).timestamp.tick);
-      //   }
       const workerNotesToBePlayed = this.$store.getters.popWorkerNotesToBePlayedAt(
         this.$store.getters.getGlobalTick
       );
@@ -1050,11 +982,6 @@ export default {
       ) {
         var currentNote =
           this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
-        // const midiEvent = {
-        //   player: "metronome",
-        //   name: currentNote,
-        //   timestamp: Tone.now(),
-        // };
         const metronomeNote = {
             player: "metronome",
             name: currentNote,
