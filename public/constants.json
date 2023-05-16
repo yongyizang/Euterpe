@@ -5,7 +5,9 @@
     "LOAD_CONFIG": 3,
     "EVENTS_BUFFER": 5,
     "NOTE_EVENT": 6,
-    "AUDIO_BUFFER": 7
+    "AUDIO_BUFFER": 7,
+    "INIT_SAB": 8,
+    "PREPARE_WAV": 9
   },
   "statusType": {
     "LOADED": 0,

@@ -162,6 +162,7 @@ import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
+import AudioReader from "ringbuf.js/dist/index.js";
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -194,9 +195,10 @@ export default {
       audioContext: null,
       mediaStreamSource: null,
       audioSettings: null,
-      audioRecorder: null,
+      recorderWorkletNode: null,
       audioBuffers: [],
-      workerPlayer: null,
+      sab: null,
+      // workerPlayer: null,
 
       // reset signal to notify the Worker to reset.
       // If your worker doesn't support reseting, you can ignore this.
@@ -243,6 +245,7 @@ export default {
     vm.audioContext = new AudioContext();
     Tone.context.lookAhead = 0.01;
 
+
     /*
      * Loading Animation: set initial status of both div
      */
@@ -279,6 +282,7 @@ export default {
     // set worker callback
     // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;
+
     // Send a message to worker with the config file to store in worker
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
@@ -325,6 +329,21 @@ export default {
       window.performance.timing.navigationStart;
     vm.modelLoadTime = Date.now();
 
+    // SAB
+    vm.sab = RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
+
+    await vm.worker.postMessage({
+      messageType: vm.messageType.INIT_SAB,
+      content: {
+        sab: vm.sab,
+        channelCount: 2,
+        sampleRate: vm.audioContext.sampleRate,
+      }
+    });
+
+    setupWorker(sab, ac.sampleRate);
+    setupWebAudio(ac, sab);
+
     /*
      * Initialize Audio Recorder (for audio recording).
      */
@@ -332,29 +351,37 @@ export default {
       audio: true,
       video: false,
     });
-    vm.recorderStream = stream;
-    await vm.audioContext.audioWorklet.addModule(
-      "/audio-recorder.js"
-    );
     vm.mediaStreamSource = vm.audioContext.createMediaStreamSource(
       stream
     );
-    vm.audioRecorder = new AudioWorkletNode(
-      vm.audioContext,
-      "audio-recorder"
-    );
-    vm.audioBuffers = [];
 
-    vm.audioRecorder.port.addEventListener("message", (event) => {
-      vm.worker.postMessage({
-        messageType: vm.messageType.AUDIO_BUFFER,
-        content: event.data,
-      });
+    // vm.recorderStream = stream;
+
+    await vm.audioContext.audioWorklet.addModule(
+      "/recorder-worklet.js"
+    );
+
+    
+    vm.recorderWorkletNode = new AudioWorkletNode(
+      vm.audioContext,
+      "recorder-worklet"
+    );
+    // vm.audioBuffers = [];
+
+    vm.recorderWorkletNode.port.postMessage("ping")
+
+    vm.recorderWorkletNode.port.addEventListener("message", (event) => {
+      console.log("Received from Worklet" + event.data);
+      // vm.worker.postMessage({
+      //   messageType: vm.messageType.AUDIO_BUFFER,
+      //   content: event.data,
+      // });
     });
-    vm.audioRecorder.port.start();
-    vm.mediaStreamSource.connect(vm.audioRecorder);
-    vm.audioRecorder.connect(vm.audioContext.destination);
-    vm.workerPlayer = new Tone.Player().toDestination();
+    // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
+
+    vm.mediaStreamSource.connect(vm.recorderWorkletNode); // send the mic to the recorderNode --> recorderWorklet
+    vm.recorderWorkletNode.connect(vm.audioContext.destination);
+    // vm.workerPlayer = new Tone.Player().toDestination();
 
     /*
      * Web MIDI logic
@@ -549,7 +576,7 @@ export default {
         this.selectedMIDIDevice = this.activeDevices[0].id;
         this.messageListener();
       }
-    },
+      workerPlayer    },
 
     onMIDIDeviceSelectedChange(state) {
       const vm = this;
@@ -758,9 +785,10 @@ export default {
           sampleRate: 44100
         });
         audioBuffer.copyToChannel(audio, 0);
+
         // play AudioBuffer
-        vm.workerPlayer.buffer = audioBuffer;
-        vm.workerPlayer.start();
+        // vm.workerPlayer.buffer = audioBuffer;
+        // vm.workerPlayer.start();
       }
     },
 
@@ -999,11 +1027,15 @@ export default {
       }
     },
     startRecording() {
-      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
+      this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
     },
 
     stopRecording() {
-      this.audioRecorder.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
+      this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
+      vm.worker.postMessage({
+        messageType: vm.messageType.PREPARE_WAV,
+        content: {}
+      });
     },
 
     showSettingsModal() {
