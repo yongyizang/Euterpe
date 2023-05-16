@@ -87,6 +87,9 @@ const state = {
 }
 
 const getters = {
+    getNoteTypes (state){
+        return state.noteTypes;
+    },
     // Return all notes that are currently "pressed"/active
     // the notes are sorted alphabetically
     getActivePianoNotes (state){

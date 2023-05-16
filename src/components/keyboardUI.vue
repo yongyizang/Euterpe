@@ -190,17 +190,46 @@ export default {
 
     toggleAttack(currentNote) {
 
+      // const midiEvent = {
+      //   type: this.$store.getters.getNoteTypes.NOTE_ON,
+      //   player : "human",
+      //   note : currentNote, //message.note.identifier,
+      //   channel : 140, // this is channel midi channel 0
+      //   midi : Note.midi(currentNote),
+      //   velocity : 127,
+      //   timestamp : Tone.now(),
+      // }
+
+      let noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
+      // get midi number from noteName
+      let midi = Note.midi(noteName);
+      // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
-        type: "noteOn",
-        player : "human",
-        note : currentNote, //message.note.identifier,
-        channel : 140, // this is channel midi channel 0
-        midi : Note.midi(currentNote),
-        velocity : 127,
-        timestamp : Tone.now(),
-      }
-      let delay = 0;
-      this.$store.dispatch("samplerOn", {midiEvent, delay});
+        type: this.$store.getters.getNoteTypes.NOTE_ON,
+        player: "human",
+        name: noteName, //message.note.identifier,
+        channel: 140, // this is channel midi channel 0
+        midi: midi,
+        velocity: 127,
+        timestamp: {
+            seconds: Tone.now(),
+            tick: null,
+          },
+        playAfter: {
+          seconds: 0,
+          tick: 0
+        }
+      };
+      // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+      // // this packet will be sent to the processNoteEvent hook.
+      // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
+      //   vm.worker.postMessage({
+      //     messageType: vm.messageType.NOTE_EVENT,
+      //     content: midiEvent,
+      //   });
+      // };
+
+      this.$store.dispatch("samplerOn", midiEvent);
       if (this.$store.getters.getClockStatus) {
         this.$root.$refs.pianoRollUI.keyDown(midiEvent);
         this.$store.dispatch("noteOn", midiEvent);
@@ -209,17 +238,27 @@ export default {
     },
 
     toggleRelease(currentNote) {
+      let noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
+      // get midi number from noteName
+      let midi = Note.midi(noteName);
+      // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
-        type: "noteOff",
+        type: this.$store.getters.getNoteTypes.NOTE_OFF,
         player: "human",
-        note: currentNote, //message.note.identifier,
+        name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
-        midi : Note.midi(currentNote),
-        velocity: 127,
-        timestamp: Tone.now(),
-      }
-      let delay = 0;
-      this.$store.dispatch("samplerOff", {midiEvent, delay});
+        midi: midi,
+        velocity: 0,
+        timestamp: {
+            seconds: Tone.now(),
+            tick: null,
+          },
+        playAfter: {
+          seconds: 0,
+          tick: 0
+        }
+      };
+      this.$store.dispatch("samplerOff", midiEvent);
       if (this.$store.getters.getClockStatus){
         // this enters here, only when the clock has started
         this.$root.$refs.pianoRollUI.keyUp(midiEvent);
