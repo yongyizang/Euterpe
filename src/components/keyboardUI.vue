@@ -220,6 +220,7 @@ export default {
           tick: 0
         }
       };
+      // TODO : Find the best way to post the note event to the worker
       // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
       // // this packet will be sent to the processNoteEvent hook.
       // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
@@ -258,6 +259,15 @@ export default {
           tick: 0
         }
       };
+      // TODO : Find the best way to post the note event to the worker
+      // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+      // // this packet will be sent to the processNoteEvent hook.
+      // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
+      //   vm.worker.postMessage({
+      //     messageType: vm.messageType.NOTE_EVENT,
+      //     content: midiEvent,
+      //   });
+      // };
       this.$store.dispatch("samplerOff", midiEvent);
       if (this.$store.getters.getClockStatus){
         // this enters here, only when the clock has started
