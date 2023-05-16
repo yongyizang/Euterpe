@@ -1,5 +1,9 @@
 // If needed, you can import any external libraries here (e.g., tensorflow.js)
-// importScripts("/tf.min.js");
+importScripts("/tf.min.js");
+// importScripts("/ort-wasm-threaded.worker.min.js");
+// importScripts("../node_modules/meyda/dist/meyda.min.js");
+
+// await ortWasm.load("path/to/ort-wasm-threaded.wasm");
 
 let constants = {};
 let externalJsonLoaded = false;
@@ -24,6 +28,8 @@ async function loadConfig(config) {
 async function loadAlgorithm() {
 
     // Load/initialize your algorithm/model here
+    // const sess = new ort.InferenceSession();
+    // const ortWasm = new OrtWasm.OrtWasmThreaded();
 
     // The UI expects a LOADED status message.
     postMessage({
@@ -133,26 +139,27 @@ async function processNoteEvent(content){
      * the arpeggio should be 4, 8, 12, 16, 8, 4, 0 above the user's input
      * and every note played with a delay of 0.1 seconds from the previous note
      */
-    // let arpeggio = [3,6,8,6,3,0];
-    // for (let i = 0; i < arpeggio.length; i++) {
-    //     let arp_note = {
-    //         player: "worker",
-    //         name: null,
-    //         type: content.type,
-    //         midi: content.midi + arpeggio[i],
-    //         chroma: null,
-    //         velocity: 127,
-    //         playAfter: {
-    //             tick: 0,
-    //             seconds: 0.1 * (i+1)
-    //         },
-    //         // timestamp: {
-    //         //     tick: 0,
-    //         //     seconds: content.timestamp.seconds + 0.1 * (i+1)
-    //         // }
-    //     }
-    //     noteList.push(arp_note);
-    // }
+    let arpeggio = [3,6,8,6,3,0];
+    for (let i = 0; i < arpeggio.length; i++) {
+        console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
+        let arp_note = {
+            player: "worker",
+            name: null,
+            type: content.type,
+            midi: content.midi + arpeggio[i],
+            chroma: null,
+            velocity: 127,
+            playAfter: {
+                tick: 0,
+                seconds: 0.1 * (i+1)
+            },
+            // timestamp: {
+            //     tick: 0,
+            //     seconds: content.timestamp.seconds + 0.1 * (i+1)
+            // }
+        }
+        noteList.push(arp_note);
+    }
 
     postMessage({
         messageType: self.constants.messageType.NOTE_EVENT,

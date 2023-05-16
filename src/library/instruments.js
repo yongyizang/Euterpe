@@ -82,11 +82,19 @@ export default class Instruments {
     }
 
     // Creates a sampler.
+    
     const sampler = new Sampler(
       this.sampleMaps[instrument],
       () => callback(sampler),
       `${INSTRUMENT_BASE_URL}${instrument}/`
     )
+
+    // Create a simple sine synth
+    
+
+
+    // sampler.attack = 0
+    // sampler.release = 0
     this.samplers[instrument] = sampler
 
     return sampler
