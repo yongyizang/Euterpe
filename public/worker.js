@@ -1,4 +1,4 @@
-importScripts("/tf.min.js");
+importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
 
 let constants = {};
 let externalJsonLoaded = false;
@@ -107,7 +107,7 @@ async function loadAlgorithm() {
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
 async function processEventsBuffer(content) {
-    // console.log("processEventsBuffer called at tick: ", content.tick);
+    console.log("processEventsBuffer called at tick: ", content.tick);
     var predictTime = performance.now();
 
     /////////////////////////////////////////////////
@@ -309,33 +309,7 @@ async function processAudioBuffer(content){
 // This hook is called every time a note is played
 async function processNoteEvent(content){
     // console.log("NOTE_EVENT", content);
-    const note = {
-        player: "worker",
-        name: null, // BachDuet doesn't generate the note's name
-        type: articulation === 1 ? self.constants.noteTypes.NOTE_ON : self.constants.noteTypes.NOTE_HOLD,
-        midi: midi,
-        chroma: cpc,
-        velocity: 127, // BachDuet uses 127 for all notes
-        // timestamp: {
-        //     tick: content.timestamp.tick, // note was generated at this globalTick
-        //     seconds: performance.now() // note was generated at this time (seconds)
-        // },
-        playAfter: {
-            tick: 0, // play the note at the next tick
-            seconds: 0 // time is not used by BachDuet
-        }
-    }
-
-    let noteList = [note];
-
-    postMessage({
-        messageType: self.constants.messageType.NOTE_EVENT,
-        content: {
-            // predictTime: predictTime,
-            // tick: currentTick,
-            events: noteList,
-        }
-    });
+   
 }
 
 // Hook selector based on the MICP packet type

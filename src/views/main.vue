@@ -275,7 +275,7 @@ export default {
     }
 
     // Initialize worker
-    vm.worker = new Worker("template-worker.js");
+    vm.worker = new Worker("worker.js");
     // set worker callback
     // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;

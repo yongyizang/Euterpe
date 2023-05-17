@@ -8,12 +8,12 @@ subtitle: "An AI music interaction system framework"
 noteBasedMode: 
   # If eventBased: true, then the worker's processNoteEvent() hook is active
   # for instant processing of each user's MIDI event.
-  eventBased: true
+  eventBased: false
   # If clockBased: true, then the worker's processEventsBuffer() hook is active
   # for processing raw and quantized MIDI events buffers at every "clock-tick"
   # If clockBased = false, the processEventsBuffer() is not active, but we still
   # create a clock to "power" the scrolling functionality of the PianoRoll and Score UIs
-  clockBased: false
+  clockBased: true
 
 # If audioBasedMode = true, the worker's processAudioBuffer() hook is active.
 audioBasedMode: false
@@ -36,7 +36,7 @@ clockBasedSettings:
   clockPeriod: null
   # Choose what information you want Euterpe to provide to your algorithm (Worker)
   # at every clock-tick
-  eventBuffer: false # A buffer with all the MIDI events played by the user since the last tick
+  eventBuffer: true # A buffer with all the MIDI events played by the user since the last tick
   quantizedEvents: true # Only the quantized MIDI events that correspond to the current tick. 
     
 # Set the polyphony that your music algorithm supports. Euterpe limits the user's input polyphony
