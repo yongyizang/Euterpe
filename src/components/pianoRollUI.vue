@@ -116,9 +116,9 @@ export default {
         // Tell three.js to give us another frame!
         requestAnimationFrame(this.animate);
         if (this.$store.getters.getClockStatus) {
-        // Update camera position.
-        // Camera moves down to give the illusion that every noteblock goes up.
-        this.camera.position.y += (1 / 10) * delta;
+          // Update camera position.
+          // Camera moves down to give the illusion that every noteblock goes up.
+          this.camera.position.y += (1 / 10) * delta;
         }
         // Tell renderer to re-render.
         this.renderer.render(this.scene, this.camera);

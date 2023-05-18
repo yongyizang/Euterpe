@@ -81,13 +81,13 @@
               <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">Metronome</span>
-                  <toggle-button color="#74601c" :value="true" @change="toggleMetronome"
+                  <toggle-button color="#74601c" :value="false" @change="toggleMetronome"
                     style="transform: scale(0.9); padding-top: 17px" />
                 </div>
               </div>
               <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Your Piano Volume</p>
+                  <p class="settingsOptionTitle">Your Volume</p>
                   <p class="settingsValue">{{ userPianoVolume }}</p>
                   <vue-slider v-model="userPianoVolume" :lazy="true" :min="1" :max="10"
                     class="settingsSlider"></vue-slider>
@@ -95,9 +95,16 @@
               </div>
               <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Network Piano Volume</p>
+                  <p class="settingsOptionTitle">Worker Volume</p>
                   <p class="settingsValue">{{ workerVolume }}</p>
                   <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
+                </div>
+              </div>
+              <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+                <div class="settingsDiv">
+                  <p class="settingsOptionTitle">Metronome Volume</p>
+                  <p class="settingsValue">{{ metronomeVolume }}</p>
+                  <vue-slider v-model="metronomeVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
               </div>
             </div>
@@ -232,8 +239,9 @@ export default {
       activeDevices: [],
       selectedMIDIDevice: "",
 
-      userPianoVolume: 10,
-      workerVolume: 10,
+      userPianoVolume: 5,
+      workerVolume: 5,
+      metronomeVolume: 5,
 
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
@@ -622,6 +630,12 @@ export default {
       immediate: true,
       handler(newValue) {
         this.$store.commit("setWorkerVolume", newValue);
+      },
+    },
+    metronomeVolume: {
+      immediate: true,
+      handler(newValue) {
+        this.$store.commit("setMetronomeVolume", newValue);
       },
     },
   },
@@ -1081,7 +1095,7 @@ export default {
      */
     toggleMetronome() {
       // This method would update the status of metronome in Vuex Store.
-      this.$store.commit("muteMetronome");
+      // this.$store.commit("muteMetronome");
       this.$store.commit("flipMetronomeStatus");
     },
     metronomeTrigger() {
