@@ -8,13 +8,18 @@ window.onclick = () => {
     Tone.context.lookAhead = 0;
 };
 
-const humanSampler = new Tone.PolySynth(Tone.AMSynth).toDestination();
+const limiter = new Tone.Limiter(-10).toDestination();
+
+const humanSampler = new Tone.PolySynth(Tone.AMSynth).connect(limiter);
+// create a polysynth sampler with 8 voice polyphony
+// const humanSampler = new Tone.PolySynth()
+
 
 // new Instruments().createSampler("piano", (piano) => {
 //     piano.toDestination();
 // });
 
-const workerSampler = new Tone.PolySynth(Tone.AMSynth).toDestination();
+const workerSampler = new Tone.PolySynth(Tone.AMSynth).connect(limiter);
 // const workerSampler = new Instruments().createSampler("piano", (piano) => {
 //     piano.toDestination();
 // });
@@ -26,7 +31,7 @@ const metronomeSampler = new Instruments().createSampler(
     }
 );
 
-const metronomeBus = new Tone.Channel().toDestination();
+const metronomeBus = new Tone.Channel().connect(limiter);
 
 metronomeSampler.connect(metronomeBus);
 

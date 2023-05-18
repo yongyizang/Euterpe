@@ -6,7 +6,7 @@ class RecorderWorklet extends AudioWorkletProcessor {
       name: "recordingStatus",
       defaultValue: 0,
       minValue: 0,
-      maxValue: 1,
+      maxValue: 1,  
     }];
   }
   constructor(options) {

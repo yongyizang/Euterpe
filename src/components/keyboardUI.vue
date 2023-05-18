@@ -213,14 +213,19 @@ export default {
         velocity: 127,
         timestamp: {
             seconds: Tone.now(),
-            tick: null,
+            tick: this.$store.getters.getGlobalTickDelayed,
           },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       };
-      // TODO : Find the best way to post the note event to the worker
+      
+
+      this.$store.dispatch("samplerOn", midiEvent);
+      if (this.$store.getters.getClockStatus) {
+
+        // TODO : Find the best way to post the note event to the worker
       // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
       // // this packet will be sent to the processNoteEvent hook.
       // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
@@ -229,9 +234,6 @@ export default {
       //     content: midiEvent,
       //   });
       // };
-
-      this.$store.dispatch("samplerOn", midiEvent);
-      if (this.$store.getters.getClockStatus) {
         this.$root.$refs.pianoRollUI.keyDown(midiEvent);
         this.$store.dispatch("noteOn", midiEvent);
       }
@@ -252,25 +254,26 @@ export default {
         velocity: 0,
         timestamp: {
             seconds: Tone.now(),
-            tick: null,
+            tick: this.$store.getters.getGlobalTickDelayed,
           },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       };
-      // TODO : Find the best way to post the note event to the worker
-      // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-      // // this packet will be sent to the processNoteEvent hook.
-      // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
-      //   vm.worker.postMessage({
-      //     messageType: vm.messageType.NOTE_EVENT,
-      //     content: midiEvent,
-      //   });
-      // };
+      
       this.$store.dispatch("samplerOff", midiEvent);
       if (this.$store.getters.getClockStatus){
         // this enters here, only when the clock has started
+        // TODO : Find the best way to post the note event to the worker
+        // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+        // // this packet will be sent to the processNoteEvent hook.
+        // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
+        //   vm.worker.postMessage({
+        //     messageType: vm.messageType.NOTE_EVENT,
+        //     content: midiEvent,
+        //   });
+        // };
         this.$root.$refs.pianoRollUI.keyUp(midiEvent);
         this.$store.dispatch("noteOff", midiEvent);
       }

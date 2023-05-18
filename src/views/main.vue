@@ -484,26 +484,29 @@ export default {
         velocity: 127,
         timestamp: {
             seconds: Tone.now(),
-            tick: null,
+            tick: vm.$store.getters.getGlobalTickDelayed,
           },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       }
-      // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-      // this packet will be sent to the processNoteEvent hook.
-      if (vm.config.noteBasedMode.eventBased) {
-        vm.worker.postMessage({
-          messageType: vm.messageType.NOTE_EVENT,
-          content: midiEvent,
-        });
-      };
+      
       // We always send the user's input directly to the sampler
       // for immediate playback
       vm.$store.dispatch("samplerOn", midiEvent);
       // If the clock is running, send the note to the piano roll
       if (vm.$store.getters.getClockStatus) {
+
+        // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+        // this packet will be sent to the processNoteEvent hook.
+        if (vm.config.noteBasedMode.eventBased) {
+          vm.worker.postMessage({
+            messageType: vm.messageType.NOTE_EVENT,
+            content: midiEvent,
+          });
+        };
+
         vm.$root.$refs.pianoRollUI.keyDown(midiEvent);
         vm.$store.dispatch("noteOn", midiEvent);
       }
@@ -522,22 +525,24 @@ export default {
         velocity: 127,
         timestamp: {
             seconds: Tone.now(),
-            tick: null,//this.$store.getters.getGlobalTickDelayed
+            tick: vm.$store.getters.getGlobalTickDelayed, //null,//this.$store.getters.getGlobalTickDelayed
           },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       }
-      if (vm.config.noteBasedMode.eventBased) {
-        vm.worker.postMessage({
-          messageType: vm.messageType.NOTE_EVENT,
-          content: midiEvent,
-        });
-      };
+      
       vm.$store.dispatch("samplerOff", midiEvent);
       if (vm.$store.getters.getClockStatus) {
         // this enters here, only when the clock has started
+
+        if (vm.config.noteBasedMode.eventBased) {
+          vm.worker.postMessage({
+            messageType: vm.messageType.NOTE_EVENT,
+            content: midiEvent,
+          });
+        };
         vm.$root.$refs.pianoRollUI.keyUp(midiEvent);
         vm.$store.dispatch("noteOff", midiEvent);
       }
@@ -670,14 +675,16 @@ export default {
             tick: 0
           }
         }
-        if (vm.config.noteBasedMode.eventBased) {
-          vm.worker.postMessage({
-            messageType: vm.messageType.NOTE_EVENT,
-            content: midiEvent,
-          });
-        };
+        
         this.$store.dispatch("samplerOn", midiEvent);
         if (this.$store.getters.getClockStatus) {
+
+          if (vm.config.noteBasedMode.eventBased) {
+            vm.worker.postMessage({
+              messageType: vm.messageType.NOTE_EVENT,
+              content: midiEvent,
+            });
+          };
           this.$root.$refs.pianoRollUI.keyDown(midiEvent);
           this.$store.dispatch("noteOn", midiEvent);
         }
@@ -700,14 +707,16 @@ export default {
             tick: 0
           }
         }
-        if (vm.config.noteBasedMode.eventBased) {
-          vm.worker.postMessage({
-            messageType: vm.messageType.NOTE_EVENT,
-            content: midiEvent,
-          });
-        };
+        
         this.$store.dispatch("samplerOff", midiEvent);
         if (this.$store.getters.getClockStatus) {
+
+          if (vm.config.noteBasedMode.eventBased) {
+            vm.worker.postMessage({
+              messageType: vm.messageType.NOTE_EVENT,
+              content: midiEvent,
+            });
+          };
           this.$root.$refs.pianoRollUI.keyUp(midiEvent);
           this.$store.dispatch("noteOff", midiEvent);
         }
@@ -742,7 +751,7 @@ export default {
       this.$store.commit("incrementTickDelayed");
 
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
-      if (vm.config.noteBasedMode.gui.scoreUI){
+      if (vm.config.gui.scoreUI === true){
         this.$root.$refs.scoreUI.draw();
       }
 

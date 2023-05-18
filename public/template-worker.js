@@ -4,6 +4,7 @@ importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js")
 importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_vae.js");
 importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
 
+
 // const exports = {};
 importScripts("index_rb_no_exports.js");
 // const input0 = new ort.Tensor(
@@ -190,8 +191,8 @@ async function processNoteEvent(content){
      * the arpeggio should be 4, 8, 12, 16, 8, 4, 0 above the user's input
      * and every note played with a delay of 0.1 seconds from the previous note
      */
-    let arpeggio = [2, 4, 5, 7, 9, 11, 12, 0];
-    // if this a not off event, add an extra 0.1 sec offset
+    let arpeggio = [0,0,0,0,0,0,0];
+    // // if this a not off event, add an extra 0.1 sec offset
     let extraSecOffset = content.type == self.constants.noteTypes.NOTE_OFF ? 0.1 : 0.0;
     for (let i = 0; i < arpeggio.length; i++) {
         console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
@@ -201,9 +202,9 @@ async function processNoteEvent(content){
             type: content.type,
             midi: content.midi + arpeggio[i],
             chroma: null,
-            velocity: 127,
+            velocity: 127/(i+1),
             playAfter: {
-                tick: 1 + i,
+                tick: 1 + 2*i,
                 seconds: extraSecOffset,//0.1 * (i+1)
             },
             // timestamp: {
@@ -213,6 +214,8 @@ async function processNoteEvent(content){
         }
         noteList.push(arp_note);
     }
+
+    
 
     postMessage({
         messageType: self.constants.messageType.NOTE_EVENT,
