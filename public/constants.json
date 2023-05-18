@@ -7,7 +7,8 @@
     "NOTE_EVENT": 6,
     "AUDIO_BUFFER": 7,
     "INIT_SAB": 8,
-    "PREPARE_WAV": 9
+    "PREPARE_WAV": 9,
+    "WAV_BUFFER": 10
   },
   "statusType": {
     "LOADED": 0,

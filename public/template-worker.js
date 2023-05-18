@@ -1,13 +1,16 @@
-// If needed, you can import any external libraries here (e.g., tensorflow.js)
-importScripts("/tf.min.js");
-importScripts("../node_modules/@tensorflow/tfjs/dist/tf.min.js");
+// If needed, you can import any external libraries here (e.g., tensorflow.js, onnx, magenta, etc.)
+importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
+importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
+importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_vae.js");
+importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
 
-importScripts("../node_modules/@magenta/music/es6/core.js")
-importScripts("../node_modules/@magenta/music/es6/music_rnn.js")
-// importScripts("/ort-wasm-threaded.worker.min.js");
-// importScripts("../node_modules/meyda/dist/meyda.min.js");
+// const exports = {};
+importScripts("index_rb_no_exports.js");
+// const input0 = new ort.Tensor(
+//     new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
+//     [2, 2] /* dims */
+//   );
 
-// await ortWasm.load("path/to/ort-wasm-threaded.wasm");
 
 let constants = {};
 let externalJsonLoaded = false;
@@ -49,14 +52,15 @@ async function loadConfig(config) {
 }
 
 // Hook that accepts the sharedArrayBuffer from the UI that stores audio samples
-async function initSAB(e){
-    self._audio_reader = new exports.AudioReader(
-        new RingBuffer(e.data.sab, Float32Array)
+async function initSAB(content){
+    console.log(content)
+    self._audio_reader = new AudioReader(
+        new RingBuffer(content.sab, Float32Array)
     );
     // The number of channels of the audio stream read from the queue.
-    self.channelCount = e.data.channelCount;
+    self.channelCount = content.channelCount;
     // The sample-rate of the audio stream read from the queue.
-    self.sampleRate = e.data.sampleRate;
+    self.sampleRate = content.sampleRate;
 
     // Store the audio data, segment by segments, as array of int16 samples.
     self.pcm = [];
@@ -65,7 +69,7 @@ async function initSAB(e){
     // that the ring buffer can hold, so it's 250ms, allowing to not make
     // deadlines:
     // staging buffer size = ring buffer size / sizeof(float32) / stereo / 4
-    self.staging = new Float32Array(e.data.sab.byteLength / 4 / 4 / 2);
+    self.staging = new Float32Array(content.sab.byteLength / 4 / 4 / 2);
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
     //   interval = setInterval(readFromQueue, 100);
@@ -186,7 +190,7 @@ async function processNoteEvent(content){
      * the arpeggio should be 4, 8, 12, 16, 8, 4, 0 above the user's input
      * and every note played with a delay of 0.1 seconds from the previous note
      */
-    let arpeggio = [3,6,8,6,3,0];
+    let arpeggio = [3,6,8,5,2,1];
     for (let i = 0; i < arpeggio.length; i++) {
         console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
         let arp_note = {
@@ -197,8 +201,8 @@ async function processNoteEvent(content){
             chroma: null,
             velocity: 127,
             playAfter: {
-                tick: 0,
-                seconds: 0.1 * (i+1)
+                tick: 1 + i,
+                seconds: 0.1,//0.1 * (i+1)
             },
             // timestamp: {
             //     tick: 0,
@@ -219,7 +223,7 @@ async function processNoteEvent(content){
 }
 
 async function prepareWAV(){
-    clearInterval(interval);
+    // clearInterval(interval);
     // Drain the ring buffer
     while (readFromQueue()) {
     /* empty */
@@ -270,7 +274,11 @@ async function prepareWAV(){
         writeIndex += 2;
     }
     }
-    postMessage(wav.buffer, [wav.buffer]);
+    // postMessage(wav.buffer, [wav.buffer]);
+    postMessage({
+        messageType: self.constants.messageType.WAV_BUFFER,
+        content: wav.buffer
+    }, [wav.buffer]);
 }
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {

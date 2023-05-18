@@ -162,7 +162,27 @@ import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
-import AudioReader from "ringbuf.js/dist/index.js";
+import * as rb from "ringbuf.js"; // /dist/index.js
+import * as rbInd from "ringbuf.js/dist/index.js";
+
+
+// From a series of URL to js files, get an object URL that can be loaded in an
+// AudioWorklet. This is useful to be able to use multiple files (utils, data
+// structure, main DSP, etc.) without either using static imports, eval, manual
+// concatenation with or without a build step, etc.
+function URLFromFiles(files) {
+  const promises = files.map((file) =>
+    fetch(file).then((response) => response.text())
+  );
+
+  return Promise.all(promises).then((texts) => {
+    const text = texts.join("");
+    const blob = new Blob([text], { type: "application/javascript" });
+
+    return URL.createObjectURL(blob);
+  });
+}
+
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -196,8 +216,10 @@ export default {
       mediaStreamSource: null,
       audioSettings: null,
       recorderWorkletNode: null,
+      recorderWorkletBundle: null,
       audioBuffers: [],
       sab: null,
+      osc: null,
       // workerPlayer: null,
 
       // reset signal to notify the Worker to reset.
@@ -278,7 +300,9 @@ export default {
     }
 
     // Initialize worker
-    vm.worker = new Worker("template-worker.js");
+    // const workerUrl = await URLFromFiles(['template-worker.js', '/index_rb.js'])
+    
+    vm.worker = new Worker('template-worker.js');
     // set worker callback
     // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;
@@ -330,7 +354,7 @@ export default {
     vm.modelLoadTime = Date.now();
 
     // SAB
-    vm.sab = RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
+    vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
 
     await vm.worker.postMessage({
       messageType: vm.messageType.INIT_SAB,
@@ -341,8 +365,8 @@ export default {
       }
     });
 
-    setupWorker(sab, ac.sampleRate);
-    setupWebAudio(ac, sab);
+    // setupWorker(sab, ac.sampleRate);
+    // setupWebAudio(ac, sab);
 
     /*
      * Initialize Audio Recorder (for audio recording).
@@ -356,17 +380,53 @@ export default {
     );
 
     // vm.recorderStream = stream;
+    // try {
+    //   vm.recorderWorkletBundle = await URLFromFiles(['recorder-worklet.js', '@/../public/index_rb.js'])
+    // } catch (err) {
+    //   console.error(err);
+    // }
 
-    await vm.audioContext.audioWorklet.addModule(
-      "/recorder-worklet.js"
-    );
+    // const test = await fetch("/index_rb.js");
 
+    const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', '/index_rb.js'])
+    // const resp = await fetch(url);
+    // const blob = await resp.blob();
+    // const reader = new FileReader();
+    // reader.onload = function () {
+    //   const content = reader.result;
+    //   console.log(content);
+    // };
+    // reader.readAsText(blob);
     
+    vm.audioContext.resume();
+
+    await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
+
+    vm.osc = new OscillatorNode(vm.audioContext);
+    var fm = new OscillatorNode(vm.audioContext);
+    var gain = new GainNode(vm.audioContext);
+    var panner = new StereoPannerNode(vm.audioContext);
+    var panModulation = new OscillatorNode(vm.audioContext);
+
     vm.recorderWorkletNode = new AudioWorkletNode(
       vm.audioContext,
-      "recorder-worklet"
+      "recorder-worklet", 
+      {processorOptions: vm.sab}
     );
-    // vm.audioBuffers = [];
+
+    panModulation.frequency.value = 2.0;
+    fm.frequency.value = 1.0;
+    gain.gain.value = 110;
+
+    // panModulation.connect(panner.pan);
+    // fm.connect(gain).connect(vm.osc.frequency);
+    // vm.osc.connect(panner).connect(vm.audioContext.destination);
+    // // panner.connect(vm.recorderWorkletNode);
+
+    // vm.osc.start(0);
+    // fm.start(0);
+    // panModulation.start(0);
+    // // vm.audioBuffers = [];
 
     vm.recorderWorkletNode.port.postMessage("ping")
 
@@ -379,8 +439,9 @@ export default {
     });
     // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
 
-    vm.mediaStreamSource.connect(vm.recorderWorkletNode); // send the mic to the recorderNode --> recorderWorklet
-    vm.recorderWorkletNode.connect(vm.audioContext.destination);
+    // vm.mediaStreamSource.connect(vm.recorderWorkletNode); // send the mic to the recorderNode --> recorderWorklet
+    // vm.recorderWorkletNode.connect(vm.audioContext.destination);
+
     // vm.workerPlayer = new Tone.Player().toDestination();
 
     /*
@@ -576,7 +637,7 @@ export default {
         this.selectedMIDIDevice = this.activeDevices[0].id;
         this.messageListener();
       }
-      workerPlayer    },
+    },
 
     onMIDIDeviceSelectedChange(state) {
       const vm = this;
@@ -789,6 +850,15 @@ export default {
         // play AudioBuffer
         // vm.workerPlayer.buffer = audioBuffer;
         // vm.workerPlayer.start();
+      }
+      else if (e.data.messageType === vm.messageType.WAV_BUFFER){
+        var a = document.createElement( 'a' );
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        const blob = new Blob([e.data.content], {type: 'audio/wav'});
+        a.href = URL.createObjectURL( blob );
+        a.download =  `audio-${(new Date()).toISOString().replace(/[^0-9]/g, "")}.wav`;
+        a.click();
       }
     },
 
@@ -1032,8 +1102,8 @@ export default {
 
     stopRecording() {
       this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
-      vm.worker.postMessage({
-        messageType: vm.messageType.PREPARE_WAV,
+      this.worker.postMessage({
+        messageType: this.messageType.PREPARE_WAV,
         content: {}
       });
     },

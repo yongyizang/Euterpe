@@ -11,9 +11,9 @@ class NoteEventSortedArray {
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         if (this.array[mid].timestamp.tick > noteEvent.timestamp.tick) {
-            left = mid + 1;
-        } else if (this.array[mid].timestamp.tick < noteEvent.timestamp.tick){
             right = mid - 1;
+        } else if (this.array[mid].timestamp.tick < noteEvent.timestamp.tick){
+            left = mid + 1;
         }
         else{
             left = mid;
@@ -165,11 +165,20 @@ const getters = {
     },
     popWorkerNotesToBePlayedAt: (state) => (currentGlobalTick) => {
         const notesToBePlayed = [];
-        while (state.workerNotesToBePlayed.length > 0){
-            if (state.workerNotesToBePlayed.get(0).timestamp.tick < currentGlobalTick){
-                let discard = state.workerNotesToBePlayed.remove(0);
-            } else if (state.workerNotesToBePlayed.get(0).timestamp.tick === currentGlobalTick){
-                notesToBePlayed.push(state.workerNotesToBePlayed.remove(0));
+        let numElems = state.workerNotesToBePlayed.length;
+        if (numElems > 0) {
+            let ind = 0;
+            while (state.workerNotesToBePlayed.length > 0 && ind <= numElems){
+                if (state.workerNotesToBePlayed.get(0).timestamp.tick < currentGlobalTick){
+                    let discard = state.workerNotesToBePlayed.remove(0);
+                    ind++;
+                } else if (state.workerNotesToBePlayed.get(0).timestamp.tick === currentGlobalTick){
+                    notesToBePlayed.push(state.workerNotesToBePlayed.remove(0));
+                    ind++;
+                }
+                else{
+                    ind++;
+                }
             }
         }
         return notesToBePlayed;

@@ -18,14 +18,6 @@ const workerSampler = new Tone.PolySynth(Tone.AMSynth).toDestination();
 // const workerSampler = new Instruments().createSampler("piano", (piano) => {
 //     piano.toDestination();
 // });
-// const workerSampler = new Tone.Sampler({
-// 	urls: {
-// 		A1: "A1.mp3",
-// 		A2: "A2.mp3",
-// 	},
-// 	baseUrl: "https://tonejs.github.io/audio/casio/",
-	
-// }).toDestination();
 
 const metronomeSampler = new Instruments().createSampler(
     "metronome",
