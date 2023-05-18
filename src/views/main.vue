@@ -742,7 +742,9 @@ export default {
       this.$store.commit("incrementTickDelayed");
 
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
-      this.$root.$refs.scoreUI.draw();
+      if (vm.config.noteBasedMode.gui.scoreUI){
+        this.$root.$refs.scoreUI.draw();
+      }
 
       this.worker.postMessage({
         messageType: vm.messageType.EVENTS_BUFFER,
@@ -978,7 +980,7 @@ export default {
       // Now if we want we can constraint the polyphony. If polyphony = 3, then we can only have 3 notes on at the same time
       // the way to do that is to keep at most the first 3 "on" or "hold" events in currentQuantizedEvents and remove the rest "on" and "hold"
 
-      // FOR NOW WE DON"T INCLUDE NOTE_OFF EVENTS IN THE QUANTIZED DATA.
+      // TODO : FOR NOW WE DON"T INCLUDE NOTE_OFF EVENTS IN THE QUANTIZED DATA.
       let constrainedCurrentQuantizedEvents = [];
       let onHoldEvents = currentQuantizedEvents.filter(elem => elem.type === vm.noteTypes.NOTE_ON || elem.type === vm.noteTypes.NOTE_HOLD);
       // let offEvents = currentQuantizedEvents.filter(elem => elem.type === "off");

@@ -63,7 +63,7 @@ const actions = {
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
                 
             }
-            // console.log("NAME TO SAMPLER ON IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+            console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
             workerSampler.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
         } else if (noteEvent.player == "metronome"){
             // console.log("metronome", noteEvent)
@@ -89,7 +89,7 @@ const actions = {
             //     console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now())
             // }, noteEvent.playAfter.seconds * 1000);
 
-            // console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+            console.log("Worker SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
             workerSampler.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
         }
     },

@@ -190,7 +190,9 @@ async function processNoteEvent(content){
      * the arpeggio should be 4, 8, 12, 16, 8, 4, 0 above the user's input
      * and every note played with a delay of 0.1 seconds from the previous note
      */
-    let arpeggio = [3,6,8,5,2,1];
+    let arpeggio = [2, 4, 5, 7, 9, 11, 12, 0];
+    // if this a not off event, add an extra 0.1 sec offset
+    let extraSecOffset = content.type == self.constants.noteTypes.NOTE_OFF ? 0.1 : 0.0;
     for (let i = 0; i < arpeggio.length; i++) {
         console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
         let arp_note = {
@@ -202,7 +204,7 @@ async function processNoteEvent(content){
             velocity: 127,
             playAfter: {
                 tick: 1 + i,
-                seconds: 0.1,//0.1 * (i+1)
+                seconds: extraSecOffset,//0.1 * (i+1)
             },
             // timestamp: {
             //     tick: 0,
