@@ -1048,6 +1048,11 @@ export default {
               setTimeout(function () {
                 vm.runTheWorker();
               }, parseInt(vm.$store.getters.getClockPeriod / 4));
+            } else {
+              // inside runTheWorker we increment the "delayed" tick number.
+              // If we don't run the worker, we still want to increment the "delayed" tick number
+              // because other parts of the code depend on it. In this case tick === delayedTick
+              vm.$store.commit("incrementTickDelayed");
             }
             // vm.runTheWorker();
           }
