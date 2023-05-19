@@ -272,7 +272,7 @@ export default {
 
   async mounted() {
     var vm = this;
-    vm.audioContext = new AudioContext();
+    vm.audioContext = new AudioContext;
     Tone.context.lookAhead = 0.01;
 
 
@@ -362,6 +362,9 @@ export default {
     vm.modelLoadTime = Date.now();
 
     // SAB
+    // get a memory region for the ring buffer
+    // length in time is 1 second of stereo audio
+    // Float32Array is 4 bytes per sample
     vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
 
     await vm.worker.postMessage({
@@ -387,34 +390,17 @@ export default {
       stream
     );
 
-    // vm.recorderStream = stream;
-    // try {
-    //   vm.recorderWorkletBundle = await URLFromFiles(['recorder-worklet.js', '@/../public/index_rb.js'])
-    // } catch (err) {
-    //   console.error(err);
-    // }
-
-    // const test = await fetch("/index_rb.js");
-
     const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', '/index_rb.js'])
-    // const resp = await fetch(url);
-    // const blob = await resp.blob();
-    // const reader = new FileReader();
-    // reader.onload = function () {
-    //   const content = reader.result;
-    //   console.log(content);
-    // };
-    // reader.readAsText(blob);
-    
-    vm.audioContext.resume();
-
     await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
 
-    vm.osc = new OscillatorNode(vm.audioContext);
-    var fm = new OscillatorNode(vm.audioContext);
-    var gain = new GainNode(vm.audioContext);
-    var panner = new StereoPannerNode(vm.audioContext);
-    var panModulation = new OscillatorNode(vm.audioContext);
+    vm.audioContext.resume();
+
+
+    // vm.osc = new OscillatorNode(vm.audioContext);
+    // var fm = new OscillatorNode(vm.audioContext);
+    // var gain = new GainNode(vm.audioContext);
+    // var panner = new StereoPannerNode(vm.audioContext);
+    // var panModulation = new OscillatorNode(vm.audioContext);
 
     vm.recorderWorkletNode = new AudioWorkletNode(
       vm.audioContext,
@@ -422,9 +408,9 @@ export default {
       {processorOptions: vm.sab}
     );
 
-    panModulation.frequency.value = 2.0;
-    fm.frequency.value = 1.0;
-    gain.gain.value = 110;
+    // panModulation.frequency.value = 2.0;
+    // fm.frequency.value = 1.0;
+    // gain.gain.value = 110;
 
     // panModulation.connect(panner.pan);
     // fm.connect(gain).connect(vm.osc.frequency);
@@ -447,7 +433,7 @@ export default {
     });
     // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
 
-    // vm.mediaStreamSource.connect(vm.recorderWorkletNode); // send the mic to the recorderNode --> recorderWorklet
+    vm.mediaStreamSource.connect(vm.recorderWorkletNode); // send the mic to the recorderNode --> recorderWorklet
     // vm.recorderWorkletNode.connect(vm.audioContext.destination);
 
     // vm.workerPlayer = new Tone.Player().toDestination();

@@ -28,6 +28,7 @@ class RecorderWorklet extends AudioWorkletProcessor {
 
     if (inputs[0]) {
       // interleave and store in the queue
+      // console.log(inputs[0].length);
       interleave(inputs[0], this.interleaved);
       if (this._audio_writer.enqueue(this.interleaved) !== 256) {
         console.log("underrun: the worker doesn't dequeue fast enough!");

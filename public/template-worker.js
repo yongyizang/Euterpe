@@ -22,16 +22,34 @@ let sampleRate = null;
 let staging = null;
 let _audio_reader = null;
 
+let local_audio_buffer = null;
+let frames = null;
+let windowSize = null;
+let hopSize = null;
+let sampleCounter = null;
+let currentFrame = null;
+
 // Read some float32 pcm from the queue, convert to int16 pcm, and push it to
 // our global queue.
 function readFromQueue() {
     const samples_read = self._audio_reader.dequeue(self.staging);
+    // console.log("staestaging);
     if (!samples_read) {
       return 0;
     }
+    // samples_read can have less length than staging
     const segment = new Int16Array(samples_read);
     for (let i = 0; i < samples_read; i++) {
       segment[i] = Math.min(Math.max(self.staging[i], -1.0), 1.0) * (2 << 14 - 1);
+      if (self.sampleCounter == self.windowSize - 1){
+        self.audio_frame_list.push(self.currentFrame);
+        self.currentFrame = new Float32Array(self.windowSize);
+        self.sampleCounter = 0;
+      }
+        self.currentFrame[self.sampleCounter] = self.staging[i];
+        self.sampleCounter += 1;
+        
+    //   self.local_audio_buffer.push(self.staging[i]);
     }
     self.pcm.push(segment);
     return samples_read;
@@ -65,15 +83,40 @@ async function initSAB(content){
 
     // Store the audio data, segment by segments, as array of int16 samples.
     self.pcm = [];
+
+    // Store the audio data, as an array of frames
+    // each frame is as array of float32 samples.
+    // the size of the frame is equal to windowSize
+    // This will be used in the AUDIO_BUFFER hook to
+    // to feed the audio frames to the worker's music interaction algorithm.
+    self.audio_frame_list = [];
+
+    // The frame/window size
+    self.windowSize = 1024 * self.channelCount;
+    // The hop size
+    self.hopSize = 256 * self.channelCount;
+    
+    // the current frame/window array. We'll keep pushing samples to it
+    // untill it's full (windowSize samples). Then we'll push it to the
+    // audio_frame_list and start a new frame/window.
+    self.currentFrame = new Float32Array(self.windowSize);
+
+    // This counter will be used to keep track of the number of samples
+    // we have pushed to the current frame/window.
+    self.sampleCounter = 0
+
     // A smaller staging array to copy the audio samples from, before conversion
     // to uint16. It's size is 4 times less than the 1 second worth of data
     // that the ring buffer can hold, so it's 250ms, allowing to not make
     // deadlines:
-    // staging buffer size = ring buffer size / sizeof(float32) / stereo / 4
+    // staging buffer size = ring buffer byteLengthsize / sizeof(float32) /4 / 2?
     self.staging = new Float32Array(content.sab.byteLength / 4 / 4 / 2);
+    console.log("staging buffer size: " + self.staging.length + " samples");
+    console.log("sab byteLength: " + content.sab.byteLength + " bytes");    
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
     //   interval = setInterval(readFromQueue, 100);
+    interval = setInterval(readFromQueue, 100);
 }
 
 // Hook that loads and prepares the algorithm
