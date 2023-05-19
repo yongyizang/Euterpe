@@ -486,6 +486,7 @@ export default {
       const midiEvent = {
         type: vm.noteTypes.NOTE_ON,
         player: "human",
+        instrument: "upright_bass",
         name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: note.note,
@@ -527,6 +528,7 @@ export default {
       const midiEvent = {
         type: vm.noteTypes.NOTE_OFF,
         player: "human",
+        instrument: "upright_bass",
         name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: note.note,

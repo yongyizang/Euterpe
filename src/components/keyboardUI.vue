@@ -207,6 +207,7 @@ export default {
       const midiEvent = {
         type: this.$store.getters.getNoteTypes.NOTE_ON,
         player: "human",
+        instrument: "upright_bass",
         name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: midi,
@@ -229,11 +230,12 @@ export default {
       // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
       // // this packet will be sent to the processNoteEvent hook.
       // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
-      //   vm.worker.postMessage({
-      //     messageType: vm.messageType.NOTE_EVENT,
+      //   this.$root.$refs.worker.postMessage({
+      //     messageType: this.$root.$refs.messageTypes.NOTE_EVENT,
       //     content: midiEvent,
       //   });
       // };
+        
         this.$root.$refs.pianoRollUI.keyDown(midiEvent);
         this.$store.dispatch("noteOn", midiEvent);
       }
@@ -248,6 +250,7 @@ export default {
       const midiEvent = {
         type: this.$store.getters.getNoteTypes.NOTE_OFF,
         player: "human",
+        instrument: "upright_bass",
         name: noteName, //message.note.identifier,
         channel: 140, // this is channel midi channel 0
         midi: midi,

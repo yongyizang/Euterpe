@@ -11,21 +11,35 @@ window.onclick = () => {
 const limiter = new Tone.Limiter(-5).toDestination();
 // const tremolo = new Tone.Tremolo(9, 0.75).toDestination().start();
 
-const humanSampler = new Tone.PolySynth(Tone.FMSynth).connect(limiter);
-// create a polysynth sampler with 8 voice polyphony
-// const humanSampler = new Tone.PolySynth()
+const humanSamplerBus = new Tone.Channel().connect(limiter);
 
+const humanSamplers = {
+    synth: new Tone.PolySynth(Tone.FMSynth).connect(humanSamplerBus),
+    piano: new Instruments().createSampler("piano", (piano) => {
+        piano.connect(humanSamplerBus);
+    }),
+    drums: new Instruments().createSampler("drums", (drums) => {
+        drums.connect(humanSamplerBus);
+    }),
+    upright_bass: new Instruments().createSampler("upright_bass", (upright_bass) => {
+        upright_bass.connect(humanSamplerBus);
+    }),
+}
 
-// new Instruments().createSampler("piano", (piano) => {
-//     piano.toDestination();
-// });
+const workerSamplerBus = new Tone.Channel().connect(limiter);
 
-const workerSampler = new Tone.PolySynth(Tone.FMSynth).connect(limiter);
-
-
-// const workerSampler = new Instruments().createSampler("piano", (piano) => {
-//     piano.toDestination();
-// });
+const workerSamplers = {
+    synth: new Tone.PolySynth(Tone.FMSynth).connect(workerSamplerBus),
+    piano: new Instruments().createSampler("piano", (piano) => {
+        piano.connect(workerSamplerBus);
+    }),
+    drums: new Instruments().createSampler("drums", (drums) => {
+        drums.connect(workerSamplerBus);
+    }),
+    upright_bass: new Instruments().createSampler("upright_bass", (upright_bass) => {
+        upright_bass.connect(workerSamplerBus);
+    }),
+}
 
 const metronomeSampler = new Instruments().createSampler(
     "metronome",
@@ -41,8 +55,8 @@ metronomeSampler.connect(metronomeBus);
 
 const state = {
     metronomeStatus: false,
-    humanSamplerGain: 0, // in dB
-    workerSamplerGain: 0, // in dB
+    humanSamplersGain: 0, // in dB
+    workerSamplersGain: 0, // in dB
     metronomeSamplerGain: 0, // in dB
 };
 
@@ -50,11 +64,11 @@ const getters = {
     getMetronomeStatus(state){
         return state.metronomeStatus;
     },
-    getUserSamplerGain(state){
-        return state.humanSamplerGain;
+    getUserSamplersGain(state){
+        return state.humanSamplersGain;
     },
-    getWorkerSamplerGain(state){
-        return state.workerSamplerGain;
+    getWorkerSamplersGain(state){
+        return state.workerSamplersGain;
     },
     getMetronomeSamplerGain(state){
         return state.metronomeSamplerGain;
@@ -63,21 +77,26 @@ const getters = {
 
 const actions = {
     samplerOn(state, noteEvent){
-        // console.log("samplerOn", noteEvent)
-        // {samplerName, currentNote, time}
         if (noteEvent.player == "human"){
-            humanSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
-            // console.log("NAME TO SAMPLER ON IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
-
+            let instrument_to_play_on = humanSamplers[noteEvent.instrument];
+            if (instrument_to_play_on == null){
+                throw new Error("Instrument " + noteEvent.instrument + " not found in humanSamplers");
+            } else {
+                instrument_to_play_on.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+            }
         } else if (noteEvent.player == "worker"){
             // if noteEvent.name is null then use tonal.js to get the name of the note from noteEvent.midi
             let name = noteEvent.name;
             if (name == null){
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
-                
             }
             // console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
-            workerSampler.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+            let instrument_to_play_on = workerSamplers[noteEvent.instrument];
+            if (instrument_to_play_on == null){
+                throw new Error("Instrument " + noteEvent.instrument + " not found in workerSamplers");
+            } else {
+                instrument_to_play_on.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+            }
         } else if (noteEvent.player == "metronome"){
             // console.log("metronome", noteEvent)
             metronomeSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
@@ -88,22 +107,24 @@ const actions = {
     },
     samplerOff(state, noteEvent){
         if (noteEvent.player == "human"){
-            humanSampler.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
-            // console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+            let instrument_to_play_on = humanSamplers[noteEvent.instrument];
+            if (instrument_to_play_on == null){
+                throw new Error("Instrument " + noteEvent.instrument + " not found in humanSamplers");
+            } else {
+                instrument_to_play_on.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+            }
 
         } else if (noteEvent.player == "worker"){
             let name = noteEvent.name;
             if (name == null){
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });   
             }
-            // use setTimeout to release the note after the playAfter.seconds
-            // setTimeout(() => {
-            //     workerSampler.triggerRelease(name, Tone.now());
-            //     console.log("NAME TO SAMPLER OFF IS ", noteEvent.midi, Tone.now())
-            // }, noteEvent.playAfter.seconds * 1000);
-
-            // console.log("Worker SAMPLER OFF IS ", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
-            workerSampler.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
+            let instrument_to_play_on = workerSamplers[noteEvent.instrument];
+            if (instrument_to_play_on == null){
+                throw new Error("Instrument " + noteEvent.instrument + " not found in workerSamplers");
+            } else {
+                instrument_to_play_on.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
+            }
         }
     },
 };
@@ -120,6 +141,18 @@ const mutations = {
             metronomeBus.mute = true;
         }
     },
+    muteHumanSampler(state, instrument){
+        humanSamplers[instrument].mute = true;
+    },
+    unmuteHumanSampler(state, instrument){
+        humanSamplers[instrument].mute = false;
+    },
+    muteWorkerSampler(state, instrument){
+        workerSamplers[instrument].mute = true;
+    },
+    unmuteWorkerSampler(state, instrument){
+        workerSamplers[instrument].mute = false;
+    },
     // TODO : use the same function for both samplers
     setHumanVolume(state, volume){
         if (volume == 10){
@@ -128,7 +161,7 @@ const mutations = {
             var toDB = -Math.abs(20*Math.log(volume/10));
             state.humanSamplerGain = toDB;
         }
-        humanSampler.volume.value = state.humanSamplerGain;
+        humanSamplerBus.volume.value = state.humanSamplerGain;
     },
     setWorkerVolume(state, volume){
         if (volume == 10){
@@ -137,7 +170,7 @@ const mutations = {
             var toDB = -Math.abs(20*Math.log(volume/10));
             state.workerSamplerGain = toDB;
         };
-        workerSampler.volume.value = state.workerSamplerGain;
+        workerSamplerBus.volume.value = state.workerSamplerGain;
     },
     setMetronomeVolume(state, volume){
         if (volume == 10){

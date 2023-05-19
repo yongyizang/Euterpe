@@ -10,9 +10,9 @@ export const INSTRUMENT_BASE_URL = "/audio/samples/"
 // Define the ranges of each instrument (as samples provided)
 export const SAMPLE_RANGES = {
   metronome: ["C0", "C#0"], // C0 for high_woodblock, C#0 for low_woodblock;
-  bassElectric: ["A#2", "G5"],
   drums: ["C0", "D#0"],
   // drums: C0 kick, C#0 snare, D0 closed_hihat, D#0 open_hihat.
+  upright_bass: ["C0", "B3"],
   piano: ["A0", "C7"], // TODO: Find alternate samples with full piano range.
   // xylophone: [] // TODO: Find out why samples are missing or find alternatives.
 }
