@@ -368,7 +368,7 @@ export default {
     vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
 
     await vm.worker.postMessage({
-      messageType: vm.messageType.INIT_SAB,
+      messageType: vm.messageType.INIT_AUDIO,
       content: {
         sab: vm.sab,
         channelCount: 2,

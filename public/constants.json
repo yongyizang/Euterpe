@@ -6,7 +6,7 @@
     "EVENTS_BUFFER": 5,
     "NOTE_EVENT": 6,
     "AUDIO_BUFFER": 7,
-    "INIT_SAB": 8,
+    "INIT_AUDIO": 8,
     "PREPARE_WAV": 9,
     "WAV_BUFFER": 10
   },

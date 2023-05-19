@@ -16,18 +16,45 @@ importScripts("index_rb_no_exports.js");
 let constants = {};
 let externalJsonLoaded = false;
 let config = null;
+
+// Audio related variables
 let pcm = null;
 let channelCount = null;
 let sampleRate = null;
 let staging = null;
 let _audio_reader = null;
-
-let local_audio_buffer = null;
+let audio_frame_list = null;
 let frames = null;
 let windowSize = null;
 let hopSize = null;
 let sampleCounter = null;
 let currentFrame = null;
+let frameCounter = null;
+// Read some float32 pcm from the queue, convert to int16 pcm, and push it to
+// our global queue.
+// function readFromQueue() {
+//     const samples_read = self._audio_reader.dequeue(self.staging);
+//     // console.log("staestaging);
+//     if (!samples_read) {
+//       return 0;
+//     }
+//     // samples_read can have less length than staging
+//     const segment = new Int16Array(samples_read);
+//     for (let i = 0; i < samples_read; i++) {
+//       segment[i] = Math.min(Math.max(self.staging[i], -1.0), 1.0) * (2 << 14 - 1);
+//       if (self.sampleCounter == self.windowSize - 1){
+//         self.audio_frame_list.push(self.currentFrame);
+//         self.currentFrame = new Float32Array(self.windowSize);
+//         self.sampleCounter = 0;
+//       }
+//         self.currentFrame[self.sampleCounter] = self.staging[i];
+//         self.sampleCounter += 1;
+        
+//     //   self.local_audio_buffer.push(self.staging[i]);
+//     }
+//     self.pcm.push(segment);
+//     return samples_read;
+// }
 
 // Read some float32 pcm from the queue, convert to int16 pcm, and push it to
 // our global queue.
@@ -43,8 +70,14 @@ function readFromQueue() {
       segment[i] = Math.min(Math.max(self.staging[i], -1.0), 1.0) * (2 << 14 - 1);
       if (self.sampleCounter == self.windowSize - 1){
         self.audio_frame_list.push(self.currentFrame);
-        self.currentFrame = new Float32Array(self.windowSize);
-        self.sampleCounter = 0;
+        let tempFrame = new Float32Array(self.windowSize);
+        // Copy the last windowSize - hopSize samples to the current frame
+        // to the beginning of the new frame
+        for (let j = 0; j < (self.windowSize - self.hopSize); j++){
+            tempFrame[j] = self.currentFrame[j + self.hopSize];
+        }
+        self.currentFrame = tempFrame;
+        self.sampleCounter = self.windowSize - self.hopSize;
       }
         self.currentFrame[self.sampleCounter] = self.staging[i];
         self.sampleCounter += 1;
@@ -53,7 +86,7 @@ function readFromQueue() {
     }
     self.pcm.push(segment);
     return samples_read;
-  }
+}
 
 // You can load any external JSON files you have here
 async function loadExternalJson() {
@@ -71,7 +104,7 @@ async function loadConfig(config) {
 }
 
 // Hook that accepts the sharedArrayBuffer from the UI that stores audio samples
-async function initSAB(content){
+async function initAudio(content){
     console.log(content)
     self._audio_reader = new AudioReader(
         new RingBuffer(content.sab, Float32Array)
@@ -176,6 +209,7 @@ async function processEventsBuffer(content) {
     // An example of the Note object the UI expects
     // const note = {
     //     player: "worker",
+    //     instrument: "piano",
     //     name: null, 
     //     // Note type can be NOTE_ON, NOTE_OFF, NOTE_HOLD, REST
     //     type: self.constants.noteTypes.NOTE_ON,
@@ -235,7 +269,7 @@ async function processNoteEvent(content){
      * and every note played with a delay of 0.1 seconds from the previous note
      */
     let arpeggio = [3, 5, 8, 12];
-    // // if this a not off event, add an extra 0.1 sec offset
+    // if this a not off event, add an extra 0.1 sec offset
     let extraSecOffset = content.type == self.constants.noteTypes.NOTE_OFF ? 0.1 : 0.0;
     for (let i = 0; i < arpeggio.length; i++) {
         // console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
@@ -259,7 +293,7 @@ async function processNoteEvent(content){
         noteList.push(arp_note);
     }
 
-    
+    console.log(self.audio_frame_list.length);
 
     postMessage({
         messageType: self.constants.messageType.NOTE_EVENT,
@@ -328,6 +362,7 @@ async function prepareWAV(){
         messageType: self.constants.messageType.WAV_BUFFER,
         content: wav.buffer
     }, [wav.buffer]);
+
 }
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
@@ -342,8 +377,8 @@ async function onMessageFunction (obj) {
             await this.loadAlgorithm();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
             await this.loadConfig(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.INIT_SAB) {
-            await this.initSAB(obj.data.content);
+        } else if (obj.data.messageType == self.constants.messageType.INIT_AUDIO) {
+            await this.initAudio(obj.data.content);
         } else if (obj.data.messageType == self.constants.messageType.AUDIO_BUFFER) {
             await this.processAudioBuffer(obj.data.content);
         } else if (obj.data.messageType == self.constants.messageType.NOTE_EVENT){
