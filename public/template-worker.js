@@ -241,6 +241,7 @@ async function processNoteEvent(content){
         // console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
         let arp_note = {
             player: "worker",
+            instrument: "piano",
             name: null,
             type: content.type,
             midi: content.midi + arpeggio[i],
