@@ -3,10 +3,9 @@ importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
 importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
 importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_vae.js");
 importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
-
-
-// const exports = {};
 importScripts("index_rb_no_exports.js");
+importScripts("utils.js");
+
 // const input0 = new ort.Tensor(
 //     new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
 //     [2, 2] /* dims */
@@ -117,17 +116,27 @@ async function initAudio(content){
     // Store the audio data, segment by segments, as array of int16 samples.
     self.pcm = [];
 
+    // The frame/window size
+    self.windowSize = 1024 * self.channelCount;
+    // The hop size
+    self.hopSize = 256 * self.channelCount;
+
+    // Audio Frames per clock tick
+    self.framesPerTick = self.sampleRate * self.channelCount * 60 / 
+                        self.config.clockBasedSettings.tempo / 
+                        self.hopSize / 
+                        self.config.clockBasedSettings.ticksPerBeat;
     // Store the audio data, as an array of frames
     // each frame is as array of float32 samples.
     // the size of the frame is equal to windowSize
     // This will be used in the AUDIO_BUFFER hook to
     // to feed the audio frames to the worker's music interaction algorithm.
-    self.audio_frame_list = [];
+    // We use a LIFOQueue to store the frames, so that we can efficiently
+    // push and pop frames from the queue.
+    // We set the max size of the queue to the equivalent duration of 16 clock ticks
+    self.audio_frame_list = new LIFOQueue(16 * self.framesPerTick);
 
-    // The frame/window size
-    self.windowSize = 1024 * self.channelCount;
-    // The hop size
-    self.hopSize = 256 * self.channelCount;
+    
     
     // the current frame/window array. We'll keep pushing samples to it
     // untill it's full (windowSize samples). Then we'll push it to the
@@ -293,7 +302,7 @@ async function processNoteEvent(content){
         noteList.push(arp_note);
     }
 
-    console.log(self.audio_frame_list.length);
+    console.log(self.audio_frame_list.length());
 
     postMessage({
         messageType: self.constants.messageType.NOTE_EVENT,
