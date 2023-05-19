@@ -11,24 +11,9 @@ export const INSTRUMENT_BASE_URL = "/audio/samples/"
 export const SAMPLE_RANGES = {
   metronome: ["C0", "C#0"], // C0 for high_woodblock, C#0 for low_woodblock;
   bassElectric: ["A#2", "G5"],
-  bassoon: ["A1", "G3"],
-  cello: ["A2", "G#4"],
-  clarinet: ["A#2", "F#5"],
-  contrabass: ["A1", "G#2"],
-  flute: ["A3", "E5"],
-  frenchHorn: ["A0", "G1"],
-  guitarAcoustic: ["A1", "G#3"],
-  guitarElectric: ["A2", "F#5"],
-  guitarNylon: ["A2", "G#5"],
-  harmonium: ["A2", "G#4"],
-  harp: ["A2", "G5"],
-  organ: ["A1", "F#5"],
+  drums: ["C0", "D#0"],
+  // drums: C0 kick, C#0 snare, D0 closed_hihat, D#0 open_hihat.
   piano: ["A0", "C7"], // TODO: Find alternate samples with full piano range.
-  saxophone: ["A3", "G#4"],
-  trombone: ["A#0", "G#2"],
-  trumpet: ["A2", "G3"],
-  tuba: ["A#0", "F2"],
-  violin: ["A3", "G6"]
   // xylophone: [] // TODO: Find out why samples are missing or find alternatives.
 }
 
@@ -88,13 +73,6 @@ export default class Instruments {
       () => callback(sampler),
       `${INSTRUMENT_BASE_URL}${instrument}/`
     )
-
-    // Create a simple sine synth
-    
-
-
-    // sampler.attack = 0
-    // sampler.release = 0
     this.samplers[instrument] = sampler
 
     return sampler
