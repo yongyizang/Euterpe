@@ -25,7 +25,7 @@
       </div>
     </div>
 
-    <div ref="mainContent" id="mainContent" class="fade-in">
+    <div ref="mainContent" id="mainContent" class="fade-in" style="justify-content: center; align-items: center;">
       <div style="
           background-color: black;
           opacity: 0.5;
@@ -36,7 +36,9 @@
           ">
       </div>
       <scoreUI />
-      <pianoRollUI />
+      <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="64" orientation="top" style="position:absolute; z-index:0; top:0; left:400; background-color:black"/>
+      <pianoRollUI style="position:absolute; z-index:-1; top:0; left:0"/>
+      <!-- <VerticalSlider v-model="sliderValue" :min="10" :max="50" label="A Slider!"/> -->
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
           <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
@@ -58,7 +60,7 @@
       <keyboardUI id="pianoKeyboard" class="pianoKeyboard" ref="usersKeyboardUIref" :key="keyboardUIKey"
         :octave-start="keyboardUIoctaveStart" :octave-end="keyboardUIoctaveEnd" />
       <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
-        <div style="padding:0; margin: 0">
+        <div style="padding:0; margin: 0; overflow-y: scroll;">
           <div class="modalDiv">
             <p class="modalTitle">
               Settings
@@ -66,10 +68,10 @@
             <button class="modalBtn" @click="$modal.hide('settingsModal')"><md-icon
                 class="modalIcon">close</md-icon></button>
           </div>
-          <div class="modalContent">
+          <div class="modalContent" style="overflow-y: scroll; height:600px">
             <p class="settingsSubtitle">Audio</p>
             <div class="md-layout md-gutter md-alignment-center">
-              <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
                   <div style="padding-top: 14px">
@@ -78,14 +80,14 @@
                   </div>
                 </div>
               </div>
-              <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">Metronome</span>
                   <toggle-button color="#74601c" :value="false" @change="toggleMetronome"
                     style="transform: scale(0.9); padding-top: 17px" />
                 </div>
               </div>
-              <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Your Volume</p>
                   <p class="settingsValue">{{ userPianoVolume }}</p>
@@ -93,14 +95,35 @@
                     class="settingsSlider"></vue-slider>
                 </div>
               </div>
-              <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Worker Volume</p>
                   <p class="settingsValue">{{ workerVolume }}</p>
                   <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
               </div>
-              <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100" style="display:none;">
+                <div class="settingsDiv">
+                  <p class="settingsOptionTitle">Worker Volume</p>
+                  <p class="settingsValue">{{ workerVolume }}</p>
+                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
+                </div>
+              </div>
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100" style="display:none;">
+                <div class="settingsDiv">
+                  <p class="settingsOptionTitle">Worker Volume</p>
+                  <p class="settingsValue">{{ workerVolume }}</p>
+                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
+                </div>
+              </div>
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
+                <div class="settingsDiv">
+                  <p class="settingsOptionTitle">Worker Volume</p>
+                  <p class="settingsValue">{{ workerVolume }}</p>
+                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
+                </div>
+              </div>
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Metronome Volume</p>
                   <p class="settingsValue">{{ metronomeVolume }}</p>
@@ -165,6 +188,8 @@ import { Midi } from "@tonaljs/tonal";
 import keyboardUI from "@/components/keyboardUI.vue";
 import pianoRollUI from "@/components/pianoRollUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
+import VerticalSlider from '@/components/VerticalSlider.vue'
+import AudioMeter from "../components/AudioMeter.vue";
 import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
@@ -243,6 +268,8 @@ export default {
       workerVolume: 5,
       metronomeVolume: 5,
 
+      sliderValue: 20,
+
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
       modelInferenceTimes: [], 
@@ -267,7 +294,9 @@ export default {
     keyboardUI,
     scoreUI,
     pianoRollUI,
+    VerticalSlider,
     Dropdown,
+    AudioMeter,
   },
 
   async mounted() {
@@ -624,6 +653,12 @@ export default {
       immediate: true,
       handler(newValue) {
         this.$store.commit("setMetronomeVolume", newValue);
+      },
+    },
+    sliderValue: {
+      immediate: true,
+      handler(newValue) {
+        console.log("sliderValue changed to: " + newValue);
       },
     },
   },

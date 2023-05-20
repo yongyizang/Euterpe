@@ -50,6 +50,7 @@
     }
 
     100% {
+        display: flex;
         opacity: 1;
     }
 }
@@ -62,6 +63,7 @@
     }
 
     100% {
+        display: flex;
         opacity: 1;
     }
 }
@@ -274,4 +276,8 @@
 .controlBtn {
     background-color: var(--button-background-color);
     color: var(--button-text-color);
+}
+
+#mainContent{
+    display: flex;
 }
