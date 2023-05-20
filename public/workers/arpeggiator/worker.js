@@ -1,15 +1,13 @@
-import { ColorAverageEffect } from "postprocessing";
-
 // If needed, you can import any external libraries here (e.g., tensorflow.js, onnx, magenta, etc.)
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
-importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
-importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
-importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
-importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.web.js")
-importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-extractor.js")
-importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-plot.js")
-importScripts("index_rb_no_exports.js");
-importScripts("utils.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
+// importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
+// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.web.js")
+// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-extractor.js")
+// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-plot.js")
+importScripts("../../libraries/index_rb_no_exports.js");
+importScripts("../../utils.js");
 
 // const input0 = new ort.Tensor(
 //     new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
@@ -17,10 +15,10 @@ importScripts("utils.js");
 //   );
 
 
-let constants = {};
-let externalJsonLoaded = false;
 let config = null;
-
+let messageType = null;
+let statusType = null;
+let noteType = null;
 // Audio related variables
 let pcm = null;
 let channelCount = null;
@@ -68,19 +66,21 @@ function readFromQueue() {
     return samples_read;
 }
 
-// You can load any external JSON files you have here
-async function loadExternalJson() {
-    // constants.json defines the messagetype and statustype constants
-    await fetch('constants.json').then(response => {
-        return response.json();
-    }).then(data => {
-        self.constants = data;
-    });
-}
 // Hook that takes the config.yaml from the UI.
-async function loadConfig(config) {
-    self.config = config;
-    self.ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
+async function loadConfig(content) {
+    self.config = content.config;
+    self.noteType = content.noteType;
+    self.statusType = content.statusType;
+    self.messageType = content.messageType;
+    self.ticksPerMeasure = self.config.clockBasedSettings.ticksPerBeat * 
+                            self.config.clockBasedSettings.timeSignature.numerator;
+    // If you have any external JSON files, you can load them here
+    //     await fetch('extraData.json').then(response => {
+    //         return response.json();
+    //     }).then(data => {
+    //         self.extraData = data;
+    //     });
+
 }
 
 // Hook that accepts the sharedArrayBuffer from the UI that stores audio samples
@@ -172,8 +172,8 @@ async function loadAlgorithm() {
 
     // The UI expects a LOADED status message.
     postMessage({
-        messageType: self.constants.messageType.STATUS,
-        statusType: self.constants.statusType.LOADED,
+        messageType: self.messageType.STATUS,
+        statusType: self.statusType.LOADED,
         content: "Worker is loaded!",
     });
 
@@ -182,8 +182,8 @@ async function loadAlgorithm() {
 
         // you can sent WARMUP status messages to the UI if you want.
         postMessage({
-            messageType: self.constants.messageType.STATUS,
-            statusType: self.constants.statusType.WARMUP,
+            messageType: self.messageType.STATUS,
+            statusType: self.statusType.WARMUP,
             content: "Worker is warming up. Current round: " + (i + 1) + "/" + self.config.workerSettings.warmupRounds,
         });
     }
@@ -191,8 +191,8 @@ async function loadAlgorithm() {
     // Once your model/worker is ready to play, 
     // UI expects a success message
     postMessage({
-        messageType: self.constants.messageType.STATUS,
-        statusType: self.constants.statusType.SUCCESS,
+        messageType: self.messageType.STATUS,
+        statusType: self.statusType.SUCCESS,
         content: "Worker is ready to interact with you!",
     });
 
@@ -204,7 +204,7 @@ async function loadAlgorithm() {
 // 2) a list of all the quantized events for the current tick
 async function processEventsBuffer(content) {
     // currentBuffer = self.audio_frame_list[-1]
-    audioChroma = EssentialExtractor.computeChroma(currentBuffer);
+    // audioChroma = EssentialExtractor.computeChroma(currentBuffer);
     // workerAudio.postMessage(audioChroma);
 
     var predictTime = performance.now();
@@ -227,7 +227,7 @@ async function processEventsBuffer(content) {
     //     instrument: "piano",
     //     name: null, 
     //     // Note type can be NOTE_ON, NOTE_OFF, NOTE_HOLD, REST
-    //     type: self.constants.noteTypes.NOTE_ON,
+    //     type: self.noteType.NOTE_ON,
     //     // a number 0-127. 128 is a rest
     //     midi: 60,
     //     // a number 0-11. 12 is a rest
@@ -257,7 +257,7 @@ async function processEventsBuffer(content) {
 
     // The MICP package the UI expects.
     postMessage({
-        messageType: self.constants.messageType.EVENTS_BUFFER,
+        messageType: self.messageType.EVENTS_BUFFER,
         content: {
             predictTime: predictTime,
             tick: currentTick,
@@ -285,7 +285,7 @@ async function processNoteEvent(content){
      */
     let arpeggio = [3, 5, 8, 12];
     // if this a not off event, add an extra 0.1 sec offset
-    let extraSecOffset = content.type == self.constants.noteTypes.NOTE_OFF ? 0.1 : 0.0;
+    let extraSecOffset = content.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
     for (let i = 0; i < arpeggio.length; i++) {
         // console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
         let arp_note = {
@@ -311,7 +311,7 @@ async function processNoteEvent(content){
     console.log(self.audio_frame_list.length());
 
     postMessage({
-        messageType: self.constants.messageType.NOTE_EVENT,
+        messageType: self.messageType.NOTE_EVENT,
         content: {
             // predictTime: predictTime,
             // tick: currentTick,
@@ -374,31 +374,33 @@ async function prepareWAV(){
     }
     // postMessage(wav.buffer, [wav.buffer]);
     postMessage({
-        messageType: self.constants.messageType.WAV_BUFFER,
+        messageType: self.messageType.WAV_BUFFER,
         content: wav.buffer
     }, [wav.buffer]);
 
 }
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
-    if (!self.externalJsonLoaded) {
-        await self.loadExternalJson();
-        self.externalJsonLoaded = true;
-        onMessageFunction(obj);
+    if (self.config == null) {
+        await self.loadConfig(obj.data.content);
+        // make sure that the config is loaded
+        if (self.config == null) {
+            return;
+        }
     } else {
-        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
+        if (obj.data.messageType == self.messageType.EVENTS_BUFFER) {
             await this.processEventsBuffer(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
+        } else if (obj.data.messageType == self.messageType.LOAD_ALGORITHM) {
             await this.loadAlgorithm();
-        } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
-            await this.loadConfig(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.INIT_AUDIO) {
+        // } else if (obj.data.messageType == self.messageType.LOAD_CONFIG) {
+        //     await this.loadConfig(obj.data.content);
+        } else if (obj.data.messageType == self.messageType.INIT_AUDIO) {
             await this.initAudio(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.AUDIO_BUFFER) {
+        } else if (obj.data.messageType == self.messageType.AUDIO_BUFFER) {
             await this.processAudioBuffer(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.NOTE_EVENT){
+        } else if (obj.data.messageType == self.messageType.NOTE_EVENT){
             await this.processNoteEvent(obj.data.content);
-        } else if (obj.data.messageType == self.constants.messageType.PREPARE_WAV){
+        } else if (obj.data.messageType == self.messageType.PREPARE_WAV){
             await this.prepareWAV();
         }
     }

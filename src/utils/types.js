@@ -18,7 +18,7 @@ ERROR: 3,
 REPORT: 4,
 };
 
-export const noteTypes = {
+export const noteType = {
 NOTE_ON: 1,
 NOTE_OFF: -1,
 NOTE_HOLD: 0,

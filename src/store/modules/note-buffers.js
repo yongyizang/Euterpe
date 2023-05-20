@@ -45,7 +45,7 @@ let pianoState = pianoMidiNumbers.reduce((map, midi) => {
 
 const state = {
 
-    noteTypes: {},
+    noteType: {},
     // Define all basic states.
     pianoMidiNumbers: [],
     pianoState: pianoState,
@@ -87,8 +87,8 @@ const state = {
 }
 
 const getters = {
-    getNoteTypes (state){
-        return state.noteTypes;
+    getNoteType (state){
+        return state.noteType;
     },
     // Return all notes that are currently "pressed"/active
     // the notes are sorted alphabetically
@@ -206,7 +206,7 @@ const actions = {
         // so maybe it should go there
         const midi = workerNoteEvent.midi;
         const cpc = workerNoteEvent.chroma;
-        const articulation =  workerNoteEvent.type === state.noteTypes.NOTE_ON ? 1 : 0;
+        const articulation =  workerNoteEvent.type === state.noteType.NOTE_ON ? 1 : 0;
 
         if (midi == 128) {
             if (state.lastWorkerNote.midi == 0){
@@ -248,12 +248,12 @@ const actions = {
         // TODO : Move this code to scoreUI.js 
         let args = {};
         // keep only the "on" and "hold" type events from quantizedEventList in a new array
-        const quantizedEventListOnHold = quantizedEventList.filter((event) => event.type === state.noteTypes.NOTE_ON || event.type === state.noteTypes.NOTE_HOLD);
+        const quantizedEventListOnHold = quantizedEventList.filter((event) => event.type === state.noteType.NOTE_ON || event.type === state.noteType.NOTE_HOLD);
 
         if ( quantizedEventListOnHold.length > 0 ) {
             args = {midi : quantizedEventList[0].midi,
                     // articulation is 1 if type="on" and 0 if type="hold"
-                    articulation : quantizedEventList[0].type === state.noteTypes.NOTE_ON ? 1 : 0,
+                    articulation : quantizedEventList[0].type === state.noteType.NOTE_ON ? 1 : 0,
             }
         }
         else {
@@ -334,16 +334,16 @@ const mutations = {
     //     }, {});
     // },
 
-    setNoteTypes (state, noteTypes){
-        state.noteTypes = noteTypes;
-        console.log(state.noteTypes);
+    setNoteType (state, noteType){
+        state.noteType = noteType;
+        console.log(state.noteType);
     },
     initQuantBuffers(state, config) {
         const restNote = {
             midi : 128,
             chroma : 12,
             name : "R",
-            type : state.noteTypes.REST,
+            type : state.noteType.REST,
         };
         let ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
         // initialize quantizedBufferWorker and quantizedBufferHuman with 16 restNotes

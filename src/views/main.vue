@@ -195,7 +195,7 @@ import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
 import * as rb from "ringbuf.js"; // /dist/index.js
-import { messageType, statusType, noteTypes } from '@/utils/types.js'
+import { messageType, statusType, noteType } from '@/utils/types.js'
 import {URLFromFiles, isMobile, isNotChrome} from '@/utils/helpers.js'
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
@@ -217,7 +217,7 @@ export default {
       },
       messageType,
       statusType,
-      noteTypes,
+      noteType,
 
       workerName: "arpeggiator",
 
@@ -283,13 +283,13 @@ export default {
     /*
      * Loading Animation: set initial status of both div
      */
-    this.$refs.mainContent.style.display = "none";
-    this.$refs.entryBtn.style.visibility = "hidden";
+    vm.$refs.mainContent.style.display = "none";
+    vm.$refs.entryBtn.style.visibility = "hidden";
 
     // load config.yaml and constants.json
     // then commit them to any vuex store that needs them
     try {
-      await fetch('/workers/${workerName}/config.yaml')
+      await fetch(`/workers/${vm.workerName}/config.yaml`)
         .then(response => response.text())
         .then(text => function () {
           this.config = yaml.load(text);
@@ -297,36 +297,33 @@ export default {
           this.$store.commit("initQuantBuffers", this.config);
           this.$store.commit("setTicksPerMeasure", this.config);
         }.bind(this)());
-      // await fetch('/workers/${workerName}/constants.json')
-      //   .then(response => response.json())
-      //   .then(json => function () {
-      //     this.messageType = json.messageType;
-      //     this.statusType = json.statusType;
-      //     this.noteTypes = json.noteTypes;
-      //     vm.$store.commit("setNoteTypes", this.noteTypes);
-      //   }.bind(this)());
-      // console.log("config and constants loaded");
     } catch (err) {
       console.error(err);
     }
 
-    this.BPM = this.config.clockBasedSettings.tempo;
-    
+    vm.BPM = vm.config.clockBasedSettings.tempo;
+
     vm.audioContext = new AudioContext;
     Tone.context.lookAhead = 0.01;
 
     // Initialize worker
     // const workerUrl = await URLFromFiles(['template-worker.js', '/index_rb.js'])
     
-    vm.worker = new Worker('template-worker.js');
+    vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
     // set worker callback
     // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;
 
-    // Send a message to worker with the config file to store in worker
+    // Send a message to worker with some necessary 
+    // configurations and constants to store inside the worker
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
-      content: vm.$store.getters.getConfig,
+      content: {
+        config : vm.config,
+        messageType: vm.messageType,
+        statusType: vm.statusType,
+        noteType: vm.noteType,
+      }
     });
     // Tell the worker to load the algorithm
     await vm.worker.postMessage({
@@ -343,7 +340,7 @@ export default {
 
     // spacebar trigger play btn
     document.addEventListener("keypress", function (event) {
-      if (event.keyCode == 32 && !vm.$store.getters.getModalStatus) {
+      if (event.code == 32 && !vm.$store.getters.getModalStatus) {
         // spacebar could toggle clock
         vm.toggleClock();
       }
@@ -375,9 +372,9 @@ export default {
     // Float32Array is 4 bytes per sample
     vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
 
-    vm.sab2 = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
-    vm.rb2 = new exports.RingBuffer(sab2, Uint8Array);
-    vm.paramWriter = new ParameterWriter(rb2);
+    // vm.sab2 = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
+    // vm.rb2 = new exports.RingBuffer(sab2, Uint8Array);
+    // vm.paramWriter = new ParameterWriter(rb2);
 
     await vm.worker.postMessage({
       messageType: vm.messageType.INIT_AUDIO,
@@ -402,7 +399,7 @@ export default {
       stream
     );
 
-    const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', '/index_rb.js'])
+    const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
     await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
 
     vm.audioContext.resume();
@@ -432,7 +429,6 @@ export default {
     // vm.osc.start(0);
     // fm.start(0);
     // panModulation.start(0);
-\
     vm.recorderWorkletNode.port.postMessage("ping")
 
     vm.recorderWorkletNode.port.addEventListener("message", (event) => {
@@ -481,7 +477,7 @@ export default {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
       // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
-        type: vm.noteTypes.NOTE_ON,
+        type: vm.noteType.NOTE_ON,
         player: "human",
         instrument: "upright_bass",
         name: noteName, //message.note.identifier,
@@ -523,7 +519,7 @@ export default {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
 
       const midiEvent = {
-        type: vm.noteTypes.NOTE_OFF,
+        type: vm.noteType.NOTE_OFF,
         player: "human",
         instrument: "upright_bass",
         name: noteName, //message.note.identifier,
@@ -679,7 +675,7 @@ export default {
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
       inputDevice.addListener("noteon", (message) => {
         const midiEvent = {
-          type: vm.noteTypes.NOTE_ON,
+          type: vm.noteType.NOTE_ON,
           player: "human",
           name: message.note.identifier,
           channel: message.data[0],
@@ -711,7 +707,7 @@ export default {
 
       inputDevice.addListener("noteoff", (message) => {
         const midiEvent = {
-          type: vm.noteTypes.NOTE_OFF,
+          type: vm.noteType.NOTE_OFF,
           player: "human",
           name: message.note.identifier,
           channel: message.data[0],
@@ -798,14 +794,14 @@ export default {
           if (noteEvent.playAfter.tick > 0) {
             this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
           } else {
-            if (noteEvent.type === vm.noteTypes.NOTE_ON){
+            if (noteEvent.type === vm.noteType.NOTE_ON){
               this.$store.dispatch("samplerOn", noteEvent);
               // set a timeout to call keyDown based on noteEvent.timestamp.seconds
               setTimeout(() => {
                 this.$root.$refs.pianoRollUI.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
-            else if (noteEvent.type === vm.noteTypes.NOTE_OFF){
+            else if (noteEvent.type === vm.noteType.NOTE_OFF){
               this.$store.dispatch("samplerOff", noteEvent);
               // set a timeout to call keyUp based on noteEvent.timestamp.seconds
               setTimeout(() => {
@@ -839,14 +835,14 @@ export default {
           if (noteEvent.playAfter.tick > 0) {
             this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
           } else {
-            if (noteEvent.type === vm.noteTypes.NOTE_ON){
+            if (noteEvent.type === vm.noteType.NOTE_ON){
               this.$store.dispatch("samplerOn", noteEvent);
               // set a timeout to call keyDown based on noteEvent.timestamp.seconds
               setTimeout(() => {
                 this.$root.$refs.pianoRollUI.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
-            else if (noteEvent.type === vm.noteTypes.NOTE_OFF){
+            else if (noteEvent.type === vm.noteType.NOTE_OFF){
               this.$store.dispatch("samplerOff", noteEvent);
               // set a timeout to call keyUp based on noteEvent.timestamp.seconds
               setTimeout(() => {
@@ -905,14 +901,14 @@ export default {
       if (workerNotesToBePlayed.length > 0) {
         workerNotesToBePlayed.forEach((noteEvent) => {
           // console.log("a note to be played", noteEvent);
-          if (noteEvent.type === vm.noteTypes.NOTE_ON) {
+          if (noteEvent.type === vm.noteType.NOTE_ON) {
             // console.log("worker note on", noteEvent)
             this.$store.dispatch("samplerOn", noteEvent);
             setTimeout(() => {
                 this.$root.$refs.pianoRollUI.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             // this.$root.$refs.pianoRollUI.keyDown(note);
-          } else if (noteEvent.type === vm.noteTypes.NOTE_OFF) {
+          } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
             // console.log("WORKER NOTE OFF", noteEvent)
             this.$store.dispatch("samplerOff", noteEvent);
             // this.$root.$refs.pianoRollUI.keyUp(note);
@@ -944,9 +940,9 @@ export default {
       let indexesToRemove = []; // the indexes of the events to be removed
       for (let i = bufferEvent.length - 1; i >= 0; i--) {
         let elem = bufferEvent[i];
-        if (elem.type === vm.noteTypes.NOTE_OFF) {
+        if (elem.type === vm.noteType.NOTE_OFF) {
           const matchingIndexes = bufferEvent
-            .map((e, i) => (e.type === vm.noteTypes.NOTE_ON && e.midi === elem.midi && e.timestamp.seconds < elem.timestamp.seconds) ? i : -1)
+            .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.timestamp.seconds < elem.timestamp.seconds) ? i : -1)
             .filter(index => index !== -1);
           if (matchingIndexes.length > 0) {
             indexesToRemove.push(i);
@@ -961,7 +957,7 @@ export default {
       // if the note does not exist in the bufferEvent, then we have a continuation of the note (we assume it was activated in a previous tick)
       for (let i = 0; i < activePianoNotes.length; i++) {
         const midi = activePianoNotes[i].midi;
-        const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === vm.noteTypes.NOTE_ON && elem.midi === midi);
+        const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === vm.noteType.NOTE_ON && elem.midi === midi);
         if (noteOnEvent) {
           // currentQuantizedEvents.push({
           //   type: "on",
@@ -971,7 +967,7 @@ export default {
         }
         else {
           const noteHoldEvent = {
-            type: vm.noteTypes.NOTE_HOLD,
+            type: vm.noteType.NOTE_HOLD,
             player: "human",
             midi: midi,
             chroma: null,
@@ -1010,7 +1006,7 @@ export default {
 
       // TODO : FOR NOW WE DON"T INCLUDE NOTE_OFF EVENTS IN THE QUANTIZED DATA.
       let constrainedCurrentQuantizedEvents = [];
-      let onHoldEvents = currentQuantizedEvents.filter(elem => elem.type === vm.noteTypes.NOTE_ON || elem.type === vm.noteTypes.NOTE_HOLD);
+      let onHoldEvents = currentQuantizedEvents.filter(elem => elem.type === vm.noteType.NOTE_ON || elem.type === vm.noteType.NOTE_HOLD);
       // let offEvents = currentQuantizedEvents.filter(elem => elem.type === "off");
       if (onHoldEvents.length > vm.config.polyphony.input) {
         // let onHoldEventsToRemove = onHoldEvents.slice(polyphony);
@@ -1118,7 +1114,7 @@ export default {
         const metronomeNote = {
             player: "metronome",
             name: currentNote,
-            type: this.noteTypes.NOTE_ON,
+            type: this.noteType.NOTE_ON,
             midi: null,
             chroma: null,
             velocity: 127,

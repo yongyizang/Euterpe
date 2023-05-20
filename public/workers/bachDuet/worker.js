@@ -137,7 +137,7 @@ async function processEventsBuffer(content) {
     let humanArtic = -1;
     let humanCpc = -1;
     if (humanInp.length == 0){
-        humanInp.push({type: self.constants.noteTypes.REST, midi: 128})
+        humanInp.push({type: self.constants.noteType.REST, midi: 128})
         clipedMidi = 0
         humanArtic = 1
         humanCpc = 12
@@ -150,7 +150,7 @@ async function processEventsBuffer(content) {
         while (clipedMidi > 94 && clipedMidi < 128){
             clipedMidi -= 12
         }
-        humanArtic = humanInp[0].type === self.constants.noteTypes.NOTE_ON ? 1 : 0;
+        humanArtic = humanInp[0].type === self.constants.noteType.NOTE_ON ? 1 : 0;
         clipedMidi % 12;
 
         humanCpc = clipedMidi % 12;
@@ -161,7 +161,7 @@ async function processEventsBuffer(content) {
     // if humanInp.type is "on" then articulation is 1, if type = "hold" then articulation is 0
     // const humanArtic = humanInp[0].type === "on" ? 1 : 0;
     // if the humanInp type is "on" or "rest", then articulation is 1, if type = "hold" then articulation is 0
-    // const humanArtic = humanInp[0].type === self.constants.noteTypes.NOTE_ON || humanInp[0].type === self.constants.noteTypes.NOTE_HOLD ? 1 : 0;
+    // const humanArtic = humanInp[0].type === self.constants.noteType.NOTE_ON || humanInp[0].type === self.constants.noteType.NOTE_HOLD ? 1 : 0;
     // if 
     // let humanCpc = clipedMidi % 12;
     // if (clipedMidi == 0) {
@@ -226,9 +226,9 @@ async function processEventsBuffer(content) {
     // if midi = 128, the it is a rest
     let type = null;
     if (midi==128){
-        type = self.constants.noteTypes.REST;
+        type = self.constants.noteType.REST;
     } else{
-        type = articulation === 1 ? self.constants.noteTypes.NOTE_ON : self.constants.noteTypes.NOTE_HOLD;
+        type = articulation === 1 ? self.constants.noteType.NOTE_ON : self.constants.noteType.NOTE_HOLD;
     }
     
     
@@ -255,12 +255,12 @@ async function processEventsBuffer(content) {
     // BachDuet is a monophonic model. If the current prediction is a noteON and the previous prediction was not a rest
     // then we need to send a noteOFF for the previous note
     // We need to do the same if the current prediction is a REST and the previous prediction was not a rest
-    if (note.type == self.constants.noteTypes.NOTE_ON && lastWorkerPrediction.type != self.constants.noteTypes.REST ||
-        note.type == self.constants.noteTypes.REST && lastWorkerPrediction.type != self.constants.noteTypes.REST) {
+    if (note.type == self.constants.noteType.NOTE_ON && lastWorkerPrediction.type != self.constants.noteType.REST ||
+        note.type == self.constants.noteType.REST && lastWorkerPrediction.type != self.constants.noteType.REST) {
         const noteOff = {
             player: "worker",
             name: null,
-            type: self.constants.noteTypes.NOTE_OFF,
+            type: self.constants.noteType.NOTE_OFF,
             midi: lastWorkerPrediction.midi,
             chroma: lastWorkerPrediction.cpc,
             velocity: 127,
@@ -312,7 +312,7 @@ async function processNoteEvent(content){
     const note = {
         player: "worker",
         name: null, // BachDuet doesn't generate the note's name
-        type: articulation === 1 ? self.constants.noteTypes.NOTE_ON : self.constants.noteTypes.NOTE_HOLD,
+        type: articulation === 1 ? self.constants.noteType.NOTE_ON : self.constants.noteType.NOTE_HOLD,
         midi: midi,
         chroma: cpc,
         velocity: 127, // BachDuet uses 127 for all notes

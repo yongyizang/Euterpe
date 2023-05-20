@@ -191,7 +191,7 @@ export default {
     toggleAttack(currentNote) {
 
       // const midiEvent = {
-      //   type: this.$store.getters.getNoteTypes.NOTE_ON,
+      //   type: this.$store.getters.getNoteType.NOTE_ON,
       //   player : "human",
       //   note : currentNote, //message.note.identifier,
       //   channel : 140, // this is channel midi channel 0
@@ -205,7 +205,7 @@ export default {
       let midi = Note.midi(noteName);
       // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
-        type: this.$store.getters.getNoteTypes.NOTE_ON,
+        type: this.$store.getters.getNoteType.NOTE_ON,
         player: "human",
         instrument: "upright_bass",
         name: noteName, //message.note.identifier,
@@ -248,7 +248,7 @@ export default {
       let midi = Note.midi(noteName);
       // sound/sampler is active even when the improvisation (clock) has not started yet
       const midiEvent = {
-        type: this.$store.getters.getNoteTypes.NOTE_OFF,
+        type: this.$store.getters.getNoteType.NOTE_OFF,
         player: "human",
         instrument: "upright_bass",
         name: noteName, //message.note.identifier,

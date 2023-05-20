@@ -227,7 +227,7 @@ async function processEventsBuffer(content) {
     //     instrument: "piano",
     //     name: null, 
     //     // Note type can be NOTE_ON, NOTE_OFF, NOTE_HOLD, REST
-    //     type: self.constants.noteTypes.NOTE_ON,
+    //     type: self.constants.noteType.NOTE_ON,
     //     // a number 0-127. 128 is a rest
     //     midi: 60,
     //     // a number 0-11. 12 is a rest
@@ -285,7 +285,7 @@ async function processNoteEvent(content){
      */
     let arpeggio = [3, 5, 8, 12];
     // if this a not off event, add an extra 0.1 sec offset
-    let extraSecOffset = content.type == self.constants.noteTypes.NOTE_OFF ? 0.1 : 0.0;
+    let extraSecOffset = content.type == self.constants.noteType.NOTE_OFF ? 0.1 : 0.0;
     for (let i = 0; i < arpeggio.length; i++) {
         // console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
         let arp_note = {
