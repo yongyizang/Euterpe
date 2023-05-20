@@ -1,8 +1,13 @@
+import { ColorAverageEffect } from "postprocessing";
+
 // If needed, you can import any external libraries here (e.g., tensorflow.js, onnx, magenta, etc.)
 importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
 importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
-importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_vae.js");
+importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
 importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
+importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.web.js")
+importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-extractor.js")
+importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-plot.js")
 importScripts("index_rb_no_exports.js");
 importScripts("utils.js");
 
@@ -29,31 +34,7 @@ let hopSize = null;
 let sampleCounter = null;
 let currentFrame = null;
 let frameCounter = null;
-// Read some float32 pcm from the queue, convert to int16 pcm, and push it to
-// our global queue.
-// function readFromQueue() {
-//     const samples_read = self._audio_reader.dequeue(self.staging);
-//     // console.log("staestaging);
-//     if (!samples_read) {
-//       return 0;
-//     }
-//     // samples_read can have less length than staging
-//     const segment = new Int16Array(samples_read);
-//     for (let i = 0; i < samples_read; i++) {
-//       segment[i] = Math.min(Math.max(self.staging[i], -1.0), 1.0) * (2 << 14 - 1);
-//       if (self.sampleCounter == self.windowSize - 1){
-//         self.audio_frame_list.push(self.currentFrame);
-//         self.currentFrame = new Float32Array(self.windowSize);
-//         self.sampleCounter = 0;
-//       }
-//         self.currentFrame[self.sampleCounter] = self.staging[i];
-//         self.sampleCounter += 1;
-        
-//     //   self.local_audio_buffer.push(self.staging[i]);
-//     }
-//     self.pcm.push(segment);
-//     return samples_read;
-// }
+
 
 // Read some float32 pcm from the queue, convert to int16 pcm, and push it to
 // our global queue.
@@ -123,9 +104,10 @@ async function initAudio(content){
 
     // Audio Frames per clock tick
     self.framesPerTick = self.sampleRate * self.channelCount * 60 / 
-                        self.config.clockBasedSettings.tempo / 
+                         60 / // self.config.clockBasedSettings.tempo
                         self.hopSize / 
                         self.config.clockBasedSettings.ticksPerBeat;
+
     // Store the audio data, as an array of frames
     // each frame is as array of float32 samples.
     // the size of the frame is equal to windowSize
@@ -153,6 +135,26 @@ async function initAudio(content){
     // deadlines:
     // staging buffer size = ring buffer byteLengthsize / sizeof(float32) /4 / 2?
     self.staging = new Float32Array(content.sab.byteLength / 4 / 4 / 2);
+
+    // Initialize Essentia.js
+    // EssentiaWASM().then(async function(WasmModule) {
+    
+    //     self.essentiaExtractor = new EssentiaExtractor(WasmModule);
+    
+    //     // essentia version log to html div
+    //     $("#logDiv").html(
+    //       "<h5> essentia-" + essentiaExtractor.version + " wasm backend loaded ... </h5>"
+    //     );
+    
+    //     $("#logDiv").append(
+    //       '<button id="btn" class="ui white inverted button">Compute HPCP Chroma </button>'
+    //     );
+    
+    //     var button = document.getElementById("btn");
+    
+    //     // add onclick event handler to comoute button
+    //     button.addEventListener("click", () => onClickFeatureExtractor(), false);
+    //   });
     console.log("staging buffer size: " + self.staging.length + " samples");
     console.log("sab byteLength: " + content.sab.byteLength + " bytes");    
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
@@ -201,6 +203,10 @@ async function loadAlgorithm() {
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
 async function processEventsBuffer(content) {
+    // currentBuffer = self.audio_frame_list[-1]
+    audioChroma = EssentialExtractor.computeChroma(currentBuffer);
+    // workerAudio.postMessage(audioChroma);
+
     var predictTime = performance.now();
 
     // The list of notes to be sent to the UI
