@@ -54,24 +54,26 @@ metronomeBus.mute = true;
 metronomeSampler.connect(metronomeBus);
 
 const state = {
-    metronomeStatus: false,
-    humanSamplersGain: 0, // in dB
-    workerSamplersGain: 0, // in dB
-    metronomeSamplerGain: 0, // in dB
+    metronomeMuteStatus: true,
+    humanMuteStatus: false,
+    workerMuteStatus: false,
+    humanSamplersVolume: 0, // in dB
+    workerSamplersVolume: 0, // in dB
+    metronomeSamplerVolume: 0, // in dB
 };
 
 const getters = {
-    getMetronomeStatus(state){
-        return state.metronomeStatus;
+    getmetronomeMuteStatus(state){
+        return state.metronomeMuteStatus;
     },
-    getUserSamplersGain(state){
-        return state.humanSamplersGain;
+    getUserSamplersVolume(state){
+        return state.humanSamplersVolume;
     },
-    getWorkerSamplersGain(state){
-        return state.workerSamplersGain;
+    getWorkerSamplersVolume(state){
+        return state.workerSamplersVolume;
     },
-    getMetronomeSamplerGain(state){
-        return state.metronomeSamplerGain;
+    getMetronomeSamplerVolume(state){
+        return state.metronomeSamplerVolume;
     },
 };
 
@@ -130,56 +132,74 @@ const actions = {
 };
 
 const mutations = {
-    muteMetronome(state){
-        metronomeBus.mute = state.metronomeStatus;
-    },
-    flipMetronomeStatus(state){
-        state.metronomeStatus = !state.metronomeStatus;
-        if (state.metronomeStatus){
-            metronomeBus.mute = false;
-        } else {
+    // muteMetronome(state){
+    //     metronomeBus.mute = state.metronomeMuteStatus;
+    // },
+    flipMetronomeSamplerMuteStatus(state){
+        state.metronomeMuteStatus = !state.metronomeMuteStatus;
+        if (state.metronomeMuteStatus){
             metronomeBus.mute = true;
+        } else {
+            metronomeBus.mute = false;
         }
     },
-    muteHumanSampler(state, instrument){
-        humanSamplers[instrument].mute = true;
+
+    flipHumanSamplersMuteStatus(state){
+        state.humanMuteStatus = !state.humanMuteStatus;
+        if (state.humanMuteStatus){
+            humanSamplerBus.mute = true;
+        } else {
+            humanSamplerBus.mute = false;
+        }
     },
-    unmuteHumanSampler(state, instrument){
-        humanSamplers[instrument].mute = false;
+    flipWorkerSamplersMuteStatus(state){
+        state.workerMuteStatus = !state.workerMuteStatus;
+        if (state.workerMuteStatus){
+            workerSamplerBus.mute = true;
+        } else {
+            workerSamplerBus.mute = false;
+        }
     },
-    muteWorkerSampler(state, instrument){
-        workerSamplers[instrument].mute = true;
-    },
-    unmuteWorkerSampler(state, instrument){
-        workerSamplers[instrument].mute = false;
-    },
-    // TODO : use the same function for both samplers
+
+    // muteHumanSampler(state, instrument){
+    //     humanSamplers[instrument].mute = true;
+    // },
+    // unmuteHumanSampler(state, instrument){
+    //     humanSamplers[instrument].mute = false;
+    // },
+    // muteWorkerSampler(state, instrument){
+    //     workerSamplers[instrument].mute = true;
+    // },
+    // unmuteWorkerSampler(state, instrument){
+    //     workerSamplers[instrument].mute = false;
+    // },
+    
     setHumanVolume(state, volume){
         if (volume == 10){
-            state.humanSamplerGain = 0;
+            state.humanSamplerVolume = 0;
         } else{
             var toDB = -Math.abs(20*Math.log(volume/10));
-            state.humanSamplerGain = toDB;
+            state.humanSamplerVolume = toDB;
         }
-        humanSamplerBus.volume.value = state.humanSamplerGain;
+        humanSamplerBus.volume.value = state.humanSamplerVolume;
     },
     setWorkerVolume(state, volume){
         if (volume == 10){
-            state.workerSamplerGain = 0;
+            state.workerSamplerVolume = 0;
         } else {
             var toDB = -Math.abs(20*Math.log(volume/10));
-            state.workerSamplerGain = toDB;
+            state.workerSamplerVolume = toDB;
         };
-        workerSamplerBus.volume.value = state.workerSamplerGain;
+        workerSamplerBus.volume.value = state.workerSamplerVolume;
     },
     setMetronomeVolume(state, volume){
         if (volume == 10){
-            state.metronomeSamplerGain = 0;
+            state.metronomeSamplerVolume = 0;
         } else {
             var toDB = -Math.abs(20*Math.log(volume/10));
-            state.metronomeSamplerGain = toDB;
+            state.metronomeSamplerVolume = toDB;
         };
-        metronomeSampler.volume.value = state.metronomeSamplerGain;
+        metronomeSampler.volume.value = state.metronomeSamplerVolume;
     }
 };
 

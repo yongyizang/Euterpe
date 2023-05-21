@@ -36,7 +36,7 @@
           ">
       </div>
       <scoreUI />
-      <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="64" orientation="top" style="position:absolute; z-index:0; top:0; left:400; background-color:black"/>
+      <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="128" orientation="top" style="position:absolute; z-index:0; top:0; left:400; background-color:black"/>
       <pianoRollUI style="position:absolute; z-index:-1; top:0; left:0"/>
       <!-- <VerticalSlider v-model="sliderValue" :min="10" :max="50" label="A Slider!"/> -->
       <div style="position: absolute; bottom: 230px; right: 20px">
@@ -46,6 +46,10 @@
         </md-button>
         <md-button class="controlBtn" @click="showSettingsModal">
           <md-icon>settings</md-icon>
+          <!-- <span> Settings </span> -->
+        </md-button>
+        <md-button class="controlBtn" @click="showMixerModal">
+          <md-icon>equalizer</md-icon>
           <!-- <span> Settings </span> -->
         </md-button>
       </div>
@@ -60,7 +64,8 @@
       <keyboardUI id="pianoKeyboard" class="pianoKeyboard" ref="usersKeyboardUIref" :key="keyboardUIKey"
         :octave-start="keyboardUIoctaveStart" :octave-end="keyboardUIoctaveEnd" />
       <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
-        <div style="padding:0; margin: 0; overflow-y: scroll;">
+        <!-- overflow-y: scroll; -->
+        <div style="padding:0; margin: 0; "> 
           <div class="modalDiv">
             <p class="modalTitle">
               Settings
@@ -69,7 +74,7 @@
                 class="modalIcon">close</md-icon></button>
           </div>
           <div class="modalContent" style="overflow-y: scroll; height:600px">
-            <p class="settingsSubtitle">Audio</p>
+            <!-- <p class="settingsSubtitle">Audio</p>
             <div class="md-layout md-gutter md-alignment-center">
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
@@ -83,7 +88,7 @@
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">Metronome</span>
-                  <toggle-button color="#74601c" :value="false" @change="toggleMetronome"
+                  <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
                     style="transform: scale(0.9); padding-top: 17px" />
                 </div>
               </div>
@@ -102,27 +107,7 @@
                   <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
               </div>
-              <!-- <div class="md-layout-item md-large-size-50 md-xsmall-size-100" style="display:none;">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Worker Volume</p>
-                  <p class="settingsValue">{{ workerVolume }}</p>
-                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
-                </div>
-              </div>
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100" style="display:none;">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Worker Volume</p>
-                  <p class="settingsValue">{{ workerVolume }}</p>
-                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
-                </div>
-              </div>
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Worker Volume</p>
-                  <p class="settingsValue">{{ workerVolume }}</p>
-                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
-                </div>
-              </div> -->
+              
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Metronome Volume</p>
@@ -130,7 +115,7 @@
                   <vue-slider v-model="metronomeVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
               </div>
-            </div>
+            </div> -->
             <p class="settingsSubtitle">MIDI</p>
             <div class="MIDIInput" v-if="WebMIDISupport">
               <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
@@ -142,9 +127,9 @@
               Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
               one of those browsers if you want to use Web MIDI
               functionalities.</span>
-            <p class="settingsSubtitle">Network</p>
+            <p class="settingsSubtitle">Worker</p>
             <div class="md-layout md-gutter md-alignment-center">
-              <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
+              <!-- <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Randomness</p>
                   <p style="margin: 0; padding-bottom: 5px">
@@ -152,7 +137,11 @@
                   </p>
                   <vue-slider v-model="randomness" :lazy="true" :tooltip="'none'" :min="1" :max="1000"></vue-slider>
                 </div>
-              </div>
+              </div> -->
+              <VerticalSlider v-model="slider1" :min="1" :max="100" label="Slider 1"/>
+              <VerticalSlider v-model="slider2" :min="1" :max="100" label="Slider 2"/>
+              <VerticalSlider v-model="slider3" :min="1" :max="100" label="Slider 3"/>
+              <VerticalSlider v-model="slider4" :min="1" :max="100" label="Slider 4"/>
               <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
                 <md-button @click="resetNetwork" style="width: 100%">
                   <md-icon class="forceTextColor">close</md-icon>
@@ -160,6 +149,59 @@
                 </md-button>
               </div>
             </div>
+          </div>
+        </div>
+      </modal>
+      <modal name="mixerModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+        <!-- overflow-y: scroll; -->
+        <div style="padding:0; margin: 0; "> 
+          <div class="modalDiv">
+            <p class="modalTitle">
+              Audio Mixer
+            </p>
+            <button class="modalBtn" @click="$modal.hide('mixerModal')"><md-icon
+                class="modalIcon">close</md-icon></button>
+          </div>
+          <div class="modalContent" style="overflow-y: scroll; height:600px">
+            <p class="settingsSubtitle">User</p>
+            <div class="md-layout md-gutter md-alignment-center">
+           
+              <VerticalSlider v-model="humanVolume" :min="1" :max="10" label="vol"/>
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
+                <div class="settingsDiv">
+                  <span class="settingsOptionTitle">mute</span>
+                  <toggle-button color="#74601c" :value="false" @change="toggleHumanSamplers"
+                    style="transform: scale(0.9); padding-top: 17px" />
+                </div>
+              </div>
+            </div>
+
+            <p class="settingsSubtitle">Metronome</p>
+            <div class="md-layout md-gutter md-alignment-center">
+           
+              <VerticalSlider v-model="metronomeVolume" :min="1" :max="10" label="vol"/>
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
+                <div class="settingsDiv">
+                  <span class="settingsOptionTitle">mute</span>
+                  <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
+                    style="transform: scale(0.9); padding-top: 17px" />
+                </div>
+              </div>
+            </div>
+
+            <p class="settingsSubtitle">Worker</p>
+            <div class="md-layout md-gutter md-alignment-center">
+           
+              <VerticalSlider v-model="workerVolume" :min="1" :max="10" label="vol"/>
+              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
+                <div class="settingsDiv">
+                  <span class="settingsOptionTitle">mute</span>
+                  <toggle-button color="#74601c" :value="false" @change="toggleWorkerSamplers"
+                    style="transform: scale(0.9); padding-top: 17px" />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </modal>
@@ -195,7 +237,7 @@ import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
 import * as rb from "ringbuf.js"; // /dist/index.js
-import { messageType, statusType, noteType } from '@/utils/types.js'
+import { messageType, statusType, noteType, parameterType } from '@/utils/types.js'
 import {URLFromFiles, isMobile, isNotChrome} from '@/utils/helpers.js'
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
@@ -218,6 +260,7 @@ export default {
       messageType,
       statusType,
       noteType,
+      parameterType,
 
       workerName: "arpeggiator",
 
@@ -254,7 +297,11 @@ export default {
       workerVolume: 5,
       metronomeVolume: 5,
 
-      sliderValue: 20,
+      sliderValue: 0,
+      slider1: 0,
+      slider2: 0,
+      slider3: 0,
+      slider4: 0,
 
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
@@ -323,6 +370,7 @@ export default {
         messageType: vm.messageType,
         statusType: vm.statusType,
         noteType: vm.noteType,
+        parameterType: vm.parameterType,
       }
     });
     // Tell the worker to load the algorithm
@@ -607,16 +655,53 @@ export default {
         this.$store.commit("setBPM", newValue);
       },
     },
-    randomness: {
+    slider1: {
       immediate: true,
       handler(newValue) {
-        if (this.paramWriter!=null && !this.paramWriter.enqueue_change(0, newValue)) {
+        console.log("paramWriter " + this.paramWriter + " type" + this.parameterType.SLIDER_1);
+        if (this.paramWriter!=null && 
+            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_1, newValue)) {
           console.error("Couldn't enqueue.");
         }
-        console.log("inside randomness handler")
-        // this.$store.commit("setRandomness", newValue / 1000);
       },
     },
+    slider2: {
+      immediate: true,
+      handler(newValue) {
+        if (this.paramWriter!=null && 
+            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_2, newValue)) {
+          console.error("Couldn't enqueue.");
+        }
+      },
+    },
+    slider3: {
+      immediate: true,
+      handler(newValue) {
+        if (this.paramWriter!=null && 
+            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_3, newValue)) {
+          console.error("Couldn't enqueue.");
+        }
+      },
+    },
+    slider4: {
+      immediate: true,
+      handler(newValue) {
+        if (this.paramWriter!=null && 
+            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_4, newValue)) {
+          console.error("Couldn't enqueue.");
+        }
+      },
+    },
+    // randomness: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     if (this.paramWriter!=null && !this.paramWriter.enqueue_change(0, newValue)) {
+    //       console.error("Couldn't enqueue.");
+    //     }
+    //     console.log("inside randomness handler")
+    //     // this.$store.commit("setRandomness", newValue / 1000);
+    //   },
+    // },
     humanVolume: {
       immediate: true,
       handler(newValue) {
@@ -1100,11 +1185,18 @@ export default {
     /*
      * metronome status.
      */
-    toggleMetronome() {
+    toggleMetronomeSampler() {
       // This method would update the status of metronome in Vuex Store.
       // this.$store.commit("muteMetronome");
-      this.$store.commit("flipMetronomeStatus");
+      this.$store.commit("flipMetronomeSamplerMuteStatus");
     },
+    toggleHumanSamplers(){
+      this.$store.commit("flipHumanSamplersMuteStatus");
+    },
+    toggleWorkerSamplers(){
+      this.$store.commit("flipWorkerSamplersMuteStatus");
+    },
+    
     metronomeTrigger() {
       // console.log("in metronomeTrigger for ", this.$store.getters.getLocalTick);
       // var vm = this;
@@ -1147,6 +1239,9 @@ export default {
 
     showSettingsModal() {
       this.$modal.show("settingsModal");
+    },
+    showMixerModal() {
+      this.$modal.show("mixerModal");
     },
 
     hideSettingsModal() {

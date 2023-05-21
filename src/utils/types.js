@@ -11,16 +11,33 @@ export const messageType = {
   };
   
 export const statusType = {
-LOADED: 0,
-WARMUP: 1,
-SUCCESS: 2,
-ERROR: 3,
-REPORT: 4,
+    LOADED: 0,
+    WARMUP: 1,
+    SUCCESS: 2,
+    ERROR: 3,
+    REPORT: 4,
 };
 
 export const noteType = {
-NOTE_ON: 1,
-NOTE_OFF: -1,
-NOTE_HOLD: 0,
-REST: 2,
+    NOTE_ON: 1,
+    NOTE_OFF: -1,
+    NOTE_HOLD: 0,
+    REST: 2,
 };
+
+export const parameterType = {
+    SLIDER_1: 0,
+    SLIDER_2: 1,
+    SLIDER_3: 2,
+    SLIDER_4: 3,
+    BUTTON_1: 4,
+    BUTTON_2: 5,
+    BUTTON_3: 6,
+    BUTTON_4: 7,
+    SWITCH_1: 8,
+    SWITCH_2: 9,
+    SWITCH_3: 10,
+    SWITCH_4: 11,
+
+    
+}

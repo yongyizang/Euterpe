@@ -19,6 +19,7 @@ let config = null;
 let messageType = null;
 let statusType = null;
 let noteType = null;
+let parameterType = null;
 // Audio related variables
 let pcm = null;
 let channelCount = null;
@@ -32,6 +33,20 @@ let hopSize = null;
 let sampleCounter = null;
 let currentFrame = null;
 let frameCounter = null;
+
+let newParameter = null;
+let slider1 = null;
+let slider2 = null;
+let slider3 = null;
+let slider4 = null;
+let button1 = null;
+let button2 = null;
+let button3 = null;
+let button4 = null;
+let switch1 = null;
+let switch2 = null;
+let switch3 = null;
+let switch4 = null;
 
 
 // Read some float32 pcm from the queue, convert to int16 pcm, and push it to
@@ -66,12 +81,59 @@ function readFromQueue() {
     return samples_read;
 }
 
+function updateParameter(newUpdate){
+
+    // use switch instead
+    switch(newUpdate.index){
+        case self.parameterType.SLIDER_1:
+            self.slider1 = newUpdate.value;
+            break;
+        case self.parameterType.SLIDER_2:
+            self.slider2 = newUpdate.value;
+            break;
+        case self.parameterType.SLIDER_3:
+            self.slider3 = newUpdate.value;
+            break;
+        case self.parameterType.SLIDER_4:
+            self.slider4 = newUpdate.value;
+            break;
+        case self.parameterType.BUTTON_1:
+            self.button1 = newUpdate.value;
+            break;
+        case self.parameterType.BUTTON_2:
+            self.button2 = newUpdate.value;
+            break;
+        case self.parameterType.BUTTON_3:
+            self.button3 = newUpdate.value;
+            break;
+        case self.parameterType.BUTTON_4:
+            self.button4 = newUpdate.value;
+            break;
+        case self.parameterType.SWITCH_1:
+            self.switch1 = newUpdate.value;
+            break;
+        case self.parameterType.SWITCH_2:
+            self.switch2 = newUpdate.value;
+            break;
+        case self.parameterType.SWITCH_3:
+            self.switch3 = newUpdate.value;
+            break;
+        case self.parameterType.SWITCH_4:
+            self.switch4 = newUpdate.value;
+            break;
+        default:
+            console.log("Invalid parameter type");
+            break;
+    }
+}
+
 // Hook that takes the config.yaml from the UI.
 async function loadConfig(content) {
     self.config = content.config;
     self.noteType = content.noteType;
     self.statusType = content.statusType;
     self.messageType = content.messageType;
+    self.parameterType = content.parameterType;
     self.ticksPerMeasure = self.config.clockBasedSettings.ticksPerBeat * 
                             self.config.clockBasedSettings.timeSignature.numerator;
     // If you have any external JSON files, you can load them here
@@ -92,7 +154,8 @@ async function initAudio(content){
     self._param_reader = new ParameterReader(
         new RingBuffer(content.sab_par, Uint8Array)
     );
-    this.o = { index: null, value: null };
+
+    this.newParameter = { index: null, value: null };
 
     // The number of channels of the audio stream read from the queue.
     self.channelCount = content.channelCount;
@@ -212,8 +275,9 @@ async function processEventsBuffer(content) {
     // audioChroma = EssentialExtractor.computeChroma(currentBuffer);
     // workerAudio.postMessage(audioChroma);
 
-    if (this._param_reader.dequeue_change(this.o)) {
-        console.log("param index: " + this.o.index + " value: " + this.o.value);
+    if (this._param_reader.dequeue_change(this.newParameter)) {
+        console.log("param index: " + this.newParameter.index + " value: " + this.newParameter.value);
+        updateParameter(this.newParameter);
     }
 
     var predictTime = performance.now();
