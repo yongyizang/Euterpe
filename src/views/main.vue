@@ -42,11 +42,11 @@
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
           <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
-          <span> {{ localSyncClockStatus ? "Pause" : "Play" }}</span>
+          <!-- <span> {{ localSyncClockStatus ? "Pause" : "Play" }}</span> -->
         </md-button>
         <md-button class="controlBtn" @click="showSettingsModal">
           <md-icon>settings</md-icon>
-          <span> Settings </span>
+          <!-- <span> Settings </span> -->
         </md-button>
       </div>
       <md-button v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
@@ -102,7 +102,7 @@
                   <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
               </div>
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100" style="display:none;">
+              <!-- <div class="md-layout-item md-large-size-50 md-xsmall-size-100" style="display:none;">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Worker Volume</p>
                   <p class="settingsValue">{{ workerVolume }}</p>
@@ -122,7 +122,7 @@
                   <p class="settingsValue">{{ workerVolume }}</p>
                   <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
                 </div>
-              </div>
+              </div> -->
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <p class="settingsOptionTitle">Metronome Volume</p>
@@ -236,6 +236,9 @@ export default {
       recorderWorkletNode: null,
       recorderWorkletBundle: null,
       sab: null,
+      sab_par: null,
+      rb_par: null,
+      paramWriter: null,
 
       // reset signal to notify the Worker to reset.
       // If your worker doesn't support reseting, you can ignore this.
@@ -277,9 +280,10 @@ export default {
   },
 
   async mounted() {
+    console.log("beining of mounted");
+
     var vm = this;
 
-    
     /*
      * Loading Animation: set initial status of both div
      */
@@ -307,11 +311,7 @@ export default {
     Tone.context.lookAhead = 0.01;
 
     // Initialize worker
-    // const workerUrl = await URLFromFiles(['template-worker.js', '/index_rb.js'])
-    
     vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
-    // set worker callback
-    // this callback is triggered by worker.postMessage
     vm.worker.onmessage = vm.workerCallback;
 
     // Send a message to worker with some necessary 
@@ -331,62 +331,26 @@ export default {
       content: null,
     });
 
-    // Prevent spacebar trigger any button
-    document.querySelectorAll("button").forEach(function (item) {
-      item.addEventListener("focus", function () {
-        this.blur();
-      });
-    });
-
-    // spacebar trigger play btn
-    document.addEventListener("keypress", function (event) {
-      if (event.code == 32 && !vm.$store.getters.getModalStatus) {
-        // spacebar could toggle clock
-        vm.toggleClock();
-      }
-    });
-
-    vm.screenWidth = document.body.clientWidth;
-    vm.screenHeight = document.body.clientHeight;
-
-    // Block lower resolutions.
-    const loadingScreen = document.getElementById("loadingScreenInjection");
-    if (vm.screenWidth < 450 || vm.screenHeight < 450) {
-      loadingScreen.innerHTML =
-        "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but we only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>";
-    }
-
-    // TODO: Do we need those?
-    /*
-     * Initialize page load data collections
-     */
-    vm.userAgent = navigator.userAgent;
-    vm.pageLoadTime =
-      window.performance.timing.domContentLoadedEventEnd -
-      window.performance.timing.navigationStart;
-    vm.modelLoadTime = Date.now();
-
     // SAB
     // get a memory region for the ring buffer
     // length in time is 1 second of stereo audio
     // Float32Array is 4 bytes per sample
     vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
 
-    // vm.sab2 = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
-    // vm.rb2 = new exports.RingBuffer(sab2, Uint8Array);
-    // vm.paramWriter = new ParameterWriter(rb2);
+    vm.sab_par = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
+    vm.rb_par = new rb.RingBuffer(vm.sab_par, Uint8Array);
+    vm.paramWriter = new rb.ParameterWriter(vm.rb_par);
+    console.log("vm.paramWriter", vm.paramWriter);
 
     await vm.worker.postMessage({
       messageType: vm.messageType.INIT_AUDIO,
       content: {
         sab: vm.sab,
+        sab_par: vm.sab_par,
         channelCount: 2,
         sampleRate: vm.audioContext.sampleRate,
       }
     });
-
-    // setupWorker(sab, ac.sampleRate);
-    // setupWebAudio(ac, sab);
 
     /*
      * Initialize Audio Recorder (for audio recording).
@@ -395,6 +359,7 @@ export default {
       audio: true,
       video: false,
     });
+
     vm.mediaStreamSource = vm.audioContext.createMediaStreamSource(
       stream
     );
@@ -402,20 +367,32 @@ export default {
     const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
     await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
 
-    vm.audioContext.resume();
-
-
-    // vm.osc = new OscillatorNode(vm.audioContext);
-    // var fm = new OscillatorNode(vm.audioContext);
-    // var gain = new GainNode(vm.audioContext);
-    // var panner = new StereoPannerNode(vm.audioContext);
-    // var panModulation = new OscillatorNode(vm.audioContext);
+    vm.audioContext.resume(); // ?
 
     vm.recorderWorkletNode = new AudioWorkletNode(
       vm.audioContext,
       "recorder-worklet", 
       {processorOptions: vm.sab}
     );
+
+    vm.recorderWorkletNode.port.postMessage("ping")
+
+    vm.recorderWorkletNode.port.addEventListener("message", (event) => {
+      console.log("Received from Worklet" + event.data);
+    });
+
+    // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
+
+    // send the mic to the recorderNode --> recorderWorklet
+    vm.mediaStreamSource.connect(vm.recorderWorkletNode); 
+    // vm.recorderWorkletNode.connect(vm.audioContext.destination);
+    // vm.workerPlayer = new Tone.Player().toDestination();
+
+    // vm.osc = new OscillatorNode(vm.audioContext);
+    // var fm = new OscillatorNode(vm.audioContext);
+    // var gain = new GainNode(vm.audioContext);
+    // var panner = new StereoPannerNode(vm.audioContext);
+    // var panModulation = new OscillatorNode(vm.audioContext);
 
     // panModulation.frequency.value = 2.0;
     // fm.frequency.value = 1.0;
@@ -429,21 +406,6 @@ export default {
     // vm.osc.start(0);
     // fm.start(0);
     // panModulation.start(0);
-    vm.recorderWorkletNode.port.postMessage("ping")
-
-    vm.recorderWorkletNode.port.addEventListener("message", (event) => {
-      console.log("Received from Worklet" + event.data);
-      // vm.worker.postMessage({
-      //   messageType: vm.messageType.AUDIO_BUFFER,
-      //   content: event.data,
-      // });
-    });
-    // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
-
-    vm.mediaStreamSource.connect(vm.recorderWorkletNode); // send the mic to the recorderNode --> recorderWorklet
-    // vm.recorderWorkletNode.connect(vm.audioContext.destination);
-
-    // vm.workerPlayer = new Tone.Player().toDestination();
 
     /*
      * Web MIDI logic
@@ -558,6 +520,42 @@ export default {
         vm.screenWidth = window.screenWidth;
       })();
     };
+
+    // Prevent spacebar trigger any button
+    document.querySelectorAll("button").forEach(function (item) {
+      item.addEventListener("focus", function () {
+        this.blur();
+      });
+    });
+
+    // spacebar trigger play btn
+    document.addEventListener("keypress", function (event) {
+      if (event.code == 32 && !vm.$store.getters.getModalStatus) {
+        // spacebar could toggle clock
+        vm.toggleClock();
+      }
+    });
+
+    vm.screenWidth = document.body.clientWidth;
+    vm.screenHeight = document.body.clientHeight;
+
+    // Block lower resolutions.
+    const loadingScreen = document.getElementById("loadingScreenInjection");
+    if (vm.screenWidth < 450 || vm.screenHeight < 450) {
+      loadingScreen.innerHTML =
+        "<p style='font-size:20px;line-height:35px;padding:40px;'>We are sorry, but we only support larger screens for now.<br />Please visit us on desktop or larger tablets.</p>";
+    }
+
+    // TODO: Do we need those?
+    /*
+     * Initialize page load data collections
+     */
+    vm.userAgent = navigator.userAgent;
+    vm.pageLoadTime =
+      window.performance.timing.domContentLoadedEventEnd -
+      window.performance.timing.navigationStart;
+    vm.modelLoadTime = Date.now();
+
   },
 
   watch: {
@@ -612,18 +610,28 @@ export default {
     randomness: {
       immediate: true,
       handler(newValue) {
-        this.$store.commit("setRandomness", newValue / 1000);
+        if (this.paramWriter!=null && !this.paramWriter.enqueue_change(0, newValue)) {
+          console.error("Couldn't enqueue.");
+        }
+        console.log("inside randomness handler")
+        // this.$store.commit("setRandomness", newValue / 1000);
       },
     },
     humanVolume: {
       immediate: true,
       handler(newValue) {
+        // if (!this.paramWriter.enqueue_change(1, newValue)) {
+        //   console.error("Couldn't enqueue.");
+        // }
         this.$store.commit("setHumanVolume", newValue);
       },
     },
     workerVolume: {
       immediate: true,
       handler(newValue) {
+        // if (!this.paramWriter.enqueue_change(2, newValue)) {
+        //   console.error("Couldn't enqueue.");
+        // }
         this.$store.commit("setWorkerVolume", newValue);
       },
     },
@@ -776,8 +784,6 @@ export default {
           tick: this.$store.getters.getLocalTick,
           humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
           humanContinuousBuffer: this.$store.getters.getMidiEventBuffer,
-          randomness: this.$store.getters.getRandomness,
-          reset: this.reset,
         }
       })
     },

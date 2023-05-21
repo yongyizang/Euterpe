@@ -89,6 +89,11 @@ async function initAudio(content){
     self._audio_reader = new AudioReader(
         new RingBuffer(content.sab, Float32Array)
     );
+    self._param_reader = new ParameterReader(
+        new RingBuffer(content.sab_par, Uint8Array)
+    );
+    this.o = { index: null, value: null };
+
     // The number of channels of the audio stream read from the queue.
     self.channelCount = content.channelCount;
     // The sample-rate of the audio stream read from the queue.
@@ -206,6 +211,10 @@ async function processEventsBuffer(content) {
     // currentBuffer = self.audio_frame_list[-1]
     // audioChroma = EssentialExtractor.computeChroma(currentBuffer);
     // workerAudio.postMessage(audioChroma);
+
+    if (this._param_reader.dequeue_change(this.o)) {
+        console.log("param index: " + this.o.index + " value: " + this.o.value);
+    }
 
     var predictTime = performance.now();
 
