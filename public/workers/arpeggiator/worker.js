@@ -3,9 +3,13 @@
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
 // importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.web.js")
+// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.module.js")
+
+importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js")
+
 // importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-extractor.js")
 // importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-plot.js")
+importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js")
 importScripts("../../libraries/index_rb_no_exports.js");
 importScripts("../../utils.js");
 
@@ -205,24 +209,13 @@ async function initAudio(content){
     self.staging = new Float32Array(content.sab.byteLength / 4 / 4 / 2);
 
     // Initialize Essentia.js
-    // EssentiaWASM().then(async function(WasmModule) {
+    EssentiaWASM().then(async function(WasmModule) {
     
-    //     self.essentiaExtractor = new EssentiaExtractor(WasmModule);
-    
-    //     // essentia version log to html div
-    //     $("#logDiv").html(
-    //       "<h5> essentia-" + essentiaExtractor.version + " wasm backend loaded ... </h5>"
-    //     );
-    
-    //     $("#logDiv").append(
-    //       '<button id="btn" class="ui white inverted button">Compute HPCP Chroma </button>'
-    //     );
-    
-    //     var button = document.getElementById("btn");
-    
-    //     // add onclick event handler to comoute button
-    //     button.addEventListener("click", () => onClickFeatureExtractor(), false);
-    //   });
+        // self.essentiaExtractor = new EssentiaExtractor(WasmModule);
+        // console.log("essentia version: " + essentiaExtractor.version)
+        console.log("WasmModule: " + WasmModule);
+      });
+    console.log("MEYDA: " + Meyda.extract);
     console.log("staging buffer size: " + self.staging.length + " samples");
     console.log("sab byteLength: " + content.sab.byteLength + " bytes");    
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
@@ -271,14 +264,17 @@ async function loadAlgorithm() {
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
 async function processEventsBuffer(content) {
-    // currentBuffer = self.audio_frame_list[-1]
-    // audioChroma = EssentialExtractor.computeChroma(currentBuffer);
-    // workerAudio.postMessage(audioChroma);
+    
 
     if (this._param_reader.dequeue_change(this.newParameter)) {
         console.log("param index: " + this.newParameter.index + " value: " + this.newParameter.value);
         updateParameter(this.newParameter);
     }
+
+    currentBuffer = self.audio_frame_list[-1]
+    // audioChroma = EssentialExtractor.computeChroma(currentBuffer);
+    // workerAudio.postMessage(audioChroma);
+
 
     var predictTime = performance.now();
 

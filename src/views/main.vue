@@ -38,7 +38,6 @@
       <scoreUI />
       <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="128" orientation="top" style="position:absolute; z-index:0; top:0; left:400; background-color:black"/>
       <pianoRollUI style="position:absolute; z-index:-1; top:0; left:0"/>
-      <!-- <VerticalSlider v-model="sliderValue" :min="10" :max="50" label="A Slider!"/> -->
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
           <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
@@ -74,48 +73,6 @@
                 class="modalIcon">close</md-icon></button>
           </div>
           <div class="modalContent" style="overflow-y: scroll; height:600px">
-            <!-- <p class="settingsSubtitle">Audio</p>
-            <div class="md-layout md-gutter md-alignment-center">
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
-                  <div style="padding-top: 14px">
-                    <p class="settingsValue">{{ BPM }}</p>
-                    <vue-slider v-model="BPM" :lazy="true" :min="60" :max="120" class="settingsSlider"></vue-slider>
-                  </div>
-                </div>
-              </div>
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <span class="settingsOptionTitle">Metronome</span>
-                  <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
-                    style="transform: scale(0.9); padding-top: 17px" />
-                </div>
-              </div>
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Your Volume</p>
-                  <p class="settingsValue">{{ humanVolume }}</p>
-                  <vue-slider v-model="humanVolume" :lazy="true" :min="1" :max="10"
-                    class="settingsSlider"></vue-slider>
-                </div>
-              </div>
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Worker Volume</p>
-                  <p class="settingsValue">{{ workerVolume }}</p>
-                  <vue-slider v-model="workerVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
-                </div>
-              </div>
-              
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Metronome Volume</p>
-                  <p class="settingsValue">{{ metronomeVolume }}</p>
-                  <vue-slider v-model="metronomeVolume" :lazy="true" :min="1" :max="10" class="settingsSlider"></vue-slider>
-                </div>
-              </div>
-            </div> -->
             <p class="settingsSubtitle">MIDI</p>
             <div class="MIDIInput" v-if="WebMIDISupport">
               <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
@@ -129,15 +86,7 @@
               functionalities.</span>
             <p class="settingsSubtitle">Worker</p>
             <div class="md-layout md-gutter md-alignment-center">
-              <!-- <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <p class="settingsOptionTitle">Randomness</p>
-                  <p style="margin: 0; padding-bottom: 5px">
-                    {{ this.number2RandomnessDescription(randomness) }}
-                  </p>
-                  <vue-slider v-model="randomness" :lazy="true" :tooltip="'none'" :min="1" :max="1000"></vue-slider>
-                </div>
-              </div> -->
+
               <VerticalSlider v-model="slider1" :min="1" :max="100" label="Slider 1"/>
               <VerticalSlider v-model="slider2" :min="1" :max="100" label="Slider 2"/>
               <VerticalSlider v-model="slider3" :min="1" :max="100" label="Slider 3"/>
@@ -166,7 +115,7 @@
             <p class="settingsSubtitle">User</p>
             <div class="md-layout md-gutter md-alignment-center">
            
-              <VerticalSlider v-model="humanVolume" :min="1" :max="10" label="vol"/>
+              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" label="vol"/>
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">mute</span>
@@ -179,7 +128,7 @@
             <p class="settingsSubtitle">Metronome</p>
             <div class="md-layout md-gutter md-alignment-center">
            
-              <VerticalSlider v-model="metronomeVolume" :min="1" :max="10" label="vol"/>
+              <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" label="vol"/>
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">mute</span>
@@ -192,7 +141,7 @@
             <p class="settingsSubtitle">Worker</p>
             <div class="md-layout md-gutter md-alignment-center">
            
-              <VerticalSlider v-model="workerVolume" :min="1" :max="10" label="vol"/>
+              <HorizontalSlider v-model="workerVolume" :min="1" :max="10" label="vol"/>
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">mute</span>
@@ -231,6 +180,7 @@ import keyboardUI from "@/components/keyboardUI.vue";
 import pianoRollUI from "@/components/pianoRollUI.vue";
 import scoreUI from "@/components/scoreUI.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
+import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "../components/AudioMeter.vue";
 import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
@@ -322,15 +272,14 @@ export default {
     scoreUI,
     pianoRollUI,
     VerticalSlider,
+    HorizontalSlider,
     Dropdown,
     AudioMeter,
   },
 
   async mounted() {
-    console.log("beining of mounted");
 
     var vm = this;
-
     /*
      * Loading Animation: set initial status of both div
      */
@@ -388,7 +337,6 @@ export default {
     vm.sab_par = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
     vm.rb_par = new rb.RingBuffer(vm.sab_par, Uint8Array);
     vm.paramWriter = new rb.ParameterWriter(vm.rb_par);
-    console.log("vm.paramWriter", vm.paramWriter);
 
     await vm.worker.postMessage({
       messageType: vm.messageType.INIT_AUDIO,
@@ -1196,7 +1144,7 @@ export default {
     toggleWorkerSamplers(){
       this.$store.commit("flipWorkerSamplersMuteStatus");
     },
-    
+
     metronomeTrigger() {
       // console.log("in metronomeTrigger for ", this.$store.getters.getLocalTick);
       // var vm = this;
@@ -1256,10 +1204,6 @@ export default {
     transposeOctDown() {
       this.keyboardUIoctaveStart -= 1;
       this.keyboardUIoctaveEnd -= 1;
-    },
-
-    number2RandomnessDescription(num) {
-      return num / 1000;
     },
 
     modalCallback() {
