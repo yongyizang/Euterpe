@@ -34,44 +34,50 @@
           ">
       </div>
       <!-- Custom Vue UI Components -->
-      <Score/>
-      <AudioMeter 
-        ref="audioMeter" 
-        :width="300" 
-        :height="100" 
-        :fft_bins="128" 
-        orientation="top" 
-        style="position:absolute; z-index:0; top:0; left:400; background-color:transparent"
-      />
-      <ChromaChart
-        ref="chromaChart"
-        :width="300"
-        :height="100"
-        :styles="{ position: 'absolute', zIndex: 0, top: '100px', left: '0px', backgroundColor: 'transparent' }"
-      />
-      <PianoRoll 
-        style="position:absolute; z-index:-1; top:0; left:0"
-      />
-      <Keyboard 
-        id="pianoKeyboard" 
-        class="pianoKeyboard" 
-        ref="keyboard" 
-        :key="keyboardKey"
-        :octave-start="keyboardoctaveStart" 
-        :octave-end="keyboardoctaveEnd"
-        />
+      <Score />
+      <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="128" orientation="top"
+        style="position:absolute; z-index:0; top:0; left:400; background-color:transparent" />
+      <ChromaChart ref="chromaChart" :width="300" :height="100"
+        :styles="{ position: 'absolute', zIndex: 0, top: '100px', left: '0px', backgroundColor: 'transparent' }" />
+      <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
+      <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
+        :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
       <!-- On-screen buttons -->
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
-          <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
+          <div v-if="localSyncClockStatus">
+            <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M9 7C9 6.44772 8.55228 6 8 6C7.44772 6 7 6.44772 7 7V17C7 17.5523 7.44772 18 8 18C8.55228 18 9 17.5523 9 17V7ZM17 7C17 6.44772 16.5523 6 16 6C15.4477 6 15 6.44772 15 7V17C15 17.5523 15.4477 18 16 18C16.5523 18 17 17.5523 17 17V7Z"
+                fill="#000000" />
+            </svg>
+          </div>
+          <div v-else="localSyncClockStatus">
+            <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path id="Vector"
+                d="M5 17.3336V6.66698C5 5.78742 5 5.34715 5.18509 5.08691C5.34664 4.85977 5.59564 4.71064 5.87207 4.67499C6.18868 4.63415 6.57701 4.84126 7.35254 5.25487L17.3525 10.5882L17.3562 10.5898C18.2132 11.0469 18.642 11.2756 18.7826 11.5803C18.9053 11.8462 18.9053 12.1531 18.7826 12.4189C18.6418 12.7241 18.212 12.9537 17.3525 13.4121L7.35254 18.7454C6.57645 19.1593 6.1888 19.3657 5.87207 19.3248C5.59564 19.2891 5.34664 19.1401 5.18509 18.9129C5 18.6527 5 18.2132 5 17.3336Z"
+                stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <!-- <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon> -->
           <!-- <span> {{ localSyncClockStatus ? "Pause" : "Play" }}</span> -->
         </md-button>
         <md-button class="controlBtn" @click="showSettingsModal">
-          <md-icon>settings</md-icon>
+          <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M6.07194 6.26794L6.57194 5.40192L6.07194 6.26794ZM4.70592 6.63397L3.83989 6.13397L3.83989 6.13397L4.70592 6.63397ZM3.70592 8.36602L2.83989 7.86602H2.83989L3.70592 8.36602ZM4.07194 9.73205L3.57194 10.5981H3.57194L4.07194 9.73205ZM4.07194 14.2679L3.57194 13.4019H3.57194L4.07194 14.2679ZM3.70592 15.634L4.57194 15.134H4.57194L3.70592 15.634ZM4.70592 17.366L3.83989 17.866H3.83989L4.70592 17.366ZM6.07194 17.732L6.57194 18.5981L6.07194 17.732ZM17.9284 17.732L17.4283 18.5981L17.4284 18.5981L17.9284 17.732ZM19.2944 17.366L18.4284 16.866L19.2944 17.366ZM20.2944 15.634L21.1604 16.134L20.2944 15.634ZM19.9284 14.2679L19.4284 15.134V15.134L19.9284 14.2679ZM19.9284 9.73205L20.4284 10.5981V10.5981L19.9284 9.73205ZM20.2944 8.36602L19.4284 8.86602L19.4284 8.86602L20.2944 8.36602ZM19.2944 6.63397L18.4284 7.13397L19.2944 6.63397ZM17.9284 6.26794L18.4284 7.13397L17.9284 6.26794ZM14.6514 6.61604L14.2089 7.51283L14.6514 6.61604ZM16.5119 7.08573L17.0119 7.95175L16.5119 7.08573ZM15.336 7.01204L14.7793 7.84277L15.336 7.01204ZM17.9873 11.6035L16.9894 11.6686L17.9873 11.6035ZM18.5118 10.5499L18.0118 9.68388L18.5118 10.5499ZM15.336 16.988L14.7793 16.1572L15.336 16.988ZM16.5119 16.9143L16.0119 17.7803L16.5119 16.9143ZM18.5118 13.4501L18.0118 14.3161L18.5118 13.4501ZM9.34892 17.384L9.79137 16.4872L9.34892 17.384ZM7.48838 16.9143L6.98838 16.0482L7.48838 16.9143ZM8.6643 16.988L8.10763 17.8187L8.6643 16.988ZM14.6514 17.384L15.0938 18.2808L14.6514 17.384ZM5.48852 10.5499L4.98852 11.4159L5.48852 10.5499ZM6.01304 11.6035L5.01516 11.5385L6.01304 11.6035ZM7.48839 7.08573L6.98839 7.95176L7.48839 7.08573ZM11.0001 4V4V2C9.89558 2 9.00015 2.89543 9.00015 4H11.0001ZM11.0001 5.63424V4H9.00015V5.63424H11.0001ZM9.22099 7.84277C9.40312 7.72073 9.59361 7.6104 9.79137 7.51283L8.90647 5.71924C8.62922 5.85603 8.36245 6.01056 8.10764 6.18131L9.22099 7.84277ZM5.57194 7.13397L6.98839 7.95176L7.98839 6.2197L6.57194 5.40192L5.57194 7.13397ZM5.57194 7.13397L6.57194 5.40192C5.61536 4.84963 4.39218 5.17738 3.83989 6.13397L5.57194 7.13397ZM4.57194 8.86602L5.57194 7.13397L3.83989 6.13397L2.83989 7.86602L4.57194 8.86602ZM4.57194 8.86602L4.57194 8.86602L2.83989 7.86602C2.28761 8.82261 2.61536 10.0458 3.57194 10.5981L4.57194 8.86602ZM5.98852 9.68388L4.57194 8.86602L3.57194 10.5981L4.98852 11.4159L5.98852 9.68388ZM7.00015 12C7.00015 11.8885 7.00378 11.778 7.01092 11.6686L5.01516 11.5385C5.0052 11.6912 5.00015 11.8451 5.00015 12H7.00015ZM7.01092 12.3314C7.00378 12.222 7.00015 12.1115 7.00015 12H5.00015C5.00015 12.1549 5.0052 12.3088 5.01516 12.4615L7.01092 12.3314ZM4.57194 15.134L5.98852 14.3161L4.98852 12.5841L3.57194 13.4019L4.57194 15.134ZM4.57194 15.134L4.57194 15.134L3.57194 13.4019C2.61536 13.9542 2.28761 15.1774 2.83989 16.134L4.57194 15.134ZM5.57194 16.866L4.57194 15.134L2.83989 16.134L3.83989 17.866L5.57194 16.866ZM5.57194 16.866L5.57194 16.866L3.83989 17.866C4.39218 18.8226 5.61536 19.1504 6.57194 18.5981L5.57194 16.866ZM6.98838 16.0482L5.57194 16.866L6.57194 18.5981L7.98838 17.7803L6.98838 16.0482ZM9.79137 16.4872C9.59361 16.3896 9.40312 16.2793 9.22098 16.1572L8.10763 17.8187C8.36245 17.9894 8.62922 18.144 8.90647 18.2808L9.79137 16.4872ZM11.0001 20V18.3658H9.00015V20H11.0001ZM11.0001 20H9.00015C9.00015 21.1046 9.89558 22 11.0001 22V20ZM13.0001 20H11.0001V22H13.0001V20ZM13.0001 20V22C14.1047 22 15.0001 21.1046 15.0001 20H13.0001ZM13.0001 18.3658V20H15.0001V18.3658H13.0001ZM14.7793 16.1572C14.5972 16.2793 14.4067 16.3896 14.2089 16.4872L15.0938 18.2808C15.3711 18.144 15.6378 17.9894 15.8927 17.8187L14.7793 16.1572ZM18.4284 16.866L17.0119 16.0482L16.0119 17.7803L17.4283 18.5981L18.4284 16.866ZM18.4284 16.866H18.4283L17.4284 18.5981C18.3849 19.1504 19.6081 18.8226 20.1604 17.866L18.4284 16.866ZM19.4284 15.134L18.4284 16.866L20.1604 17.866L21.1604 16.134L19.4284 15.134ZM19.4284 15.134V15.134L21.1604 16.134C21.7127 15.1774 21.3849 13.9542 20.4284 13.4019L19.4284 15.134ZM18.0118 14.3161L19.4284 15.134L20.4284 13.4019L19.0118 12.5841L18.0118 14.3161ZM17.0001 12C17.0001 12.1115 16.9965 12.222 16.9894 12.3314L18.9851 12.4615C18.9951 12.3088 19.0001 12.1549 19.0001 12H17.0001ZM16.9894 11.6686C16.9965 11.778 17.0001 11.8885 17.0001 12H19.0001C19.0001 11.8451 18.9951 11.6912 18.9851 11.5385L16.9894 11.6686ZM19.4284 8.86602L18.0118 9.68388L19.0118 11.4159L20.4284 10.5981L19.4284 8.86602ZM19.4284 8.86602L19.4284 8.86602L20.4284 10.5981C21.3849 10.0458 21.7127 8.82261 21.1604 7.86602L19.4284 8.86602ZM18.4284 7.13397L19.4284 8.86602L21.1604 7.86602L20.1604 6.13397L18.4284 7.13397ZM18.4284 7.13397V7.13397L20.1604 6.13397C19.6081 5.17738 18.3849 4.84963 17.4284 5.40192L18.4284 7.13397ZM17.0119 7.95175L18.4284 7.13397L17.4284 5.40192L16.0119 6.2197L17.0119 7.95175ZM14.2089 7.51283C14.4067 7.6104 14.5972 7.72072 14.7793 7.84277L15.8927 6.18131C15.6378 6.01056 15.3711 5.85603 15.0938 5.71924L14.2089 7.51283ZM13.0001 4V5.63423H15.0001V4H13.0001ZM13.0001 4H15.0001C15.0001 2.89543 14.1047 2 13.0001 2V4ZM11.0001 4H13.0001V2H11.0001V4ZM15.0938 5.71924C15.0511 5.69815 15.0232 5.67053 15.0094 5.65025C14.9972 5.63248 15.0001 5.62788 15.0001 5.63423H13.0001C13.0001 6.50299 13.5491 7.18731 14.2089 7.51283L15.0938 5.71924ZM16.0119 6.2197C16.0174 6.21655 16.0149 6.22132 15.9937 6.21972C15.9694 6.21789 15.9319 6.20762 15.8927 6.18131L14.7793 7.84277C15.3915 8.25303 16.2594 8.38623 17.0119 7.95175L16.0119 6.2197ZM18.9851 11.5385C18.9821 11.4913 18.992 11.4537 19.0025 11.4318C19.0118 11.4126 19.0172 11.4128 19.0118 11.4159L18.0118 9.68388C17.2604 10.1177 16.9415 10.9342 16.9894 11.6686L18.9851 11.5385ZM15.8927 17.8187C15.9319 17.7924 15.9694 17.7821 15.9937 17.7803C16.0149 17.7787 16.0174 17.7834 16.0119 17.7803L17.0119 16.0482C16.2594 15.6138 15.3915 15.747 14.7793 16.1572L15.8927 17.8187ZM19.0118 12.5841C19.0172 12.5872 19.0118 12.5874 19.0025 12.5682C18.992 12.5462 18.9821 12.5087 18.9851 12.4615L16.9894 12.3314C16.9415 13.0658 17.2604 13.8823 18.0118 14.3161L19.0118 12.5841ZM8.90647 18.2808C8.94923 18.3019 8.97711 18.3295 8.99094 18.3497C9.00306 18.3675 9.00015 18.3721 9.00015 18.3658H11.0001C11.0001 17.497 10.4512 16.8127 9.79137 16.4872L8.90647 18.2808ZM7.98838 17.7803C7.98292 17.7834 7.98539 17.7787 8.00661 17.7803C8.03085 17.7821 8.06836 17.7924 8.10763 17.8187L9.22098 16.1572C8.60875 15.747 7.74092 15.6138 6.98838 16.0482L7.98838 17.7803ZM15.0001 18.3658C15.0001 18.3721 14.9972 18.3675 15.0094 18.3497C15.0232 18.3295 15.0511 18.3019 15.0938 18.2808L14.2089 16.4872C13.5491 16.8127 13.0001 17.497 13.0001 18.3658H15.0001ZM5.01516 12.4615C5.01823 12.5086 5.00833 12.5462 4.99777 12.5682C4.98851 12.5874 4.9831 12.5872 4.98852 12.5841L5.98852 14.3161C6.73991 13.8823 7.05882 13.0658 7.01092 12.3314L5.01516 12.4615ZM4.98852 11.4159C4.9831 11.4128 4.98851 11.4126 4.99777 11.4318C5.00833 11.4537 5.01823 11.4913 5.01516 11.5385L7.01092 11.6686C7.05882 10.9342 6.73991 10.1177 5.98852 9.68388L4.98852 11.4159ZM8.10764 6.18131C8.06837 6.20763 8.03085 6.21789 8.00662 6.21972C7.9854 6.22133 7.98293 6.21655 7.98839 6.2197L6.98839 7.95176C7.74092 8.38623 8.60876 8.25303 9.22099 7.84277L8.10764 6.18131ZM9.00015 5.63424C9.00015 5.62788 9.00306 5.63248 8.99094 5.65025C8.97711 5.67053 8.94923 5.69815 8.90647 5.71924L9.79137 7.51283C10.4512 7.18731 11.0001 6.50299 11.0001 5.63424H9.00015Z"
+              fill="#000000" />
+            <circle cx="12" cy="12" r="3" stroke="#000000" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
           <!-- <span> Settings </span> -->
         </md-button>
         <md-button class="controlBtn" @click="showMixerModal">
-          <md-icon>equalizer</md-icon>
+          <svg fill="#000000" width="24px" height="24px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M9 13.829A3.004 3.004 0 0 0 11 11a3.003 3.003 0 0 0-2-2.829V0H7v8.171A3.004 3.004 0 0 0 5 11c0 1.306.836 2.417 2 2.829V16h2v-2.171zm-5-6A3.004 3.004 0 0 0 6 5a3.003 3.003 0 0 0-2-2.829V0H2v2.171A3.004 3.004 0 0 0 0 5c0 1.306.836 2.417 2 2.829V16h2V7.829zm10 0A3.004 3.004 0 0 0 16 5a3.003 3.003 0 0 0-2-2.829V0h-2v2.171A3.004 3.004 0 0 0 10 5c0 1.306.836 2.417 2 2.829V16h2V7.829zM12 6V4h2v2h-2zM2 6V4h2v2H2zm5 6v-2h2v2H7z"
+              fill-rule="evenodd" />
+          </svg>
           <!-- <span> Settings </span> -->
         </md-button>
       </div>
@@ -83,11 +89,11 @@
         style="position: absolute; left: 20px; bottom: 100px">
         <md-icon>arrow_back</md-icon>
       </md-button>
-      
+
       <!-- Settings Modal -->
       <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
-        <div style="padding:0; margin: 0; "> 
+        <div style="padding:0; margin: 0; ">
           <div class="modalDiv">
             <p class="modalTitle">
               Settings
@@ -110,10 +116,10 @@
             <p class="settingsSubtitle">Worker</p>
             <div class="md-layout md-gutter md-alignment-center">
 
-              <VerticalSlider v-model="slider1" :min="1" :max="100" label="Slider 1"/>
-              <VerticalSlider v-model="slider2" :min="1" :max="100" label="Slider 2"/>
-              <VerticalSlider v-model="slider3" :min="1" :max="100" label="Slider 3"/>
-              <VerticalSlider v-model="slider4" :min="1" :max="100" label="Slider 4"/>
+              <VerticalSlider v-model="slider1" :min="1" :max="100" label="Slider 1" />
+              <VerticalSlider v-model="slider2" :min="1" :max="100" label="Slider 2" />
+              <VerticalSlider v-model="slider3" :min="1" :max="100" label="Slider 3" />
+              <VerticalSlider v-model="slider4" :min="1" :max="100" label="Slider 4" />
               <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
                 <md-button @click="resetNetwork" style="width: 100%">
                   <md-icon class="forceTextColor">close</md-icon>
@@ -127,7 +133,7 @@
       <!-- Mixer Modal -->
       <modal name="mixerModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
-        <div style="padding:0; margin: 0; "> 
+        <div style="padding:0; margin: 0; ">
           <div class="modalDiv">
             <p class="modalTitle">
               Audio Mixer
@@ -138,8 +144,8 @@
           <div class="modalContent" style="overflow-y: scroll; height:600px">
             <p class="settingsSubtitle">User</p>
             <div class="md-layout md-gutter md-alignment-center">
-           
-              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" label="vol"/>
+
+              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" label="vol" />
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">mute</span>
@@ -151,8 +157,8 @@
 
             <p class="settingsSubtitle">Metronome</p>
             <div class="md-layout md-gutter md-alignment-center">
-           
-              <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" label="vol"/>
+
+              <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" label="vol" />
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">mute</span>
@@ -164,8 +170,8 @@
 
             <p class="settingsSubtitle">Worker</p>
             <div class="md-layout md-gutter md-alignment-center">
-           
-              <HorizontalSlider v-model="workerVolume" :min="1" :max="10" label="vol"/>
+
+              <HorizontalSlider v-model="workerVolume" :min="1" :max="10" label="vol" />
               <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
                 <div class="settingsDiv">
                   <span class="settingsOptionTitle">mute</span>
@@ -215,7 +221,7 @@ import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
 import * as rb from "ringbuf.js"; // /dist/index.js
 import { messageType, statusType, noteType, uiParameterType, workerParameterType } from '@/utils/types.js'
-import {URLFromFiles, isMobile, isNotChrome} from '@/utils/helpers.js'
+import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -252,7 +258,7 @@ export default {
       audioSettings: null,
       recorderWorkletNode: null,
       recorderWorkletBundle: null,
-      
+
       sab: null,
       sab_par_ui: null,
       rb_par_ui: null,
@@ -284,7 +290,7 @@ export default {
 
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
-      modelInferenceTimes: [], 
+      modelInferenceTimes: [],
       // maxBPM (or min clock period) supported by the current device
       maxBPM: 0,
       // counter for the number of times the worker inference time exceeds the clock period
@@ -292,7 +298,7 @@ export default {
 
       isNotChrome,
       isMobile,
-      
+
     };
   },
 
@@ -311,12 +317,12 @@ export default {
     // that's a necessary trick. 
     // The actuall config values will
     // be loaded in mounted() 
-    this.config =  {
-        'introModal': null,
-        'title': '',
-        'subtitle': '',
-        'introModalContent': [],
-      };
+    this.config = {
+      'introModal': null,
+      'title': '',
+      'subtitle': '',
+      'introModalContent': [],
+    };
   },
 
   async mounted() {
@@ -358,7 +364,7 @@ export default {
     await vm.worker.postMessage({
       messageType: vm.messageType.LOAD_CONFIG,
       content: {
-        config : vm.config,
+        config: vm.config,
         messageType: vm.messageType,
         statusType: vm.statusType,
         noteType: vm.noteType,
@@ -421,8 +427,8 @@ export default {
 
     vm.recorderWorkletNode = new AudioWorkletNode(
       vm.audioContext,
-      "recorder-worklet", 
-      {processorOptions: vm.sab}
+      "recorder-worklet",
+      { processorOptions: vm.sab }
     );
 
     vm.recorderWorkletNode.port.postMessage("ping")
@@ -434,7 +440,7 @@ export default {
     // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
 
     // send the mic to the recorderNode --> recorderWorklet
-    vm.mediaStreamSource.connect(vm.recorderWorkletNode); 
+    vm.mediaStreamSource.connect(vm.recorderWorkletNode);
     // vm.recorderWorkSletNode.connect(vm.audioContext.destination);
     // vm.workerPlayer = new Tone.Player().toDestination();
 
@@ -497,15 +503,15 @@ export default {
         midi: note.note,
         velocity: 127,
         timestamp: {
-            seconds: Tone.now(),
-            tick: vm.$store.getters.getGlobalTickDelayed,
-          },
+          seconds: Tone.now(),
+          tick: vm.$store.getters.getGlobalTickDelayed,
+        },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       }
-      
+
       // We always send the user's input directly to the sampler
       // for immediate playback
       vm.$store.dispatch("samplerOn", midiEvent);
@@ -539,15 +545,15 @@ export default {
         midi: note.note,
         velocity: 127,
         timestamp: {
-            seconds: Tone.now(),
-            tick: vm.$store.getters.getGlobalTickDelayed, //null,//this.$store.getters.getGlobalTickDelayed
-          },
+          seconds: Tone.now(),
+          tick: vm.$store.getters.getGlobalTickDelayed, //null,//this.$store.getters.getGlobalTickDelayed
+        },
         playAfter: {
           seconds: 0,
           tick: 0
         }
       }
-      
+
       vm.$store.dispatch("samplerOff", midiEvent);
       if (vm.$store.getters.getClockStatus) {
         // this enters here, only when the clock has started
@@ -661,8 +667,8 @@ export default {
       immediate: true,
       handler(newValue) {
         console.log("paramWriter " + this.paramWriter + " type" + this.uiParameterType.SLIDER_1);
-        if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_1, newValue)) {
+        if (this.paramWriter != null &&
+          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_1, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -670,8 +676,8 @@ export default {
     slider2: {
       immediate: true,
       handler(newValue) {
-        if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_2, newValue)) {
+        if (this.paramWriter != null &&
+          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_2, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -679,8 +685,8 @@ export default {
     slider3: {
       immediate: true,
       handler(newValue) {
-        if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_3, newValue)) {
+        if (this.paramWriter != null &&
+          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_3, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -688,8 +694,8 @@ export default {
     slider4: {
       immediate: true,
       handler(newValue) {
-        if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_4, newValue)) {
+        if (this.paramWriter != null &&
+          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_4, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -741,7 +747,7 @@ export default {
     workerParameterObserver() {
       let newParameterWorker = { index: null, value: null };
       if (this.paramReader.dequeue_change(newParameterWorker)) {
-          // console.log("param index: " + newParameterWorker.index + " value: " + newParameterWorker.value);
+        // console.log("param index: " + newParameterWorker.index + " value: " + newParameterWorker.value);
       }
     },
 
@@ -792,7 +798,7 @@ export default {
             tick: 0
           }
         }
-        
+
         this.$store.dispatch("samplerOn", midiEvent);
         if (this.$store.getters.getClockStatus) {
 
@@ -824,7 +830,7 @@ export default {
             tick: 0
           }
         }
-        
+
         this.$store.dispatch("samplerOff", midiEvent);
         if (this.$store.getters.getClockStatus) {
 
@@ -868,7 +874,7 @@ export default {
       this.$store.commit("incrementTickDelayed");
 
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
-      if (vm.config.gui.score === true){
+      if (vm.config.gui.score === true) {
         this.$root.$refs.score.draw();
       }
 
@@ -894,14 +900,14 @@ export default {
           if (noteEvent.playAfter.tick > 0) {
             this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
           } else {
-            if (noteEvent.type === vm.noteType.NOTE_ON){
+            if (noteEvent.type === vm.noteType.NOTE_ON) {
               this.$store.dispatch("samplerOn", noteEvent);
               // set a timeout to call keyDown based on noteEvent.timestamp.seconds
               setTimeout(() => {
                 this.$root.$refs.pianoRoll.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
-            else if (noteEvent.type === vm.noteType.NOTE_OFF){
+            else if (noteEvent.type === vm.noteType.NOTE_OFF) {
               this.$store.dispatch("samplerOff", noteEvent);
               // set a timeout to call keyUp based on noteEvent.timestamp.seconds
               setTimeout(() => {
@@ -927,22 +933,22 @@ export default {
 
         this.reset = false; // for explanation see the comment about reset inside runTheWorker()
       }
-      else if(e.data.messageType == vm.messageType.NOTE_EVENT) {
-      // console.log("worker callback NOTE_EVENT on tick", this.$store.getters.getLocalTick, "/", this.$store.getters.getGlobalTick, ", del:", this.$store.getters.getLocalTickDelayed, this.$store.getters.getGlobalTickDelayed);
+      else if (e.data.messageType == vm.messageType.NOTE_EVENT) {
+        // console.log("worker callback NOTE_EVENT on tick", this.$store.getters.getLocalTick, "/", this.$store.getters.getGlobalTick, ", del:", this.$store.getters.getLocalTickDelayed, this.$store.getters.getGlobalTickDelayed);
         const workerPrediction = e.data.content;
         const noteEventsList = workerPrediction.events;
         noteEventsList.forEach((noteEvent) => {
           if (noteEvent.playAfter.tick > 0) {
             this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
           } else {
-            if (noteEvent.type === vm.noteType.NOTE_ON){
+            if (noteEvent.type === vm.noteType.NOTE_ON) {
               this.$store.dispatch("samplerOn", noteEvent);
               // set a timeout to call keyDown based on noteEvent.timestamp.seconds
               setTimeout(() => {
                 this.$root.$refs.pianoRoll.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
-            else if (noteEvent.type === vm.noteType.NOTE_OFF){
+            else if (noteEvent.type === vm.noteType.NOTE_OFF) {
               this.$store.dispatch("samplerOff", noteEvent);
               // set a timeout to call keyUp based on noteEvent.timestamp.seconds
               setTimeout(() => {
@@ -977,16 +983,16 @@ export default {
         // vm.workerPlayer.buffer = audioBuffer;
         // vm.workerPlayer.start();
       }
-      else if (e.data.messageType === vm.messageType.WAV_BUFFER){
-        var a = document.createElement( 'a' );
+      else if (e.data.messageType === vm.messageType.WAV_BUFFER) {
+        var a = document.createElement('a');
         a.style.display = 'none';
         document.body.appendChild(a);
-        const blob = new Blob([e.data.content], {type: 'audio/wav'});
-        a.href = URL.createObjectURL( blob );
-        a.download =  `audio-${(new Date()).toISOString().replace(/[^0-9]/g, "")}.wav`;
+        const blob = new Blob([e.data.content], { type: 'audio/wav' });
+        a.href = URL.createObjectURL(blob);
+        a.download = `audio-${(new Date()).toISOString().replace(/[^0-9]/g, "")}.wav`;
         a.click();
       }
-      else if (e.data.messageType === vm.messageType.CHROMA_VECTOR){
+      else if (e.data.messageType === vm.messageType.CHROMA_VECTOR) {
         this.$root.$refs.chromaChart.updateChromaData(e.data.content);
       }
     },
@@ -1008,16 +1014,16 @@ export default {
             // console.log("worker note on", noteEvent)
             this.$store.dispatch("samplerOn", noteEvent);
             setTimeout(() => {
-                this.$root.$refs.pianoRoll.keyDown(noteEvent);
-              }, noteEvent.playAfter.seconds * 1000);
+              this.$root.$refs.pianoRoll.keyDown(noteEvent);
+            }, noteEvent.playAfter.seconds * 1000);
             // this.$root.$refs.pianoRoll.keyDown(note);
           } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
             // console.log("WORKER NOTE OFF", noteEvent)
             this.$store.dispatch("samplerOff", noteEvent);
             // this.$root.$refs.pianoRoll.keyUp(note);
             setTimeout(() => {
-                this.$root.$refs.pianoRoll.keyUp(noteEvent);
-              }, noteEvent.playAfter.seconds * 1000);
+              this.$root.$refs.pianoRoll.keyUp(noteEvent);
+            }, noteEvent.playAfter.seconds * 1000);
           }
         });
       }
@@ -1202,10 +1208,10 @@ export default {
       // this.$store.commit("muteMetronome");
       this.$store.commit("flipMetronomeSamplerMuteStatus");
     },
-    toggleHumanSamplers(){
+    toggleHumanSamplers() {
       this.$store.commit("flipHumanSamplersMuteStatus");
     },
-    toggleWorkerSamplers(){
+    toggleWorkerSamplers() {
       this.$store.commit("flipWorkerSamplersMuteStatus");
     },
 
@@ -1222,16 +1228,16 @@ export default {
         var currentNote =
           this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
         const metronomeNote = {
-            player: "metronome",
-            name: currentNote,
-            type: this.noteType.NOTE_ON,
-            midi: null,
-            chroma: null,
-            velocity: 127,
-            playAfter: {
-                tick: 0,
-                seconds: 0
-            }
+          player: "metronome",
+          name: currentNote,
+          type: this.noteType.NOTE_ON,
+          midi: null,
+          chroma: null,
+          velocity: 127,
+          playAfter: {
+            tick: 0,
+            seconds: 0
+          }
         }
         this.$store.dispatch("samplerOn", metronomeNote);
         this.calculateMaxBPM();

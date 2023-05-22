@@ -276,6 +276,11 @@
 .controlBtn {
     background-color: var(--button-background-color);
     color: var(--button-text-color);
+    min-width: 50px!important;
+    width: 50px!important;
+    height: 50px!important;
+    padding: 0px;
+    border-radius: 25px;
 }
 
 #mainContent{
