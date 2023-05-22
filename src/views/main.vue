@@ -220,7 +220,7 @@ import {URLFromFiles, isMobile, isNotChrome} from '@/utils/helpers.js'
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
   // TODO : this calls Tone.start() every time the user clicks on the screen.
-  Tone.start();
+  // Tone.start();
 };
 
 export default {
@@ -228,12 +228,8 @@ export default {
 
   data() {
     return {
-      config: {
-        'introModal': true,
-        'title': '',
-        'subtitle': '',
-        'introModalContent': [],
-      },
+      config: null,
+
       messageType,
       statusType,
       noteType,
@@ -303,6 +299,18 @@ export default {
     Dropdown,
     AudioMeter,
     ChromaChart,
+  },
+
+  created() {
+    // that's a necessary trick. 
+    // The actuall config values will
+    // be loaded in mounted() 
+    this.config =  {
+        'introModal': null,
+        'title': '',
+        'subtitle': '',
+        'introModalContent': [],
+      };
   },
 
   async mounted() {
