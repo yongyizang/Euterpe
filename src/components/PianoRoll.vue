@@ -25,7 +25,7 @@ const colorForHuman = getComputedStyle(document.documentElement).getPropertyValu
 );
 
 const initialScaling = 10000; // a constant in scaling the noteblock.
-const KeyboardUIHeight = 210;
+const keyboardHeight = 210;
 const NoteAnimationMargin = 10; // margin of noteblock plane compared to the width of the key.
 
 // Define basic "humanMaterial" for three.js to build note blocks.
@@ -105,7 +105,7 @@ export default {
 
       this.renderer.setSize(
         this.$refs.canvas.clientWidth,
-        this.$refs.canvas.clientHeight - KeyboardUIHeight
+        this.$refs.canvas.clientHeight - keyboardHeight
       );
     },
 
@@ -185,7 +185,7 @@ export default {
         );
         note.plane.position.y =
           this.$refs.canvas.clientHeight +
-          KeyboardUIHeight +
+          keyboardHeight +
           note.position +
           note.plane.scale.y / 2;
       }

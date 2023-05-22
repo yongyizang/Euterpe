@@ -74,7 +74,7 @@
         style="position: absolute; left: 20px; bottom: 100px">
         <md-icon>arrow_back</md-icon>
       </md-button>
-      <keyboard id="pianoKeyboard" class="pianoKeyboard" ref="pianoKeyboard" :key="keyboardKey"
+      <keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
       
         <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
@@ -191,9 +191,9 @@
 import "../css/main.css";
 import * as Tone from "tone";
 import { Midi } from "@tonaljs/tonal";
-import keyboard from "@/components/keyboard.vue";
-import pianoRoll from "@/components/PianoRoll.vue";
-import score from "@/components/Score.vue";
+import Keyboard from "@/components/Keyboard.vue";
+import PianoRoll from "@/components/PianoRoll.vue";
+import Score from "@/components/Score.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
 import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "../components/AudioMeter.vue";
@@ -284,9 +284,9 @@ export default {
   },
 
   components: {
-    keyboard,
-    score,
-    pianoRoll,
+    Keyboard,
+    Score,
+    PianoRoll,
     VerticalSlider,
     HorizontalSlider,
     Dropdown,
