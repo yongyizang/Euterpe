@@ -308,7 +308,7 @@ export default {
 
     // Initialize worker
     // experiment with , { type : 'module' }
-    vm.worker = new Worker(`/workers/${vm.workerName}/worker_module.js`, { type : 'module' });
+    vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
     vm.worker.onmessage = vm.workerCallback;
 
     // Send a message to worker with some necessary 

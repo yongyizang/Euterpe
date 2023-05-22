@@ -1,33 +1,21 @@
 // If needed, you can import any external libraries here (e.g., tensorflow.js, onnx, magenta, etc.)
+// This module version of the worker is a better option, and allows to use essentia.js
+// however, it's impossible to use tfjs or magenta.js
 
-// importScripts
-// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
+import * as utils from "../../utils.js"
+import Meyda from 'https://cdn.jsdelivr.net/npm/meyda@5.6.0/+esm'
+import * as rb from 'https://cdn.jsdelivr.net/npm/ringbuf.js@0.3.3/+esm'
+import Essentia from 'https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.es.js';
+import { EssentiaWASM } from 'https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.es.js';
+
+
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
 // importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.module.js")
-
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js")
-
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-extractor.js")
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-plot.js")
-
-// importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js")
-// importScripts("../../libraries/index_rb_no_exports.js");
-// importScripts("../../utils.js");
-
-// const input0 = new ort.Tensor(
-//     new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
-//     [2, 2] /* dims */
-//   );
-
-
-// module
-// exports = {};
-import * as utils from "../../utils_module.js"
-import Meyda from 'https://cdn.jsdelivr.net/npm/meyda@5.6.0/+esm'
-// import * as rb from "../../libraries/index_rb.js"
-import * as rb from 'https://cdn.jsdelivr.net/npm/ringbuf.js@0.3.3/+esm'
+// Import tensorflow using 'import' syntax from https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js
+// import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.6.0/dist/tf.min.js';
+// import * as tf  from "../../libraries/tfjs/tf.min.js";
+// import tfjs from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.6.0/dist/tf.es2017.min.js';
 
 let config = null;
 let messageType = null;
@@ -228,9 +216,34 @@ async function initAudio(content){
     console.log("MEYDA: " + Meyda.bufferSize);
     console.log("staging buffer size: " + self.staging.length + " samples");
     console.log("sab byteLength: " + content.sab.byteLength + " bytes");    
+
+    // console.log("essentia", essentiaJs);
+    // console.log(Object.keys(Essentia));
+    const essentia = new Essentia(EssentiaWASM);
+    console.log("essentia", essentia);
+
+    // tf.setBackend('webgl');
+    const model = tf.sequential();
+    model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+    console.log("model", model);
+
+    // console.log("essen extractor", essentiaJsExtractor.EssentiaExtractor);
+    // console.log("essen wasm", essentiaJsWasm);
+    // essentiaJs.EssentiaWASM().then(function(essentiaWasmModule) {
+    //     let essentiaExtractor = new essentiaJsExtractor.EssentiaExtractor(essentiaWasmModule);
+    //     // settings specific to an algorithm
+    //       // essentiaExtractor.profile.HPCP.nonLinear = true;
+    //                 // modifying default extractor settings
+    //     //   essentiaExtractor.frameSize = bufferSize;
+    //     //   essentiaExtractor.hopSize = hopSize;
+    //     //   essentiaExtractor.sampleRate = audioCtx.sampleRate;
+    //     //   essentiaExtractor.profile.HPCP.normalized = 'none';
+    //     //   essentiaExtractor.profile.HPCP.harmonics = 0;
+    //     console.log('profile changed')
+    //     });
+
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
-    //   interval = setInterval(readFromQueue, 100);
     self.interval = setInterval(readFromQueue, 100);
 }
 
@@ -343,7 +356,7 @@ async function processEventsBuffer(content) {
     // the UI keeps track of this, and will warn the user
     // if the inference time higher than the clock's period
     predictTime = performance.now() - predictTime;
-    console.log("predictTime: " + predictTime)
+    // console.log("predictTime: " + predictTime)
     // The MICP package the UI expects.
     postMessage({
         messageType: self.messageType.EVENTS_BUFFER,

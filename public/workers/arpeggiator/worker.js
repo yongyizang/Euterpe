@@ -1,10 +1,11 @@
-// If needed, you can import any external libraries here (e.g., tensorflow.js, onnx, magenta, etc.)
+// This is the older type of worker (non module). 
+// You need to use importScripts to import libraries.
+// Essentia.js can't be imported this way but Meyda can.
 
-// importScripts
 // importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
-// importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
+importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
 // importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.module.js")
 
 // importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js")
@@ -14,7 +15,7 @@
 
 importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js")
 importScripts("../../libraries/index_rb_no_exports.js");
-importScripts("../../utils.js");
+importScripts("../../utils_no_exports.js");
 
 let config = null;
 let messageType = null;
@@ -214,7 +215,13 @@ async function initAudio(content){
     Meyda.bufferSize = self.windowSize;
     console.log("MEYDA: " + Meyda.bufferSize);
     console.log("staging buffer size: " + self.staging.length + " samples");
-    console.log("sab byteLength: " + content.sab.byteLength + " bytes");    
+    console.log("sab byteLength: " + content.sab.byteLength + " bytes");  
+    
+    const input0 = new ort.Tensor(
+        new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
+        [2, 2] /* dims */
+      );
+
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
     //   interval = setInterval(readFromQueue, 100);
@@ -277,7 +284,7 @@ async function processEventsBuffer(content) {
     // let meydaBuffer = Meyda.buffer(1024)
     // console.log("meydaBuffer: " + meydaBuffer);
     let audioChroma = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
-    // console.log("features: " + audioChroma.rms + "    " + audioChroma.loudness.total);
+    console.log("features: " + audioChroma.rms + "    " + audioChroma.loudness.total);
     // workerAudio.postMessage(audioChroma);
 
     
