@@ -37,6 +37,28 @@ class LIFOQueue {
     length() {
         return this.size;
     }
+
+    clear() {
+        this.head = null;
+        this.size = 0;
+      }
+    
+    toArray() {
+        const arr = [];
+        let current = this.head;
+        while (current !== null) {
+            arr.push(current.value);
+            current = current.next;
+        }
+        return arr;
+    }
+    toArrayAndClear() {
+        const arr = [];
+        while (this.head !== null) {
+          arr.push(this.pop());
+        }
+        return arr;
+      }
 }
 
 class FIFOQueue {
@@ -122,3 +144,19 @@ function simulateBlockingOperation(delay) {
     }
 }
 
+function shiftRight(arr) {
+    const lastElement = arr.pop();
+    arr.unshift(lastElement);
+}
+
+function average2d(arr) {
+    let suma = new Array(arr[0].length).fill(0);
+
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[i].length; j++) {
+            suma[j] += arr[i][j];
+        }
+    }
+    const tickAverageChroma = suma.map((sum) => sum / arr.length);
+    return tickAverageChroma;
+}

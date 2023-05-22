@@ -32,7 +32,7 @@ async function loadAlgorithm() {
  * 2) a list of all the quantized events for the current tick
  * It is only used if clockBased: true in the config.yaml
  */
-async function processEventsBuffer(content) {
+async function processClockEvent(content) {
     
 }
 
@@ -68,8 +68,8 @@ async function onMessageFunction (obj) {
         self.externalJsonLoaded = true;
         onMessageFunction(obj);
     } else {
-        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
-            await this.processEventsBuffer(obj.data.content);
+        if (obj.data.messageType == self.constants.messageType.CLOCK_EVENT) {
+            await this.processClockEvent(obj.data.content);
         } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
             await this.loadAlgorithm();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {

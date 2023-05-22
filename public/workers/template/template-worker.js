@@ -202,7 +202,7 @@ async function loadAlgorithm() {
 // This hook is called in sync with the clock, and provides
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
-async function processEventsBuffer(content) {
+async function processClockEvent(content) {
     // currentBuffer = self.audio_frame_list[-1]
     audioChroma = EssentialExtractor.computeChroma(currentBuffer);
     // workerAudio.postMessage(audioChroma);
@@ -257,7 +257,7 @@ async function processEventsBuffer(content) {
 
     // The MICP package the UI expects.
     postMessage({
-        messageType: self.constants.messageType.EVENTS_BUFFER,
+        messageType: self.constants.messageType.CLOCK_EVENT,
         content: {
             predictTime: predictTime,
             tick: currentTick,
@@ -386,8 +386,8 @@ async function onMessageFunction (obj) {
         self.externalJsonLoaded = true;
         onMessageFunction(obj);
     } else {
-        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
-            await this.processEventsBuffer(obj.data.content);
+        if (obj.data.messageType == self.constants.messageType.CLOCK_EVENT) {
+            await this.processClockEvent(obj.data.content);
         } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
             await this.loadAlgorithm();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
