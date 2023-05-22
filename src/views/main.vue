@@ -214,7 +214,7 @@ import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
 import * as rb from "ringbuf.js"; // /dist/index.js
-import { messageType, statusType, noteType, parameterType } from '@/utils/types.js'
+import { messageType, statusType, noteType, uiParameterType, workerParameterType } from '@/utils/types.js'
 import {URLFromFiles, isMobile, isNotChrome} from '@/utils/helpers.js'
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
@@ -233,7 +233,8 @@ export default {
       messageType,
       statusType,
       noteType,
-      parameterType,
+      uiParameterType,
+      workerParameterType,
 
       workerName: "arpeggiator",
 
@@ -251,11 +252,16 @@ export default {
       audioSettings: null,
       recorderWorkletNode: null,
       recorderWorkletBundle: null,
+      
       sab: null,
-      sab_par: null,
-      rb_par: null,
+      sab_par_ui: null,
+      rb_par_ui: null,
       paramWriter: null,
+      sab_par_worker: null,
+      rb_par_worker: null,
 
+
+      workerParameterInterval: null,
       // reset signal to notify the Worker to reset.
       // If your worker doesn't support reseting, you can ignore this.
       reset: false,
@@ -356,7 +362,8 @@ export default {
         messageType: vm.messageType,
         statusType: vm.statusType,
         noteType: vm.noteType,
-        parameterType: vm.parameterType,
+        uiParameterType: vm.uiParameterType,
+        workerParameterType: vm.workerParameterType,
       }
     });
     // Tell the worker to load the algorithm
@@ -366,25 +373,35 @@ export default {
     });
 
     // SAB
-    // get a memory region for the ring buffer
+    // get a memory region for the Audio ring buffer
     // length in time is 1 second of stereo audio
     // Float32Array is 4 bytes per sample
     vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
 
-    vm.sab_par = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
-    vm.rb_par = new rb.RingBuffer(vm.sab_par, Uint8Array);
-    vm.paramWriter = new rb.ParameterWriter(vm.rb_par);
+    // get a memory region for the parameter ring buffer
+    // This one is to send parameters from the UI to the worker
+    vm.sab_par_ui = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
+    vm.rb_par_ui = new rb.RingBuffer(vm.sab_par_ui, Uint8Array);
+    vm.paramWriter = new rb.ParameterWriter(vm.rb_par_ui);
+
+    // get a memory region for the parameter ring buffer
+    // This one is to send parameters from the worker to the UI
+    vm.sab_par_worker = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
+    vm.rb_par_worker = new rb.RingBuffer(vm.sab_par_worker, Uint8Array);
+    vm.paramReader = new rb.ParameterReader(vm.rb_par_worker);
 
     await vm.worker.postMessage({
       messageType: vm.messageType.INIT_AUDIO,
       content: {
         sab: vm.sab,
-        sab_par: vm.sab_par,
+        sab_par_ui: vm.sab_par_ui,
+        sab_par_worker: vm.sab_par_worker,
         channelCount: 2,
         sampleRate: vm.audioContext.sampleRate,
       }
     });
 
+    vm.workerParameterInterval = setInterval(vm.workerParameterObserver, 10);
     /*
      * Initialize Audio Recorder (for audio recording).
      */
@@ -418,7 +435,7 @@ export default {
 
     // send the mic to the recorderNode --> recorderWorklet
     vm.mediaStreamSource.connect(vm.recorderWorkletNode); 
-    // vm.recorderWorkletNode.connect(vm.audioContext.destination);
+    // vm.recorderWorkSletNode.connect(vm.audioContext.destination);
     // vm.workerPlayer = new Tone.Player().toDestination();
 
     // vm.osc = new OscillatorNode(vm.audioContext);
@@ -643,9 +660,9 @@ export default {
     slider1: {
       immediate: true,
       handler(newValue) {
-        console.log("paramWriter " + this.paramWriter + " type" + this.parameterType.SLIDER_1);
+        console.log("paramWriter " + this.paramWriter + " type" + this.uiParameterType.SLIDER_1);
         if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_1, newValue)) {
+            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_1, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -654,7 +671,7 @@ export default {
       immediate: true,
       handler(newValue) {
         if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_2, newValue)) {
+            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_2, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -663,7 +680,7 @@ export default {
       immediate: true,
       handler(newValue) {
         if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_3, newValue)) {
+            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_3, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -672,7 +689,7 @@ export default {
       immediate: true,
       handler(newValue) {
         if (this.paramWriter!=null && 
-            !this.paramWriter.enqueue_change(this.parameterType.SLIDER_4, newValue)) {
+            !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_4, newValue)) {
           console.error("Couldn't enqueue.");
         }
       },
@@ -720,6 +737,13 @@ export default {
   },
 
   methods: {
+
+    workerParameterObserver() {
+      let newParameterWorker = { index: null, value: null };
+      if (this.paramReader.dequeue_change(newParameterWorker)) {
+          // console.log("param index: " + newParameterWorker.index + " value: " + newParameterWorker.value);
+      }
+    },
 
     /*
      * Web MIDI
@@ -961,6 +985,9 @@ export default {
         a.href = URL.createObjectURL( blob );
         a.download =  `audio-${(new Date()).toISOString().replace(/[^0-9]/g, "")}.wav`;
         a.click();
+      }
+      else if (e.data.messageType === vm.messageType.CHROMA_VECTOR){
+        this.$root.$refs.chromaChart.updateChromaData(e.data.content);
       }
     },
 

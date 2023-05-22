@@ -115,8 +115,7 @@
         };
       },
       updateChromaData(chromaData) {
-          this.chromaChart.data.datasets[0].data = chromaData;
-          this.chromaChart.update();
+          this.chartData.datasets[0].data = chromaData;
       }
     },
   }

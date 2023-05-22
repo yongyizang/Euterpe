@@ -29,14 +29,19 @@ let sampleRate = null;
 let staging = null;
 let _audio_reader = null;
 let audio_frames_queue = null;
+let audio_features_queue = null;
 let frames = null;
 let windowSize = null;
 let hopSize = null;
 let sampleCounter = null;
 let currentFrame = null;
 let frameCounter = null;
+let interval = null;
+let uiParameterInterval = null;
 
-let newParameter = null;
+let _param_reader = null;
+let _param_writer = null;
+let newParameterUI = null;
 let slider1 = null;
 let slider2 = null;
 let slider3 = null;
@@ -64,7 +69,22 @@ function readFromQueue() {
     for (let i = 0; i < samples_read; i++) {
       segment[i] = Math.min(Math.max(self.staging[i], -1.0), 1.0) * (2 << 14 - 1);
       if (self.sampleCounter == self.windowSize - 1){
+        
+        // Here you can do some analysis on the current audio frame
+        let channel1 = new Float32Array(self.currentFrame.length / self.channelCount);
+        let channel2 = new Float32Array(self.currentFrame.length / self.channelCount);
+        let channels = [channel1, channel2];
+        deinterleave_custom(self.currentFrame, channels, self.channelCount);
+        let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
+        self._param_writer.enqueue_change(self.workerParameterType.RMS, features.rms);
+        self._param_writer.enqueue_change(self.workerParameterType.LOUDNESS, features.loudness.total);
+        // postMessage({
+        //     messageType: self.messageType.CHROMA_VECTOR,
+        //     content: features.chroma,
+        // });
+
         self.audio_frames_queue.push(self.currentFrame);
+        self.audio_features_queue.push(features);
         let tempFrame = new Float32Array(self.windowSize);
         // Copy the last windowSize - hopSize samples to the current frame
         // to the beginning of the new frame
@@ -87,40 +107,40 @@ function updateParameter(newUpdate){
 
     // use switch instead
     switch(newUpdate.index){
-        case self.parameterType.SLIDER_1:
+        case self.uiParameterType.SLIDER_1:
             self.slider1 = newUpdate.value;
             break;
-        case self.parameterType.SLIDER_2:
+        case self.uiParameterType.SLIDER_2:
             self.slider2 = newUpdate.value;
             break;
-        case self.parameterType.SLIDER_3:
+        case self.uiParameterType.SLIDER_3:
             self.slider3 = newUpdate.value;
             break;
-        case self.parameterType.SLIDER_4:
+        case self.uiParameterType.SLIDER_4:
             self.slider4 = newUpdate.value;
             break;
-        case self.parameterType.BUTTON_1:
+        case self.uiParameterType.BUTTON_1:
             self.button1 = newUpdate.value;
             break;
-        case self.parameterType.BUTTON_2:
+        case self.uiParameterType.BUTTON_2:
             self.button2 = newUpdate.value;
             break;
-        case self.parameterType.BUTTON_3:
+        case self.uiParameterType.BUTTON_3:
             self.button3 = newUpdate.value;
             break;
-        case self.parameterType.BUTTON_4:
+        case self.uiParameterType.BUTTON_4:
             self.button4 = newUpdate.value;
             break;
-        case self.parameterType.SWITCH_1:
+        case self.uiParameterType.SWITCH_1:
             self.switch1 = newUpdate.value;
             break;
-        case self.parameterType.SWITCH_2:
+        case self.uiParameterType.SWITCH_2:
             self.switch2 = newUpdate.value;
             break;
-        case self.parameterType.SWITCH_3:
+        case self.uiParameterType.SWITCH_3:
             self.switch3 = newUpdate.value;
             break;
-        case self.parameterType.SWITCH_4:
+        case self.uiParameterType.SWITCH_4:
             self.switch4 = newUpdate.value;
             break;
         default:
@@ -129,13 +149,21 @@ function updateParameter(newUpdate){
     }
 }
 
+function uiParameterObserver(){
+    let newParameterUI = { index: null, value: null };
+    if (self._param_reader.dequeue_change(newParameterUI)) {
+        console.log("param index: " + newParameterUI.index + " value: " + newParameterUI.value);
+        updateParameter(newParameterUI);
+    }
+}
 // Hook that takes the config.yaml from the UI.
 async function loadConfig(content) {
     self.config = content.config;
     self.noteType = content.noteType;
     self.statusType = content.statusType;
     self.messageType = content.messageType;
-    self.parameterType = content.parameterType;
+    self.uiParameterType = content.uiParameterType;
+    self.workerParameterType = content.workerParameterType;
     self.ticksPerMeasure = self.config.clockBasedSettings.ticksPerBeat * 
                             self.config.clockBasedSettings.timeSignature.numerator;
     // If you have any external JSON files, you can load them here
@@ -144,19 +172,26 @@ async function loadConfig(content) {
     //     }).then(data => {
     //         self.extraData = data;
     //     });
+    self.uiParameterInterval = setInterval(uiParameterObserver, 10);
+    
 }
 
 // Hook that accepts the sharedArrayBuffer from the UI that stores audio samples
 async function initAudio(content){
     console.log(content)
+    // Reads audio samples directly from the microphone
     self._audio_reader = new AudioReader(
         new RingBuffer(content.sab, Float32Array)
     );
+    // Reads parameters from the UI (sliders, buttons, etc.)
     self._param_reader = new ParameterReader(
-        new RingBuffer(content.sab_par, Uint8Array)
+        new RingBuffer(content.sab_par_ui, Uint8Array)
     );
-
-    this.newParameter = { index: null, value: null };
+    // Writes parameters to the UI (e.g., rms, loudness)
+    // The parameters need to be single float values
+    self._param_writer = new ParameterWriter(
+        new RingBuffer(content.sab_par_worker, Uint8Array)
+    );
 
     // The number of channels of the audio stream read from the queue.
     self.channelCount = content.channelCount;
@@ -167,9 +202,10 @@ async function initAudio(content){
     self.pcm = [];
 
     // The frame/window size
-    self.windowSize = 1024 * self.channelCount;
+    self.windowSize = 2048 * self.channelCount;
+
     // The hop size
-    self.hopSize = 256 * self.channelCount;
+    self.hopSize = 1024 * self.channelCount;
 
     // Audio Frames per clock tick
     self.framesPerTick = self.sampleRate * self.channelCount * 60 / 
@@ -186,8 +222,9 @@ async function initAudio(content){
     // push and pop frames from the queue.
     // We set the max size of the queue to the equivalent duration of 16 clock ticks
     self.audio_frames_queue = new LIFOQueue(16 * self.framesPerTick);
-
-    
+    // Same for the audio features queue. These features are extracted
+    // from the audio frames. 
+    self.audio_features_queue = new LIFOQueue(16 * self.framesPerTick);
     
     // the current frame/window array. We'll keep pushing samples to it
     // untill it's full (windowSize samples). Then we'll push it to the
@@ -205,27 +242,17 @@ async function initAudio(content){
     // staging buffer size = ring buffer byteLengthsize / sizeof(float32) /4 / 2?
     self.staging = new Float32Array(content.sab.byteLength / 4 / 4 / 2);
 
-    // Initialize Essentia.js
-    // EssentiaWASM().then(async function(WasmModule) {
-    
-    //     // self.essentiaExtractor = new EssentiaExtractor(WasmModule);
-    //     // console.log("essentia version: " + essentiaExtractor.version)
-    //     console.log("WasmModule: " + WasmModule);
-    //   });
     Meyda.bufferSize = self.windowSize;
-    console.log("MEYDA: " + Meyda.bufferSize);
-    console.log("staging buffer size: " + self.staging.length + " samples");
-    console.log("sab byteLength: " + content.sab.byteLength + " bytes");  
     
-    const input0 = new ort.Tensor(
-        new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
-        [2, 2] /* dims */
-      );
+    // const input0 = new ort.Tensor(
+    //     new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
+    //     [2, 2] /* dims */
+    //   );
 
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
     //   interval = setInterval(readFromQueue, 100);
-    interval = setInterval(readFromQueue, 100);
+    self.interval = setInterval(readFromQueue, 100);
 }
 
 // Hook that loads and prepares the algorithm
@@ -270,23 +297,21 @@ async function loadAlgorithm() {
 async function processEventsBuffer(content) {
     
 
-    if (this._param_reader.dequeue_change(this.newParameter)) {
-        console.log("param index: " + this.newParameter.index + " value: " + this.newParameter.value);
-        updateParameter(this.newParameter);
-    }
-
-    let latestAudioFrame = self.audio_frames_queue.pop()
-    let channel1 = new Float32Array(latestAudioFrame.length / self.channelCount);
-    let channel2 = new Float32Array(latestAudioFrame.length / self.channelCount);
-    let channels = [channel1, channel2];
-    deinterleave_custom(latestAudioFrame, channels, self.channelCount);
+    // let latestAudioFrame = self.audio_frames_queue.pop()
+    // let channel1 = new Float32Array(latestAudioFrame.length / self.channelCount);
+    // let channel2 = new Float32Array(latestAudioFrame.length / self.channelCount);
+    // let channels = [channel1, channel2];
+    // deinterleave_custom(latestAudioFrame, channels, self.channelCount);
 
     // let meydaBuffer = Meyda.buffer(1024)
     // console.log("meydaBuffer: " + meydaBuffer);
-    let audioChroma = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
+    // let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
     // console.log("features: " + audioChroma.rms + "    " + audioChroma.loudness.total);
     // workerAudio.postMessage(audioChroma);
-
+    // postMessage({
+    //     messageType: self.messageType.CHROMA_VECTOR,
+    //     content: features.chroma,
+    // });
     
 
     var predictTime = performance.now();
@@ -404,7 +429,7 @@ async function processNoteEvent(content){
 }
 
 async function prepareWAV(){
-    // clearInterval(interval);
+    // clearInterval(self.interval);
     // Drain the ring buffer
     while (readFromQueue()) {
     /* empty */
@@ -426,8 +451,8 @@ async function prepareWAV(){
     // Find final size: size of the header + number of samples * channel count
     // * 2 because pcm16
     let size = header.length;
-    for (let i = 0; i < this.pcm.length; i++) {
-    size += this.pcm[i].length * 2;
+    for (let i = 0; i < self.pcm.length; i++) {
+    size += self.pcm[i].length * 2;
     }
     const wav = new Uint8Array(size);
     const view = new DataView(wav.buffer);
@@ -439,19 +464,19 @@ async function prepareWAV(){
     }
 
     console.log(
-    `Writing wav file: ${this.sampleRate}Hz, ${this.channelCount} channels, int16`
+    `Writing wav file: ${self.sampleRate}Hz, ${self.channelCount} channels, int16`
     );
 
-    view.setUint16(CHANNEL_OFFSET, this.channelCount, true);
-    view.setUint32(SAMPLE_RATE_OFFSET, this.sampleRate, true);
-    view.setUint16(BLOCK_ALIGN_OFFSET, this.channelCount * 2, true);
+    view.setUint16(CHANNEL_OFFSET, self.channelCount, true);
+    view.setUint32(SAMPLE_RATE_OFFSET, self.sampleRate, true);
+    view.setUint16(BLOCK_ALIGN_OFFSET, self.channelCount * 2, true);
 
     // Finally, copy each segment in order as int16, and transfer the array
     // back to the main thread for download.
     let writeIndex = header.length;
-    for (let segment = 0; segment < this.pcm.length; segment++) {
-    for (let sample = 0; sample < this.pcm[segment].length; sample++) {
-        view.setInt16(writeIndex, this.pcm[segment][sample], true);
+    for (let segment = 0; segment < self.pcm.length; segment++) {
+    for (let sample = 0; sample < self.pcm[segment].length; sample++) {
+        view.setInt16(writeIndex, self.pcm[segment][sample], true);
         writeIndex += 2;
     }
     }
@@ -472,19 +497,19 @@ async function onMessageFunction (obj) {
         }
     } else {
         if (obj.data.messageType == self.messageType.EVENTS_BUFFER) {
-            await this.processEventsBuffer(obj.data.content);
+            await self.processEventsBuffer(obj.data.content);
         } else if (obj.data.messageType == self.messageType.LOAD_ALGORITHM) {
-            await this.loadAlgorithm();
+            await self.loadAlgorithm();
         // } else if (obj.data.messageType == self.messageType.LOAD_CONFIG) {
-        //     await this.loadConfig(obj.data.content);
+        //     await self.loadConfig(obj.data.content);
         } else if (obj.data.messageType == self.messageType.INIT_AUDIO) {
-            await this.initAudio(obj.data.content);
+            await self.initAudio(obj.data.content);
         } else if (obj.data.messageType == self.messageType.AUDIO_BUFFER) {
-            await this.processAudioBuffer(obj.data.content);
+            await self.processAudioBuffer(obj.data.content);
         } else if (obj.data.messageType == self.messageType.NOTE_EVENT){
-            await this.processNoteEvent(obj.data.content);
+            await self.processNoteEvent(obj.data.content);
         } else if (obj.data.messageType == self.messageType.PREPARE_WAV){
-            await this.prepareWAV();
+            await self.prepareWAV();
         }
     }
 }

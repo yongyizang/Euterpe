@@ -8,6 +8,7 @@ export const messageType = {
     INIT_AUDIO: 8,
     PREPARE_WAV: 9,
     WAV_BUFFER: 10,
+    CHROMA_VECTOR: 11,
   };
   
 export const statusType = {
@@ -25,7 +26,7 @@ export const noteType = {
     REST: 2,
 };
 
-export const parameterType = {
+export const uiParameterType = {
     SLIDER_1: 0,
     SLIDER_2: 1,
     SLIDER_3: 2,
@@ -37,7 +38,9 @@ export const parameterType = {
     SWITCH_1: 8,
     SWITCH_2: 9,
     SWITCH_3: 10,
-    SWITCH_4: 11,
-
-    
+    SWITCH_4: 11,  
+}
+export const workerParameterType = {
+    RMS : 0,
+    LOUDNESS : 1,
 }
