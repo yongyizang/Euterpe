@@ -153,7 +153,7 @@ const getters = {
     getQuantizedBufferHuman (state){
         return state.quantizedBufferHuman;
     },
-    // these two below are only used by scoreUI
+    // these two below are only used by score
     getLastHumanNoteQuantized (state){
         return state.lastHumanQuantizedNote;
     },
@@ -202,7 +202,7 @@ const actions = {
         state.quantizedBufferWorker[nextTick] = workerNoteEvent
 
         // now update the lastWorkerNote
-        // this is only used in scoreUI.js to display the notes
+        // this is only used in score.js to display the notes
         // so maybe it should go there
         const midi = workerNoteEvent.midi;
         const cpc = workerNoteEvent.chroma;
@@ -244,8 +244,8 @@ const actions = {
     storeHumanQuantizedInput ({ commit, state, getters }, quantizedEventList) {
         
         state.quantizedBufferHuman[getters.getLocalTick] = quantizedEventList
-        // TODO : I still need this to display the notes in the scoreUI  
-        // TODO : Move this code to scoreUI.js 
+        // TODO : I still need this to display the notes in the score  
+        // TODO : Move this code to score.js 
         let args = {};
         // keep only the "on" and "hold" type events from quantizedEventList in a new array
         const quantizedEventListOnHold = quantizedEventList.filter((event) => event.type === state.noteType.NOTE_ON || event.type === state.noteType.NOTE_HOLD);

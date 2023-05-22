@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import "../css/keyboardUI.css";
+import "../css/keyboard.css";
 
 import * as Tone from "tone";
 import { clamp } from "@/library/math";
@@ -108,7 +108,7 @@ export default {
   },
 
   created() {
-    this.$root.$refs.keyboardUI = this;
+    this.$root.$refs.keyboard = this;
 
     if (typeof this.noteStart === "string") {
       this.offsets.noteStart = WHITE_KEYS.indexOf(this.noteStart);
@@ -236,7 +236,7 @@ export default {
       //   });
       // };
         
-        this.$root.$refs.pianoRollUI.keyDown(midiEvent);
+        this.$root.$refs.pianoRoll.keyDown(midiEvent);
         this.$store.dispatch("noteOn", midiEvent);
       }
       
@@ -277,7 +277,7 @@ export default {
         //     content: midiEvent,
         //   });
         // };
-        this.$root.$refs.pianoRollUI.keyUp(midiEvent);
+        this.$root.$refs.pianoRoll.keyUp(midiEvent);
         this.$store.dispatch("noteOff", midiEvent);
       }
     },

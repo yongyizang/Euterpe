@@ -27,7 +27,7 @@
 
     <div ref="mainContent" id="mainContent" class="fade-in" style="justify-content: center; align-items: center;">
       <div style="
-          background-color: black;
+          background-color: rgb(0, 0, 0);
           opacity: 0.5;
           display: fixed;
           top: 0;
@@ -35,9 +35,23 @@
           z-index: 999;
           ">
       </div>
-      <scoreUI />
-      <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="128" orientation="top" style="position:absolute; z-index:0; top:0; left:400; background-color:black"/>
-      <pianoRollUI style="position:absolute; z-index:-1; top:0; left:0"/>
+      <score />
+      <AudioMeter 
+        ref="audioMeter" 
+        :width="300" 
+        :height="100" 
+        :fft_bins="128" 
+        orientation="top" 
+        style="position:absolute; z-index:0; top:0; left:400; background-color:transparent"
+      />
+      <ChromaChart
+        ref="chromaChart"
+        :width="300"
+        :height="100"
+        :styles="{ position: 'absolute', zIndex: 0, top: '100px', left: '0px', backgroundColor: 'transparent' }"
+      />
+      <pianoRoll style="position:absolute; z-index:-1; top:0; left:0"/>
+      
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
           <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
@@ -52,17 +66,18 @@
           <!-- <span> Settings </span> -->
         </md-button>
       </div>
-      <md-button v-if="keyboardUIoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
+      <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
         style="position: absolute; right: 20px; bottom: 100px">
         <md-icon>arrow_forward</md-icon>
       </md-button>
-      <md-button v-if="keyboardUIoctaveStart !== 0" @click="transposeOctDown" class="md-icon-button md-raised"
+      <md-button v-if="keyboardoctaveStart !== 0" @click="transposeOctDown" class="md-icon-button md-raised"
         style="position: absolute; left: 20px; bottom: 100px">
         <md-icon>arrow_back</md-icon>
       </md-button>
-      <keyboardUI id="pianoKeyboard" class="pianoKeyboard" ref="usersKeyboardUIref" :key="keyboardUIKey"
-        :octave-start="keyboardUIoctaveStart" :octave-end="keyboardUIoctaveEnd" />
-      <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+      <keyboard id="pianoKeyboard" class="pianoKeyboard" ref="pianoKeyboard" :key="keyboardKey"
+        :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
+      
+        <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
         <div style="padding:0; margin: 0; "> 
           <div class="modalDiv">
@@ -176,12 +191,13 @@
 import "../css/main.css";
 import * as Tone from "tone";
 import { Midi } from "@tonaljs/tonal";
-import keyboardUI from "@/components/keyboardUI.vue";
-import pianoRollUI from "@/components/pianoRollUI.vue";
-import scoreUI from "@/components/scoreUI.vue";
+import keyboard from "@/components/keyboard.vue";
+import pianoRoll from "@/components/PianoRoll.vue";
+import score from "@/components/Score.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
 import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "../components/AudioMeter.vue";
+import ChromaChart from "../components/ChromaChart.vue";
 import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
@@ -219,9 +235,9 @@ export default {
       localSyncClockStatus: false, // used to trigger local UI change
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
-      keyboardUIKey: 0,
-      keyboardUIoctaveStart: 2,
-      keyboardUIoctaveEnd: 6,
+      keyboardKey: 0,
+      keyboardoctaveStart: 2,
+      keyboardoctaveEnd: 6,
 
       audioContext: null,
       mediaStreamSource: null,
@@ -268,13 +284,14 @@ export default {
   },
 
   components: {
-    keyboardUI,
-    scoreUI,
-    pianoRollUI,
+    keyboard,
+    score,
+    pianoRoll,
     VerticalSlider,
     HorizontalSlider,
     Dropdown,
     AudioMeter,
+    ChromaChart,
   },
 
   async mounted() {
@@ -468,7 +485,7 @@ export default {
           });
         };
 
-        vm.$root.$refs.pianoRollUI.keyDown(midiEvent);
+        vm.$root.$refs.pianoRoll.keyDown(midiEvent);
         vm.$store.dispatch("noteOn", midiEvent);
       }
     });
@@ -505,7 +522,7 @@ export default {
             content: midiEvent,
           });
         };
-        vm.$root.$refs.pianoRollUI.keyUp(midiEvent);
+        vm.$root.$refs.pianoRoll.keyUp(midiEvent);
         vm.$store.dispatch("noteOff", midiEvent);
       }
     });
@@ -557,7 +574,7 @@ export default {
 
   watch: {
     screenWidth: {
-      // At every screenWidth data change, this would automatically change the keyboardUI's octave number.
+      // At every screenWidth data change, this would automatically change the keyboard's octave number.
       immediate: true,
       handler(newValue) {
         let octaves;
@@ -575,9 +592,9 @@ export default {
         } else {
           octaves = 6;
         }
-        this.keyboardUIoctaveEnd = this.keyboardUIoctaveStart + octaves;
-        // A trick, to force keyboardUI re-render itself.
-        this.keyboardUIKey += 1;
+        this.keyboardoctaveEnd = this.keyboardoctaveStart + octaves;
+        // A trick, to force keyboard re-render itself.
+        this.keyboardKey += 1;
       },
     },
 
@@ -591,11 +608,11 @@ export default {
         }
       },
     },
-    keyboardUIoctaveStart: {
+    keyboardoctaveStart: {
       immediate: true,
       handler(newValue) {
-        // A trick, to force keyboardUI re-render itself.
-        this.keyboardUIKey += 1;
+        // A trick, to force keyboard re-render itself.
+        this.keyboardKey += 1;
       },
     },
     BPM: {
@@ -742,7 +759,7 @@ export default {
               content: midiEvent,
             });
           };
-          this.$root.$refs.pianoRollUI.keyDown(midiEvent);
+          this.$root.$refs.pianoRoll.keyDown(midiEvent);
           this.$store.dispatch("noteOn", midiEvent);
         }
       });
@@ -774,7 +791,7 @@ export default {
               content: midiEvent,
             });
           };
-          this.$root.$refs.pianoRollUI.keyUp(midiEvent);
+          this.$root.$refs.pianoRoll.keyUp(midiEvent);
           this.$store.dispatch("noteOff", midiEvent);
         }
       });
@@ -808,8 +825,8 @@ export default {
       this.$store.commit("incrementTickDelayed");
 
       // MAJOR TODO : draw should probably go before the delayedTickIncrement
-      if (vm.config.gui.scoreUI === true){
-        this.$root.$refs.scoreUI.draw();
+      if (vm.config.gui.score === true){
+        this.$root.$refs.score.draw();
       }
 
       this.worker.postMessage({
@@ -838,14 +855,14 @@ export default {
               this.$store.dispatch("samplerOn", noteEvent);
               // set a timeout to call keyDown based on noteEvent.timestamp.seconds
               setTimeout(() => {
-                this.$root.$refs.pianoRollUI.keyDown(noteEvent);
+                this.$root.$refs.pianoRoll.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
             else if (noteEvent.type === vm.noteType.NOTE_OFF){
               this.$store.dispatch("samplerOff", noteEvent);
               // set a timeout to call keyUp based on noteEvent.timestamp.seconds
               setTimeout(() => {
-                this.$root.$refs.pianoRollUI.keyUp(noteEvent);
+                this.$root.$refs.pianoRoll.keyUp(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
           }
@@ -879,14 +896,14 @@ export default {
               this.$store.dispatch("samplerOn", noteEvent);
               // set a timeout to call keyDown based on noteEvent.timestamp.seconds
               setTimeout(() => {
-                this.$root.$refs.pianoRollUI.keyDown(noteEvent);
+                this.$root.$refs.pianoRoll.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
             else if (noteEvent.type === vm.noteType.NOTE_OFF){
               this.$store.dispatch("samplerOff", noteEvent);
               // set a timeout to call keyUp based on noteEvent.timestamp.seconds
               setTimeout(() => {
-                this.$root.$refs.pianoRollUI.keyUp(noteEvent);
+                this.$root.$refs.pianoRoll.keyUp(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
             }
           }
@@ -945,15 +962,15 @@ export default {
             // console.log("worker note on", noteEvent)
             this.$store.dispatch("samplerOn", noteEvent);
             setTimeout(() => {
-                this.$root.$refs.pianoRollUI.keyDown(noteEvent);
+                this.$root.$refs.pianoRoll.keyDown(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
-            // this.$root.$refs.pianoRollUI.keyDown(note);
+            // this.$root.$refs.pianoRoll.keyDown(note);
           } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
             // console.log("WORKER NOTE OFF", noteEvent)
             this.$store.dispatch("samplerOff", noteEvent);
-            // this.$root.$refs.pianoRollUI.keyUp(note);
+            // this.$root.$refs.pianoRoll.keyUp(note);
             setTimeout(() => {
-                this.$root.$refs.pianoRollUI.keyUp(noteEvent);
+                this.$root.$refs.pianoRoll.keyUp(noteEvent);
               }, noteEvent.playAfter.seconds * 1000);
           }
         });
@@ -1198,13 +1215,13 @@ export default {
     },
 
     transposeOctUp() {
-      this.keyboardUIoctaveStart += 1;
-      this.keyboardUIoctaveEnd += 1;
+      this.keyboardoctaveStart += 1;
+      this.keyboardoctaveEnd += 1;
     },
 
     transposeOctDown() {
-      this.keyboardUIoctaveStart -= 1;
-      this.keyboardUIoctaveEnd -= 1;
+      this.keyboardoctaveStart -= 1;
+      this.keyboardoctaveEnd -= 1;
     },
 
     modalCallback() {

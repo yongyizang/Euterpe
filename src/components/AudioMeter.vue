@@ -1,6 +1,10 @@
 <template>
   <div>
-    <canvas style="display:float" ref="audioCanvas" :width="width" :height="height"></canvas>
+    <canvas 
+        ref="audioCanvas"
+        :width="width" 
+        :height="height">
+      </canvas>
   </div>
 </template>
 

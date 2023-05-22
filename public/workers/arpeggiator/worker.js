@@ -284,13 +284,13 @@ async function processEventsBuffer(content) {
     // let meydaBuffer = Meyda.buffer(1024)
     // console.log("meydaBuffer: " + meydaBuffer);
     let audioChroma = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
-    console.log("features: " + audioChroma.rms + "    " + audioChroma.loudness.total);
+    // console.log("features: " + audioChroma.rms + "    " + audioChroma.loudness.total);
     // workerAudio.postMessage(audioChroma);
 
     
 
     var predictTime = performance.now();
-    simulateBlockingOperation(40);
+    // simulateBlockingOperation(40);
 
 
     // The list of notes to be sent to the UI
@@ -337,7 +337,7 @@ async function processEventsBuffer(content) {
     // the UI keeps track of this, and will warn the user
     // if the inference time higher than the clock's period
     predictTime = performance.now() - predictTime;
-    console.log("predictTime: " + predictTime)
+    // console.log("predictTime: " + predictTime)
     // The MICP package the UI expects.
     postMessage({
         messageType: self.messageType.EVENTS_BUFFER,

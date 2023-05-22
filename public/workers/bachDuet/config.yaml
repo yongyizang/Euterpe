@@ -62,4 +62,4 @@ introModalContent:
   - "I am a web-framework for music interaction systems."
 
 gui:
-  scoreUI: false
+  score: false

@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import "../css/scoreUI.css";
+import "../css/score.css";
 import "../css/variables.css";
 import { Note, Midi } from "@tonaljs/tonal";
 import * as Vex from "vexflow";
@@ -36,7 +36,7 @@ function NoteFormatter(note) {
 }
 
 export default {
-  name: "scoreUI",
+  name: "score",
   props: {},
 
   data() {
@@ -95,7 +95,7 @@ export default {
 
   created() {
     window.addEventListener("resize", this.resize);
-    this.$root.$refs.scoreUI = this;
+    this.$root.$refs.score = this;
     var css = window.getComputedStyle(document.documentElement);
     this.noteColor = css.getPropertyValue("--note-color");
     this.lineColor = css.getPropertyValue("--line-color");
@@ -631,7 +631,7 @@ export default {
           break;
 
         default:
-          vm.$toasted.show("ScoreUI error: Invalid Duration.");
+          vm.$toasted.show("score error: Invalid Duration.");
           console.error("Invalid duration", duration);
       }
       return [durationTokens, newDurations];

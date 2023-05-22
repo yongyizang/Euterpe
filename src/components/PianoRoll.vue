@@ -1,5 +1,5 @@
 <!--
-    This is the vue component of pianoRollUI, a musical game style interface for interaction.
+    This is the vue component of pianoRoll, a musical game style interface for interaction.
 
     This component is inspired by and referenced based on AI Duet's implementation of the same feature
     with some significant changes to the code.
@@ -16,12 +16,12 @@ import { Midi } from "@tonaljs/tonal";
 
 import("../css/variables.css");
 
-// get --pianoRollUI-human-color and --pianoRollUI-worker-color from CSS.
+// get --pianoRoll-human-color and --pianoRoll-worker-color from CSS.
 const colorForWorker = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRollUI-worker-color"
+  "--pianoRoll-worker-color"
 );
 const colorForHuman = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRollUI-human-color"
+  "--pianoRoll-human-color"
 );
 
 const initialScaling = 10000; // a constant in scaling the noteblock.
@@ -40,7 +40,7 @@ const workerMaterial = new THREE.MeshBasicMaterial({
 });
 
 export default {
-  name: "pianoRollUI",
+  name: "pianoRoll",
 
   data() {
     return {
@@ -68,9 +68,9 @@ export default {
   created() {
     // Here's a trick to 'broadcast' the methods here to all components
     // so they could do this:
-    // this.$root.$refs.pianoRollUI.keyDown(currentNote, true);
+    // this.$root.$refs.pianoRoll.keyDown(currentNote, true);
     // See keyDown() and keyUp() method for more details here.
-    this.$root.$refs.pianoRollUI = this;
+    this.$root.$refs.pianoRoll = this;
   },
 
   mounted() {
