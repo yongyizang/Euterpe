@@ -1,11 +1,11 @@
-class Node {
+export class Node {
     constructor(value) {
       this.value = value;
       this.next = null;
     }
   }
   
-class LIFOQueue {
+export class LIFOQueue {
     constructor(maxLength) {
         this.head = null;
         this.maxLength = maxLength;
@@ -39,7 +39,7 @@ class LIFOQueue {
     }
 }
 
-class FIFOQueue {
+export class FIFOQueue {
     constructor(maxLength) {
         this.head = null;
         this.tail = null;
@@ -98,7 +98,7 @@ class FIFOQueue {
  * where n is the channel count.
  * @param {Float32Array} output is an 2d array of n x sampleLength dimension.
  */
-function deinterleave_custom(input, output, channel_count) {
+export function deinterleave_custom(input, output, channel_count) {
     // const channel_count = input.length / 256;
     const sampleLength = input.length / channel_count;
     if (output.length !== channel_count) {
@@ -114,7 +114,7 @@ function deinterleave_custom(input, output, channel_count) {
     }
   }
 
-function simulateBlockingOperation(delay) {
+export function simulateBlockingOperation(delay) {
     // Simulate a 100ms blocking operation
     const startTime = Date.now();
     while (Date.now() - startTime < delay) {

@@ -307,7 +307,8 @@ export default {
     Tone.context.lookAhead = 0.01;
 
     // Initialize worker
-    vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
+    // experiment with , { type : 'module' }
+    vm.worker = new Worker(`/workers/${vm.workerName}/worker_module.js`, { type : 'module' });
     vm.worker.onmessage = vm.workerCallback;
 
     // Send a message to worker with some necessary 

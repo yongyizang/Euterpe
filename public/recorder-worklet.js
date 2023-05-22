@@ -7,7 +7,8 @@ class RecorderWorklet extends AudioWorkletProcessor {
       defaultValue: 0,
       minValue: 0,
       maxValue: 1,  
-    }];
+    }
+  ];
   }
   constructor(options) {
     super();
@@ -29,6 +30,7 @@ class RecorderWorklet extends AudioWorkletProcessor {
     if (inputs[0]) {
       // interleave and store in the queue
       // console.log(inputs[0].length);
+      // if (_parameters.channels[0] === 2) {
       interleave(inputs[0], this.interleaved);
       if (this._audio_writer.enqueue(this.interleaved) !== 256) {
         console.log("underrun: the worker doesn't dequeue fast enough!");
