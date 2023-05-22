@@ -1,7 +1,5 @@
 <template>
-  <!--
-      main.vue, the application's main UI file.
-  -->
+  <!-- main.vue, the application's main UI file.-->
   <div>
     <div ref="mainLoadingScreen" id="mainLoadingScreen">
       <div id="loadingScreenInjection" class="center">
@@ -35,7 +33,8 @@
           z-index: 999;
           ">
       </div>
-      <score />
+      <!-- Custom Vue UI Components -->
+      <Score/>
       <AudioMeter 
         ref="audioMeter" 
         :width="300" 
@@ -50,8 +49,18 @@
         :height="100"
         :styles="{ position: 'absolute', zIndex: 0, top: '100px', left: '0px', backgroundColor: 'transparent' }"
       />
-      <pianoRoll style="position:absolute; z-index:-1; top:0; left:0"/>
-      
+      <PianoRoll 
+        style="position:absolute; z-index:-1; top:0; left:0"
+      />
+      <Keyboard 
+        id="pianoKeyboard" 
+        class="pianoKeyboard" 
+        ref="keyboard" 
+        :key="keyboardKey"
+        :octave-start="keyboardoctaveStart" 
+        :octave-end="keyboardoctaveEnd"
+        />
+      <!-- On-screen buttons -->
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
           <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
@@ -74,10 +83,9 @@
         style="position: absolute; left: 20px; bottom: 100px">
         <md-icon>arrow_back</md-icon>
       </md-button>
-      <keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
-        :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
       
-        <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+      <!-- Settings Modal -->
+      <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
         <div style="padding:0; margin: 0; "> 
           <div class="modalDiv">
@@ -116,6 +124,7 @@
           </div>
         </div>
       </modal>
+      <!-- Mixer Modal -->
       <modal name="mixerModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
         <div style="padding:0; margin: 0; "> 
@@ -169,6 +178,7 @@
           </div>
         </div>
       </modal>
+      <!-- Intro Modal -->
       <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div class="modalDiv">
           <p class="modalTitle">
@@ -183,6 +193,7 @@
           </p>
         </div>
       </modal>
+
     </div>
   </div>
 </template>

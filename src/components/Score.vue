@@ -36,7 +36,7 @@ function NoteFormatter(note) {
 }
 
 export default {
-  name: "score",
+  name: "Score",
   props: {},
 
   data() {

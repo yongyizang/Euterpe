@@ -40,7 +40,7 @@ const workerMaterial = new THREE.MeshBasicMaterial({
 });
 
 export default {
-  name: "pianoRoll",
+  name: "PianoRoll",
 
   data() {
     return {

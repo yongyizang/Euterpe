@@ -57,6 +57,8 @@ const MAX_NOTE = 6;
 // Initialize the pianoSampler.
 
 export default {
+  name: "Keyboard",
+
   props: {
     octaveStart: {
       type: Number,
