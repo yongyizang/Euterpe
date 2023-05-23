@@ -78,10 +78,7 @@ function readFromQueue() {
         let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
         self._param_writer.enqueue_change(self.workerParameterType.RMS, features.rms);
         self._param_writer.enqueue_change(self.workerParameterType.LOUDNESS, features.loudness.total);
-        // postMessage({
-        //     messageType: self.messageType.CHROMA_VECTOR,
-        //     content: features.chroma,
-        // });
+        
 
         self.audio_frames_queue.push(self.currentFrame);
         self.audio_features_queue.push(features);
@@ -294,40 +291,32 @@ async function loadAlgorithm() {
 // This hook is called in sync with the clock, and provides
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
-async function processEventsBuffer(content) {
+async function processClockEvent(content) {
     
 
-    // let latestAudioFrame = self.audio_frames_queue.pop()
-    // let channel1 = new Float32Array(latestAudioFrame.length / self.channelCount);
-    // let channel2 = new Float32Array(latestAudioFrame.length / self.channelCount);
-    // let channels = [channel1, channel2];
-    // deinterleave_custom(latestAudioFrame, channels, self.channelCount);
+    let predictTime = performance.now();
+    // simulateBlockingOperation(20);
 
-    // let meydaBuffer = Meyda.buffer(1024)
-    // console.log("meydaBuffer: " + meydaBuffer);
-    // let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
-    // console.log("features: " + audioChroma.rms + "    " + audioChroma.loudness.total);
-    // workerAudio.postMessage(audioChroma);
-    // postMessage({
-    //     messageType: self.messageType.CHROMA_VECTOR,
-    //     content: features.chroma,
-    // });
+    let features = self.audio_features_queue.toArrayAndClear()
+    console.log(predictTime + "  " + features.length)
+    // get all the chroma features since the last clock event (tick)
+    let chromas = features.map(f => f.chroma);
+    let rms = features.map(f => f.rms);
     
-
-    var predictTime = performance.now();
-    // simulateBlockingOperation(40);
-
+    const tickAverageChroma = average2d(chromas);
+    // The chroma's we get from Meyda seem to be shifted by 1 left. 
+    // That's probably a bug in Meyda. We'll shift it back here.
+    shiftRight(tickAverageChroma)
+    postMessage({
+        messageType: self.messageType.CHROMA_VECTOR,
+        content: tickAverageChroma,
+    });
 
     // The list of notes to be sent to the UI
     let noteList = [];
 
     const currentTick = content.tick;
     const humanQUantizedInput = content.humanQuantizedInput;
-    
-    if (content.reset) {
-        // If the user clicks the reset button, you can
-        // reset your algorithm here
-    }
     
     // An example of the Note object the UI expects
     // const note = {
@@ -365,7 +354,7 @@ async function processEventsBuffer(content) {
     // console.log("predictTime: " + predictTime)
     // The MICP package the UI expects.
     postMessage({
-        messageType: self.messageType.EVENTS_BUFFER,
+        messageType: self.messageType.CLOCK_EVENT,
         content: {
             predictTime: predictTime,
             tick: currentTick,
@@ -380,8 +369,9 @@ async function processAudioBuffer(content){
     // console.log("raw_audio", content);
 }
 
-// Hook for processing single note events.
-// This hook is called every time a note is played
+// Hook for processing single user note events.
+// This hook is called every time a note/midi event
+// is received by the user
 async function processNoteEvent(content){
     // content is a midiEvent object
     let noteList = [];
@@ -496,8 +486,8 @@ async function onMessageFunction (obj) {
             return;
         }
     } else {
-        if (obj.data.messageType == self.messageType.EVENTS_BUFFER) {
-            await self.processEventsBuffer(obj.data.content);
+        if (obj.data.messageType == self.messageType.CLOCK_EVENT) {
+            await self.processClockEvent(obj.data.content);
         } else if (obj.data.messageType == self.messageType.LOAD_ALGORITHM) {
             await self.loadAlgorithm();
         // } else if (obj.data.messageType == self.messageType.LOAD_CONFIG) {

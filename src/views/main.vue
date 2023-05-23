@@ -102,6 +102,18 @@
                 class="modalIcon">close</md-icon></button>
           </div>
           <div class="modalContent" style="overflow-y: scroll; height:600px">
+            <p class="settingsSubtitle">Clock</p>
+            <div class="md-layout md-gutter md-alignment-center">
+              <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+                <div class="settingsDiv">
+                  <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
+                  <div style="padding-top: 14px">
+                    <p class="settingsValue">{{ BPM }}</p>
+                    <vue-slider v-model="BPM" :lazy="true" :min="60" :max="120" class="settingsSlider"></vue-slider>
+                  </div>
+                </div>
+              </div>
+            </div>
             <p class="settingsSubtitle">MIDI</p>
             <div class="MIDIInput" v-if="WebMIDISupport">
               <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
@@ -899,7 +911,7 @@ export default {
       }
 
       this.worker.postMessage({
-        messageType: vm.messageType.EVENTS_BUFFER,
+        messageType: vm.messageType.CLOCK_EVENT,
         content: {
           tick: this.$store.getters.getLocalTick,
           humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
@@ -910,7 +922,7 @@ export default {
 
     async workerCallback(e) {
       const vm = this;
-      if (e.data.messageType === vm.messageType.EVENTS_BUFFER) {
+      if (e.data.messageType === vm.messageType.CLOCK_EVENT) {
         // console.log("worker callback EVENTS BUFFER for tick", e.data.content.tick);
 
         const workerPrediction = e.data.content;
@@ -1319,4 +1331,4 @@ export default {
     },
   },
 };
-</script>'
+</script>

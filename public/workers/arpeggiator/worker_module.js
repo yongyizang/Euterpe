@@ -286,7 +286,7 @@ async function loadAlgorithm() {
 // This hook is called in sync with the clock, and provides
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
-async function processEventsBuffer(content) {
+async function processClockEvent(content) {
     
 
     if (self._param_reader.dequeue_change(self.newParameter)) {
@@ -359,7 +359,7 @@ async function processEventsBuffer(content) {
     // console.log("predictTime: " + predictTime)
     // The MICP package the UI expects.
     postMessage({
-        messageType: self.messageType.EVENTS_BUFFER,
+        messageType: self.messageType.CLOCK_EVENT,
         content: {
             predictTime: predictTime,
             tick: currentTick,
@@ -490,8 +490,8 @@ async function onMessageFunction (obj) {
             return;
         }
     } else {
-        if (obj.data.messageType == self.messageType.EVENTS_BUFFER) {
-            await processEventsBuffer(obj.data.content);
+        if (obj.data.messageType == self.messageType.CLOCK_EVENT) {
+            await processClockEvent(obj.data.content);
         } else if (obj.data.messageType == self.messageType.LOAD_ALGORITHM) {
             await loadAlgorithm();
         // } else if (obj.data.messageType == self.messageType.LOAD_CONFIG) {

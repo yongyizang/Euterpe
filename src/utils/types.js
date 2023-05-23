@@ -2,7 +2,7 @@ export const messageType = {
     STATUS: 0,
     LOAD_ALGORITHM: 2,
     LOAD_CONFIG: 3,
-    EVENTS_BUFFER: 5,
+    CLOCK_EVENT: 5,
     NOTE_EVENT: 6,
     AUDIO_BUFFER: 7,
     INIT_AUDIO: 8,

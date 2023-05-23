@@ -106,8 +106,8 @@ async function loadAlgorithm() {
 // This hook is called in sync with the clock, and provides
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
-async function processEventsBuffer(content) {
-    // console.log("processEventsBuffer called at tick: ", content.tick);
+async function processClockEvent(content) {
+    // console.log("processClockEvent called at tick: ", content.tick);
     var predictTime = performance.now();
 
     /////////////////////////////////////////////////
@@ -290,7 +290,7 @@ async function processEventsBuffer(content) {
     }
     console.log("Tick ", currentTick, "worker gives", note.midi, "/", note.type, " ")
     postMessage({
-        messageType: self.constants.messageType.EVENTS_BUFFER,
+        messageType: self.constants.messageType.CLOCK_EVENT,
         content: {
             predictTime: predictTime,
             tick: currentTick,
@@ -345,8 +345,8 @@ async function onMessageFunction (obj) {
         self.externalJsonLoaded = true;
         onMessageFunction(obj);
     } else {
-        if (obj.data.messageType == self.constants.messageType.EVENTS_BUFFER) {
-            await this.processEventsBuffer(obj.data.content);
+        if (obj.data.messageType == self.constants.messageType.CLOCK_EVENT) {
+            await this.processClockEvent(obj.data.content);
         } else if (obj.data.messageType == self.constants.messageType.LOAD_ALGORITHM) {
             await this.loadAlgorithm();
         } else if (obj.data.messageType == self.constants.messageType.LOAD_CONFIG) {
