@@ -254,7 +254,9 @@ import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
 import * as rb from "ringbuf.js"; // /dist/index.js
-import { messageType, statusType, noteType, uiParameterType, workerParameterType } from '@/utils/types.js'
+import { messageType, statusType, noteType, 
+        uiParameterType, workerParameterType,
+        workerHookType } from '@/utils/types.js'
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
 import { sliders, buttons, switches} from '@/utils/widgets_config.js'
 
@@ -276,6 +278,7 @@ export default {
       noteType,
       uiParameterType,
       workerParameterType,
+      workerHookType,
 
       switches,
       sliders,
@@ -389,30 +392,6 @@ export default {
     vm.audioContext = new AudioContext;
     Tone.context.lookAhead = 0.01;
 
-    // Initialize worker
-    // experiment with , { type : 'module' }
-    vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
-    vm.worker.onmessage = vm.workerCallback;
-
-    // Send a message to worker with some necessary 
-    // configurations and constants to store inside the worker
-    await vm.worker.postMessage({
-      messageType: vm.messageType.LOAD_CONFIG,
-      content: {
-        config: vm.config,
-        messageType: vm.messageType,
-        statusType: vm.statusType,
-        noteType: vm.noteType,
-        uiParameterType: vm.uiParameterType,
-        workerParameterType: vm.workerParameterType,
-      }
-    });
-    // Tell the worker to load the algorithm
-    await vm.worker.postMessage({
-      messageType: vm.messageType.LOAD_ALGORITHM,
-      content: null,
-    });
-
     // SAB
     // get a memory region for the Audio ring buffer
     // length in time is 1 second of stereo audio
@@ -431,16 +410,52 @@ export default {
     vm.rb_par_worker = new rb.RingBuffer(vm.sab_par_worker, Uint8Array);
     vm.paramReader = new rb.ParameterReader(vm.rb_par_worker);
 
+
+    // Initialize worker
+    // experiment with , { type : 'module' }
+    vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
+    vm.worker.onmessage = vm.workerCallback;
+
+    // Send a message to worker with some necessary 
+    // configurations and constants to store inside the worker
     await vm.worker.postMessage({
-      messageType: vm.messageType.INIT_AUDIO,
+      hookType: vm.workerHookType.INIT_WORKER,
       content: {
+        config: vm.config,
+        messageType: vm.messageType,
+        statusType: vm.statusType,
+        noteType: vm.noteType,
+        uiParameterType: vm.uiParameterType,
+        workerParameterType: vm.workerParameterType,
+        workerHookType: vm.workerHookType,
+
         sab: vm.sab,
         sab_par_ui: vm.sab_par_ui,
         sab_par_worker: vm.sab_par_worker,
         channelCount: 2,
         sampleRate: vm.audioContext.sampleRate,
+
       }
     });
+    
+    // // Tell the worker to load the algorithm
+    // await vm.worker.postMessage({
+    //   messageType: vm.messageType.LOAD_ALGORITHM,
+    //   content: null,
+    // });
+
+    
+
+    // await vm.worker.postMessage({
+    //   messageType: vm.messageType.INIT_AUDIO,
+    //   content: {
+    //     sab: vm.sab,
+    //     sab_par_ui: vm.sab_par_ui,
+    //     sab_par_worker: vm.sab_par_worker,
+    //     channelCount: 2,
+    //     sampleRate: vm.audioContext.sampleRate,
+    //   }
+    // });
 
     vm.workerParameterInterval = setInterval(vm.workerParameterObserver, 10);
     /*
@@ -537,7 +552,7 @@ export default {
         // this packet will be sent to the processNoteEvent hook.
         if (vm.config.noteBasedMode.eventBased) {
           vm.worker.postMessage({
-            messageType: vm.messageType.NOTE_EVENT,
+            hookType: vm.workerHookType.NOTE_EVENT,
             content: midiEvent,
           });
         };
@@ -575,7 +590,7 @@ export default {
 
         if (vm.config.noteBasedMode.eventBased) {
           vm.worker.postMessage({
-            messageType: vm.messageType.NOTE_EVENT,
+            hookType: vm.workerHookType.NOTE_EVENT,
             content: midiEvent,
           });
         };
@@ -716,9 +731,8 @@ export default {
       // immediate: true,
       deep: true,
       handler(newStates, oldStates) {
-        console.log(newStates[0])
+        // console.log(newStates[0])
         newStates.forEach((newState, index) => {
-          console.log("skata");
           if (newState.value !== oldStates[index].value) {
             // let floatStatus = newState.status ? 1.0 : 0.0;
             const sliderPropertyName = `SLIDER_${index + 1}`;
@@ -845,7 +859,7 @@ export default {
 
           if (vm.config.noteBasedMode.eventBased) {
             vm.worker.postMessage({
-              messageType: vm.messageType.NOTE_EVENT,
+              hookType: vm.workerHookType.NOTE_EVENT,
               content: midiEvent,
             });
           };
@@ -877,7 +891,7 @@ export default {
 
           if (vm.config.noteBasedMode.eventBased) {
             vm.worker.postMessage({
-              messageType: vm.messageType.NOTE_EVENT,
+              hookType: vm.workerHookType.NOTE_EVENT,
               content: midiEvent,
             });
           };
@@ -920,7 +934,7 @@ export default {
       }
 
       this.worker.postMessage({
-        messageType: vm.messageType.CLOCK_EVENT,
+        hookType: vm.workerHookType.CLOCK_EVENT,
         content: {
           tick: this.$store.getters.getLocalTick,
           humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
@@ -930,6 +944,105 @@ export default {
     },
 
     async workerCallback(e) {
+      const vm = this;
+      let hookType = parseInt(e.data.hookType);
+      let message = e.data.message;
+      if (hookType == vm.workerHookType.CLOCK_EVENT){
+        // Lock for the CLOCK_TIME message
+        // The worker should always include a message of type CLOCK_TIME
+        // when posting from the CLOCK_EVENT hook
+        let workerPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
+        if ((workerPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
+          this.$toasted.show(
+            "Network tick misalignment: expecting " +
+            this.$store.getters.getLocalTickDelayed +
+            ", got " +
+            workerPredictionTick
+          );
+          this.misalignErrCount += 1;
+        }
+      }
+      // else {
+      for (let messageTypeStr in message) {
+        let messageValue = message[messageTypeStr];
+        let messageType = parseInt(messageTypeStr);
+        // console.log("messageType", messageType, "messageValue", messageValue)
+        // console.log("messageTypeStatus is ", vm.messageType.STATUS)
+
+        // if (messageType == vm.messageType.STATUS) {
+        //     if (messageValue == vm.statusType.SUCCESS) {
+        //       vm.$refs.entryBtn.classList.add("fade-in");
+        //       vm.$refs.entryBtn.style.visibility = "visible";
+        //       vm.modelLoadTime = Date.now() - vm.modelLoadTime;
+        //       console.log("success");
+        //     }
+        //   }
+
+        switch (messageType){
+          case vm.messageType.STATUS:
+            if (messageValue == vm.statusType.SUCCESS) {
+                vm.$refs.entryBtn.classList.add("fade-in");
+                vm.$refs.entryBtn.style.visibility = "visible";
+                vm.modelLoadTime = Date.now() - vm.modelLoadTime;
+                console.log("success");
+              };
+            break;
+          case vm.messageType.NOTE_LIST:
+            const noteEventsList = messageValue
+            noteEventsList.forEach((noteEvent) => {
+              if (noteEvent.playAfter.tick > 0) {
+                this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
+              } else {
+                if (noteEvent.type === vm.noteType.NOTE_ON) {
+                  this.$store.dispatch("samplerOn", noteEvent);
+                  // set a timeout to call keyDown based on noteEvent.timestamp.seconds
+                  setTimeout(() => {
+                    this.$root.$refs.pianoRoll.keyDown(noteEvent);
+                  }, noteEvent.playAfter.seconds * 1000);
+                }
+                else if (noteEvent.type === vm.noteType.NOTE_OFF) {
+                  this.$store.dispatch("samplerOff", noteEvent);
+                  // set a timeout to call keyUp based on noteEvent.timestamp.seconds
+                  setTimeout(() => {
+                    this.$root.$refs.pianoRoll.keyUp(noteEvent);
+                  }, noteEvent.playAfter.seconds * 1000);
+                }
+              }
+            });
+            break;
+          case vm.messageType.STATUS:
+            if (messageValue == vm.statusType.SUCCESS) {
+              vm.$refs.entryBtn.classList.add("fade-in");
+              vm.$refs.entryBtn.style.visibility = "visible";
+              vm.modelLoadTime = Date.now() - vm.modelLoadTime;
+            };
+            console.log("SUCESS IN SWITCH");
+            break;
+          case vm.messageType.CHROMA_VECTOR:
+            this.$root.$refs.chromaChart.updateChromaData(messageValue);
+            break;
+          case vm.messageType.CHORD:
+            this.textBoxText = messageValue;
+            break;
+          case vm.messageType.TEXT:
+            if (hookType == vm.workerHookType.INIT_WORKER){
+              const workerStatus = vm.$refs.workerStatus;
+              workerStatus.innerHTML = messageValue;
+            }
+            else {
+              this.textBoxText = messageValue;
+            };
+            break;
+          case vm.messageType.CLOCK_TIME:
+            break;
+          default:
+            console.log("Unknown message type: ", messageType);
+            break;
+        }
+      }
+    },
+
+    async workerCallback2(e) {
       const vm = this;
       if (e.data.messageType === vm.messageType.CLOCK_EVENT) {
         // console.log("worker callback EVENTS BUFFER for tick", e.data.content.tick);
@@ -1015,7 +1128,7 @@ export default {
         const audioBuffer = new AudioBuffer({
           numberOfChannels: 1,
           length: audio.length,
-          sampleRate: 44100
+          sampleRate: 48000
         });
         audioBuffer.copyToChannel(audio, 0);
 
@@ -1023,20 +1136,11 @@ export default {
         // vm.workerPlayer.buffer = audioBuffer;
         // vm.workerPlayer.start();
       }
-      else if (e.data.messageType === vm.messageType.WAV_BUFFER) {
-        var a = document.createElement('a');
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        const blob = new Blob([e.data.content], { type: 'audio/wav' });
-        a.href = URL.createObjectURL(blob);
-        a.download = `audio-${(new Date()).toISOString().replace(/[^0-9]/g, "")}.wav`;
-        a.click();
-      }
       else if (e.data.messageType === vm.messageType.CHROMA_VECTOR) {
         this.$root.$refs.chromaChart.updateChromaData(e.data.content);
       }
-      else if (e.data.messageType === vm.messageType.CHORD_TEXT) {
-        this.textBoxText = 'New Text';
+      else if (e.data.messageType === vm.messageType.CHORD_LABEL) {
+        this.textBoxText = e.data.content.chordText;
       }
 
     },
@@ -1300,10 +1404,6 @@ export default {
 
     stopRecording() {
       this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
-      this.worker.postMessage({
-        messageType: this.messageType.PREPARE_WAV,
-        content: {}
-      });
     },
 
     showSettingsModal() {

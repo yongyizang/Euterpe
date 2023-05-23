@@ -22,6 +22,7 @@ let messageType = null;
 let statusType = null;
 let noteType = null;
 let parameterType = null;
+let workerHookType = null;
 // Audio related variables
 let pcm = null;
 let channelCount = null;
@@ -152,7 +153,20 @@ function uiParameterObserver(){
         updateParameter(newParameterUI);
     }
 }
-// Hook that takes the config.yaml from the UI.
+
+// Hook that takes the necessary configuration data from the main thread
+async function initWorker(content) {
+    console.log("inside initWorker");
+    try {
+      loadConfig(content);
+      loadAlgorithm();
+      initAudio(content);
+      console.log("Initialization complete");
+    } catch (error) {
+      console.error("Error initializing worker:", error);
+    }
+  }
+
 async function loadConfig(content) {
     self.config = content.config;
     self.noteType = content.noteType;
@@ -160,6 +174,7 @@ async function loadConfig(content) {
     self.messageType = content.messageType;
     self.uiParameterType = content.uiParameterType;
     self.workerParameterType = content.workerParameterType;
+    self.workerHookType = content.workerHookType;
     self.ticksPerMeasure = self.config.clockBasedSettings.ticksPerBeat * 
                             self.config.clockBasedSettings.timeSignature.numerator;
     // If you have any external JSON files, you can load them here
@@ -169,12 +184,79 @@ async function loadConfig(content) {
     //         self.extraData = data;
     //     });
     self.uiParameterInterval = setInterval(uiParameterObserver, 10);
+    console.log("finished loading config")
     
 }
 
-// Hook that accepts the sharedArrayBuffer from the UI that stores audio samples
+// Hook that loads and prepares the algorithm
+async function loadAlgorithm() {
+
+    // Load/initialize your algorithm/model here
+    // const sess = new ort.InferenceSession();
+    // const ortWasm = new OrtWasm.OrtWasmThreaded();
+
+    // The UI expects a LOADED status message.
+    // postMessage({
+    //     messageType: self.messageType.STATUS,
+    //     statusType: self.statusType.LOADED,
+    //     content: "Worker is loaded!",
+    // });
+    postMessage({
+        hookType: self.workerHookType.INIT_WORKER,
+        message:{
+            [self.messageType.STATUS]: 
+                    self.statusType.LOADED,
+            [self.messageType.TEXT]: 
+                    "Worker is loaded",
+        },
+    })
+
+    // If your model/worker/algorithm needs to be warmed up, do it here
+    for (let i = 0; i < self.config.workerSettings.warmupRounds; i++) {
+
+        // you can sent WARMUP status messages to the UI if you want.
+        // postMessage({
+        //     messageType: self.messageType.STATUS,
+        //     statusType: self.statusType.WARMUP,
+        //     content: "Worker is warming up. Current round: " + (i + 1) + "/" + self.config.workerSettings.warmupRounds,
+        // });
+        postMessage({
+            hookType: self.workerHookType.INIT_WORKER,
+            message:{
+                [self.messageType.STATUS]: 
+                        self.statusType.WARMUP,
+                [self.messageType.TEXT]: 
+                        "Worker is warming up. Current round: " + (i + 1) + "/" + self.config.workerSettings.warmupRounds,
+            },
+        })
+    }
+
+    // Once your model/worker is ready to play, 
+    // UI expects a success message
+    // postMessage({
+    //     messageType: self.messageType.STATUS,
+    //     statusType: self.statusType.SUCCESS,
+    //     content: "Worker is ready to interact with you!",
+    // });
+    postMessage({
+        hookType: self.workerHookType.INIT_WORKER,
+        message:{
+            [self.messageType.STATUS]: 
+                    self.statusType.SUCCESS,
+            [self.messageType.TEXT]: 
+                    "Worker is ready to interact with you!",
+        },
+    })
+    console.log("finished loading algorithm")
+
+}
+
+// Hook that receives sharedArrayBuffers from the main UI
+// and creates readers/writers to read/write audio/parameter
+// data to them.
+// Audio related initializations also happen here.
 async function initAudio(content){
-    console.log(content)
+    // console.log(content)
     // Reads audio samples directly from the microphone
     self._audio_reader = new AudioReader(
         new RingBuffer(content.sab, Float32Array)
@@ -249,52 +331,24 @@ async function initAudio(content){
     // there's 1 second worth of space in the queue, and we'll be dequeing
     //   interval = setInterval(readFromQueue, 100);
     self.interval = setInterval(readFromQueue, 100);
+    console.log("finished loading audio")
 }
 
-// Hook that loads and prepares the algorithm
-async function loadAlgorithm() {
 
-    // Load/initialize your algorithm/model here
-    // const sess = new ort.InferenceSession();
-    // const ortWasm = new OrtWasm.OrtWasmThreaded();
-
-    // The UI expects a LOADED status message.
-    postMessage({
-        messageType: self.messageType.STATUS,
-        statusType: self.statusType.LOADED,
-        content: "Worker is loaded!",
-    });
-
-    // If your model/worker/algorithm needs to be warmed up, do it here
-    for (let i = 0; i < self.config.workerSettings.warmupRounds; i++) {
-
-        // you can sent WARMUP status messages to the UI if you want.
-        postMessage({
-            messageType: self.messageType.STATUS,
-            statusType: self.statusType.WARMUP,
-            content: "Worker is warming up. Current round: " + (i + 1) + "/" + self.config.workerSettings.warmupRounds,
-        });
-    }
-
-    // Once your model/worker is ready to play, 
-    // UI expects a success message
-    postMessage({
-        messageType: self.messageType.STATUS,
-        statusType: self.statusType.SUCCESS,
-        content: "Worker is ready to interact with you!",
-    });
-
-}
 
 // Hook for processing note/MIDI events from the user.
 // This hook is called in sync with the clock, and provides
 // 1) a buffer with all the raw events since the last clock tick
 // 2) a list of all the quantized events for the current tick
+// The time spent in this hook should be less than the time between
+// two clock ticks. Besides the note/MIDI events, you can also process
+// the available audio_features and audio_frames.
 async function processClockEvent(content) {
-    
 
     let predictTime = performance.now();
-    simulateBlockingOperation(20);
+
+    // A dummy blocking operation to simulate a long running
+    // simulateBlockingOperation(20);
 
     let features = self.audio_features_queue.toArrayAndClear()
     // get all the chroma features since the last clock event (tick)
@@ -305,10 +359,11 @@ async function processClockEvent(content) {
     // The chroma's we get from Meyda seem to be shifted by 1 left. 
     // That's probably a bug in Meyda. We'll shift it back here.
     shiftRight(tickAverageChroma)
-    postMessage({
-        messageType: self.messageType.CHROMA_VECTOR,
-        content: tickAverageChroma,
-    });
+    // postMessage({
+    //     messageType: self.messageType.CHROMA_VECTOR,
+    //     content: tickAverageChroma,
+    // });
+    
 
     // The list of notes to be sent to the UI
     let noteList = [];
@@ -346,27 +401,31 @@ async function processClockEvent(content) {
     // noteList.push(note);
 
     // estimate the inference time of your algorithm
-    // the UI keeps track of this, and will warn the user
-    // if the inference time higher than the clock's period
+    // the UI keeps track of this, and updates the 
+    // maximum supported BPM (in settings)
     predictTime = performance.now() - predictTime;
     self._param_writer.enqueue_change(self.workerParameterType.INFERENCE_TIME, predictTime);
 
     // console.log("predictTime: " + predictTime)
     // The MICP package the UI expects.
+    // postMessage({
+    //     messageType: self.messageType.CLOCK_EVENT,
+    //     content: {
+    //         tick: currentTick,
+    //         events: noteList,
+    //     }
+    // });
     postMessage({
-        messageType: self.messageType.CLOCK_EVENT,
-        content: {
-            predictTime: predictTime,
-            tick: currentTick,
-            events: noteList,
-        }
-    });
-}
-
-// Hook for processing the audioBuffer received from the main thread
-// This hook is called every Fs/buffer_size seconds
-async function processAudioBuffer(content){
-    // console.log("raw_audio", content);
+        hookType: self.workerHookType.CLOCK_EVENT,
+        message:{
+            [self.messageType.CHROMA_VECTOR]: 
+                    tickAverageChroma,
+            [self.messageType.NOTE_LIST]: 
+                    noteList,
+            [self.messageType.CLOCK_TIME]:
+                    currentTick
+        },
+    })
 }
 
 // Hook for processing single user note events.
@@ -408,98 +467,36 @@ async function processNoteEvent(content){
 
     console.log(self.audio_frames_queue.length());
 
+    // postMessage({
+    //     messageType: self.messageType.NOTE_EVENT,
+    //     content: {
+    //         // predictTime: predictTime,
+    //         // tick: currentTick,
+    //         events: noteList,
+    //     }
+    // });
     postMessage({
-        messageType: self.messageType.NOTE_EVENT,
-        content: {
-            // predictTime: predictTime,
-            // tick: currentTick,
-            events: noteList,
-        }
-    });
+        hookType: self.workerHookType.NOTE_EVENT,
+        message:{
+            [self.messageType.NOTE_LIST]: 
+                    noteList,
+        },
+    })
 }
 
-async function prepareWAV(){
-    // clearInterval(self.interval);
-    // Drain the ring buffer
-    while (readFromQueue()) {
-    /* empty */
-    }
-    // Structure of a wav file, with a byte offset for the values to modify:
-    // sample-rate, channel count, block align.
-    const CHANNEL_OFFSET = 22;
-    const SAMPLE_RATE_OFFSET = 24;
-    const BLOCK_ALIGN_OFFSET = 32;
-    const header = [
-    // RIFF header
-    0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
-    // fmt chunk. We always write 16-bit samples.
-    0x66, 0x6d, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0xff, 0xff,
-    0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x10, 0x00,
-    // data chunk
-    0x64, 0x61, 0x74, 0x61, 0xfe, 0xff, 0xff, 0x7f,
-    ];
-    // Find final size: size of the header + number of samples * channel count
-    // * 2 because pcm16
-    let size = header.length;
-    for (let i = 0; i < self.pcm.length; i++) {
-    size += self.pcm[i].length * 2;
-    }
-    const wav = new Uint8Array(size);
-    const view = new DataView(wav.buffer);
-
-    // Copy the header, and modify the values: note that RIFF
-    // is little-endian, we need to pass `true` as the last param.
-    for (let i = 0; i < wav.length; i++) {
-    wav[i] = header[i];
-    }
-
-    console.log(
-    `Writing wav file: ${self.sampleRate}Hz, ${self.channelCount} channels, int16`
-    );
-
-    view.setUint16(CHANNEL_OFFSET, self.channelCount, true);
-    view.setUint32(SAMPLE_RATE_OFFSET, self.sampleRate, true);
-    view.setUint16(BLOCK_ALIGN_OFFSET, self.channelCount * 2, true);
-
-    // Finally, copy each segment in order as int16, and transfer the array
-    // back to the main thread for download.
-    let writeIndex = header.length;
-    for (let segment = 0; segment < self.pcm.length; segment++) {
-    for (let sample = 0; sample < self.pcm[segment].length; sample++) {
-        view.setInt16(writeIndex, self.pcm[segment][sample], true);
-        writeIndex += 2;
-    }
-    }
-    // postMessage(wav.buffer, [wav.buffer]);
-    postMessage({
-        messageType: self.messageType.WAV_BUFFER,
-        content: wav.buffer
-    }, [wav.buffer]);
-
-}
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
     if (self.config == null) {
-        await self.loadConfig(obj.data.content);
+        await self.initWorker(obj.data.content);
         // make sure that the config is loaded
         if (self.config == null) {
             return;
         }
     } else {
-        if (obj.data.messageType == self.messageType.CLOCK_EVENT) {
+        if (obj.data.hookType == self.workerHookType.CLOCK_EVENT) {
             await self.processClockEvent(obj.data.content);
-        } else if (obj.data.messageType == self.messageType.LOAD_ALGORITHM) {
-            await self.loadAlgorithm();
-        // } else if (obj.data.messageType == self.messageType.LOAD_CONFIG) {
-        //     await self.loadConfig(obj.data.content);
-        } else if (obj.data.messageType == self.messageType.INIT_AUDIO) {
-            await self.initAudio(obj.data.content);
-        } else if (obj.data.messageType == self.messageType.AUDIO_BUFFER) {
-            await self.processAudioBuffer(obj.data.content);
-        } else if (obj.data.messageType == self.messageType.NOTE_EVENT){
+        } else if (obj.data.hookType == self.workerHookType.NOTE_EVENT){
             await self.processNoteEvent(obj.data.content);
-        } else if (obj.data.messageType == self.messageType.PREPARE_WAV){
-            await self.prepareWAV();
         }
     }
 }

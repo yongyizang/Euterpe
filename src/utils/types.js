@@ -1,15 +1,12 @@
 export const messageType = {
     STATUS: 0,
-    LOAD_ALGORITHM: 2,
-    LOAD_CONFIG: 3,
-    CLOCK_EVENT: 5,
-    NOTE_EVENT: 6,
+    NOTE_LIST: 4,
     AUDIO_BUFFER: 7,
-    INIT_AUDIO: 8,
-    PREPARE_WAV: 9,
-    WAV_BUFFER: 10,
     CHROMA_VECTOR: 11,
-  };
+    CHORD_LABEL: 12,
+    TEXT: 13,
+    CLOCK_TIME: 1
+};
   
 export const statusType = {
     LOADED: 0,
@@ -44,4 +41,10 @@ export const workerParameterType = {
     RMS : 0,
     LOUDNESS : 1,
     INFERENCE_TIME : 2,
+}
+
+export const workerHookType = {
+    CLOCK_EVENT : 0,
+    NOTE_EVENT : 1,
+    INIT_WORKER: 2,
 }
