@@ -143,44 +143,51 @@
           </div>
           <div class="modalContent" style="overflow-y: scroll; height:600px">
             <p class="settingsSubtitle">User</p>
-            <div class="md-layout md-gutter md-alignment-center">
-
-              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" label="vol" />
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <span class="settingsOptionTitle">mute</span>
-                  <toggle-button color="#74601c" :value="false" @change="toggleHumanSamplers"
-                    style="transform: scale(0.9); padding-top: 17px" />
-                </div>
+            <div class="md-layout md-gutter md-alignment-left">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
+                <p style="height:15px;margin:0;line-height:0;">Total Volume</p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanVolume * 10 }} % </p>
               </div>
+              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
+              <p>Mute</p>
+              <toggle-button color="#74601c" v-model="humanSamplerMuted" @change="toggleHumanSamplers"
+                style="transform: scale(0.9); padding-top: 17px" />
+            </div>
+
+            <div class="md-layout md-gutter md-alignment-left">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
+                <p style="height:15px;margin:0;line-height:0;">Upright Bass Volume</p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanUprightBassVolume * 10 }} % </p>
+              </div>
+              <HorizontalSlider v-model="humanUprightBassVolume" :min="1" :max="10" />
+              <p>Mute</p>
+              <toggle-button color="#74601c" :value="humanUprightBassMuted" @change="togglehumanUprightBass"
+                style="transform: scale(0.9); padding-top: 17px" />
             </div>
 
             <p class="settingsSubtitle">Metronome</p>
-            <div class="md-layout md-gutter md-alignment-center">
-
-              <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" label="vol" />
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <span class="settingsOptionTitle">mute</span>
-                  <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
-                    style="transform: scale(0.9); padding-top: 17px" />
-                </div>
+            <div class="md-layout md-gutter md-alignment-left">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
+                <p style="height:15px;margin:0;line-height:0;">Metronome Volume</p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ metronomeVolume * 10 }} % </p>
               </div>
+              <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" />
+              <p>Mute</p>
+              <toggle-button color="#74601c" :value="false" @change="toggleMetronome"
+                style="transform: scale(0.9); padding-top: 17px" />
             </div>
 
             <p class="settingsSubtitle">Worker</p>
-            <div class="md-layout md-gutter md-alignment-center">
-
-              <HorizontalSlider v-model="workerVolume" :min="1" :max="10" label="vol" />
-              <div class="md-layout-item md-large-size-50 md-xsmall-size-100">
-                <div class="settingsDiv">
-                  <span class="settingsOptionTitle">mute</span>
-                  <toggle-button color="#74601c" :value="false" @change="toggleWorkerSamplers"
-                    style="transform: scale(0.9); padding-top: 17px" />
-                </div>
+            <div class="md-layout md-gutter md-alignment-left">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
+                <p style="height:15px;margin:0;line-height:0;">Worker Total Volume</p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ workerVolume * 10 }} % </p>
               </div>
+              <HorizontalSlider v-model="workerVolume" :min="1" :max="10" />
+              <p>Mute</p>
+              <toggle-button color="#74601c" :value="false" @change="toggleWorkerSamplers"
+                style="transform: scale(0.9); padding-top: 17px" />
             </div>
-
           </div>
         </div>
       </modal>
@@ -279,6 +286,9 @@ export default {
       selectedMIDIDevice: "",
 
       humanVolume: 5,
+      humanSamplerMuted: false,
+      humanUprightBassVolume: 5,
+      humanUprightBassMuted: false,
       workerVolume: 5,
       metronomeVolume: 5,
 
@@ -717,6 +727,16 @@ export default {
         //   console.error("Couldn't enqueue.");
         // }
         this.$store.commit("setHumanVolume", newValue);
+      },
+    },
+    humanUprightBassVolume: {
+      immediate: true,
+      handler(newValue) {
+        let payload = {
+          instrument: "upright_bass",
+          volume: newValue,
+        };
+        this.$store.commit("setHumanSamplerVolume", payload);
       },
     },
     workerVolume: {
@@ -1213,6 +1233,17 @@ export default {
     },
     toggleWorkerSamplers() {
       this.$store.commit("flipWorkerSamplersMuteStatus");
+    },
+    
+    // example code for toggle a sampler.
+    togglehumanUprightBass() {
+      console.log(this.humanUprightBassMuted)
+      if (this.humanUprightBassMuted) {
+        this.$store.commit("unmuteHumanSampler", "upright_bass");
+      } else {
+        this.$store.commit("muteHumanSampler", "upright_bass");
+      }
+      this.humanUprightBassMuted = !this.humanUprightBassMuted;
     },
 
     metronomeTrigger() {

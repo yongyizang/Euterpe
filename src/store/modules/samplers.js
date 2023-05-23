@@ -11,33 +11,46 @@ window.onclick = () => {
 const limiter = new Tone.Limiter(-5).toDestination();
 // const tremolo = new Tone.Tremolo(9, 0.75).toDestination().start();
 
-const humanSamplerBus = new Tone.Channel().connect(limiter);
+const humanBus = new Tone.Channel().connect(limiter);
+const humanSamplersBus = {
+    synth: new Tone.Channel().connect(humanBus),
+    piano: new Tone.Channel().connect(humanBus),
+    drums: new Tone.Channel().connect(humanBus),
+    upright_bass: new Tone.Channel().connect(humanBus),
+}
 
 const humanSamplers = {
-    synth: new Tone.PolySynth(Tone.FMSynth).connect(humanSamplerBus),
+    synth: new Tone.PolySynth(Tone.FMSynth).connect(humanSamplersBus["synth"]),
     piano: new Instruments().createSampler("piano", (piano) => {
-        piano.connect(humanSamplerBus);
+        piano.connect(humanSamplersBus["piano"]);
     }),
     drums: new Instruments().createSampler("drums", (drums) => {
-        drums.connect(humanSamplerBus);
+        drums.connect(humanSamplersBus["drums"]);
     }),
     upright_bass: new Instruments().createSampler("upright_bass", (upright_bass) => {
-        upright_bass.connect(humanSamplerBus);
+        upright_bass.connect(humanSamplersBus["upright_bass"]);
     }),
 }
 
-const workerSamplerBus = new Tone.Channel().connect(limiter);
+const workerBus = new Tone.Channel().connect(limiter);
+
+const workerSamplersBus = {
+    synth: new Tone.Channel().connect(workerBus),
+    piano: new Tone.Channel().connect(workerBus),
+    drums: new Tone.Channel().connect(workerBus),
+    upright_bass: new Tone.Channel().connect(workerBus),
+}
 
 const workerSamplers = {
-    synth: new Tone.PolySynth(Tone.FMSynth).connect(workerSamplerBus),
+    synth: new Tone.PolySynth(Tone.FMSynth).connect(workerSamplersBus["synth"]),
     piano: new Instruments().createSampler("piano", (piano) => {
-        piano.connect(workerSamplerBus);
+        piano.connect(workerSamplersBus["piano"]);
     }),
     drums: new Instruments().createSampler("drums", (drums) => {
-        drums.connect(workerSamplerBus);
+        drums.connect(workerSamplersBus["drums"]);
     }),
     upright_bass: new Instruments().createSampler("upright_bass", (upright_bass) => {
-        upright_bass.connect(workerSamplerBus);
+        upright_bass.connect(workerSamplersBus["upright_bass"]);
     }),
 }
 
@@ -50,7 +63,6 @@ const metronomeSampler = new Instruments().createSampler(
 
 const metronomeBus = new Tone.Channel().connect(limiter);
 metronomeBus.mute = true;
-
 metronomeSampler.connect(metronomeBus);
 
 const state = {
@@ -147,32 +159,32 @@ const mutations = {
     flipHumanSamplersMuteStatus(state){
         state.humanMuteStatus = !state.humanMuteStatus;
         if (state.humanMuteStatus){
-            humanSamplerBus.mute = true;
+            humanBus.mute = true;
         } else {
-            humanSamplerBus.mute = false;
+            humanBus.mute = false;
         }
     },
     flipWorkerSamplersMuteStatus(state){
         state.workerMuteStatus = !state.workerMuteStatus;
         if (state.workerMuteStatus){
-            workerSamplerBus.mute = true;
+            workerBus.mute = true;
         } else {
-            workerSamplerBus.mute = false;
+            workerBus.mute = false;
         }
     },
 
-    // muteHumanSampler(state, instrument){
-    //     humanSamplers[instrument].mute = true;
-    // },
-    // unmuteHumanSampler(state, instrument){
-    //     humanSamplers[instrument].mute = false;
-    // },
-    // muteWorkerSampler(state, instrument){
-    //     workerSamplers[instrument].mute = true;
-    // },
-    // unmuteWorkerSampler(state, instrument){
-    //     workerSamplers[instrument].mute = false;
-    // },
+    muteHumanSampler(state, instrument){
+        humanSamplersBus[instrument].mute = true;
+    },
+    unmuteHumanSampler(state, instrument){
+        humanSamplersBus[instrument].mute = false;
+    },
+    muteWorkerSampler(state, instrument){
+        workerSamplersBus[instrument].mute = true;
+    },
+    unmuteWorkerSampler(state, instrument){
+        workerSamplersBus[instrument].mute = false;
+    },
     
     setHumanVolume(state, volume){
         if (volume == 10){
@@ -181,7 +193,17 @@ const mutations = {
             var toDB = -Math.abs(20*Math.log(volume/10));
             state.humanSamplerVolume = toDB;
         }
-        humanSamplerBus.volume.value = state.humanSamplerVolume;
+        humanBus.volume.value = state.humanSamplerVolume;
+    },
+    setHumanSamplerVolume(state, payload){
+        let instrument = payload.instrument;
+        let volume = payload.volume;
+        if (volume == 10){
+            humanSamplersBus[instrument].volume.value = 0;
+        } else {
+            var toDB = -Math.abs(20*Math.log(volume/10));
+            humanSamplersBus[instrument].volume.value = toDB;
+        }
     },
     setWorkerVolume(state, volume){
         if (volume == 10){
@@ -190,7 +212,17 @@ const mutations = {
             var toDB = -Math.abs(20*Math.log(volume/10));
             state.workerSamplerVolume = toDB;
         };
-        workerSamplerBus.volume.value = state.workerSamplerVolume;
+        workerBus.volume.value = state.workerSamplerVolume;
+    },
+    setWorkerSamplerVolume(state, payload){
+        let instrument = payload.instrument;
+        let volume = payload.volume;
+        if (volume == 10){
+            workerSamplersBus[instrument].volume.value = 0;
+        } else {
+            var toDB = -Math.abs(20*Math.log(volume/10));
+            workerSamplersBus[instrument].volume.value = toDB;
+        }
     },
     setMetronomeVolume(state, volume){
         if (volume == 10){
