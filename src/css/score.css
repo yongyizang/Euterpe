@@ -100,11 +100,13 @@
   .slide-up {
     -webkit-animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
     animation: slide-up 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    z-index: 1!important;
   }
   
   .slide-down {
     -webkit-animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
     animation: slide-down 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    z-index: 99!important;
   }
   
   @-webkit-keyframes slide-up {

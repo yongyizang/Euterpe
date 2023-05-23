@@ -55,16 +55,16 @@ export default {
       const score = this.$refs.audioMeter;
       const scoreClass = score.classList;
       console.log("in colapse")
-      if (scoreClass.contains("slide-up")) {
+      if (scoreClass.contains("slide-up-audiometer")) {
         console.log("skata up")
-        scoreClass.replace("slide-up", "slide-down");
+        scoreClass.replace("slide-up-audiometer", "slide-down-audiometer");
         btnSymbol.replace("ri-arrow-down-s-line", "ri-arrow-up-s-line");
-      } else if (scoreClass.contains("slide-down")) {
+      } else if (scoreClass.contains("slide-down-audiometer")) {
         console.log("skata down")
-        scoreClass.replace("slide-down", "slide-up");
+        scoreClass.replace("slide-down-audiometer", "slide-up-audiometer");
         btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
       } else {
-        scoreClass.add("slide-up");
+        scoreClass.add("slide-up-audiometer");
         btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
       }
     },
