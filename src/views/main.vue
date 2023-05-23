@@ -113,19 +113,88 @@
               Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
               one of those browsers if you want to use Web MIDI
               functionalities.</span>
-            <p class="settingsSubtitle">Worker</p>
+            <p class="settingsSubtitle">Worker Parameters</p>
             <div class="md-layout md-gutter md-alignment-center">
-
-              <VerticalSlider v-model="slider1" :min="1" :max="100" label="Slider 1" />
-              <VerticalSlider v-model="slider2" :min="1" :max="100" label="Slider 2" />
-              <VerticalSlider v-model="slider3" :min="1" :max="100" label="Slider 3" />
-              <VerticalSlider v-model="slider4" :min="1" :max="100" label="Slider 4" />
-              <div class="md-layout-item md-medium-size-33 md-small-size-50 md-xsmall-size-100">
-                <md-button @click="resetNetwork" style="width: 100%">
-                  <md-icon class="forceTextColor">close</md-icon>
-                  <span class="forceTextColor">Reset Network</span>
-                </md-button>
+              <div class="md-layout-item md-large-size-50 md-small-size-100">
+                <div class="md-layout md-gutter md-alignment-center">
+                  <div class="md-layout-item md-large-size-25 md-alignment-center">
+                    <VerticalSlider v-model="slider1" :min="1" :max="100" label="Slider 1" />
+                  </div>
+                  <div class="md-layout-item md-large-size-25 md-alignment-center">
+                    <VerticalSlider v-model="slider2" :min="1" :max="100" label="Slider 2" />
+                  </div>
+                  <div class="md-layout-item md-large-size-25 md-alignment-center">
+                    <VerticalSlider v-model="slider3" :min="1" :max="100" label="Slider 3" />
+                  </div>
+                  <div class="md-layout-item md-large-size-25 md-alignment-center">
+                    <VerticalSlider v-model="slider4" :min="1" :max="100" label="Slider 4" />
+                  </div>
+                </div>
               </div>
+              <div class="md-layout-item md-large-size-50 md-small-size-100">
+                <div class="md-layout md-gutter md-alignment-center">
+                  <div class="md-layout-item md-large-size-100">
+                    <md-button @click="btn1Action" style="width: 100%">
+                      <span class="forceTextColor">Button 1</span>
+                    </md-button>
+                  </div>
+                  <div class="md-layout-item md-large-size-100">
+                    <md-button @click="btn2Action" style="width: 100%">
+                      <span class="forceTextColor">Button 2</span>
+                    </md-button>
+                  </div>
+                  <div class="md-layout-item md-large-size-100">
+                    <md-button @click="btn3Action" style="width: 100%">
+                      <span class="forceTextColor">Button 3</span>
+                    </md-button>
+                  </div>
+                  <div class="md-layout-item md-large-size-100">
+                    <md-button @click="btn4Action" style="width: 100%">
+                      <span class="forceTextColor">Button 4</span>
+                    </md-button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="md-layout md-gutter md-alignment-center">
+              <div class="md-layout-item md-large-size-100">
+                <div class="md-layout md-gutter md-alignment-center">
+                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
+                    <div style="display:block; min-width:60px; padding-top:17px">
+                      <span style="padding:0; margin:0;">Switch 1</span>
+                      <toggle-button color="#74601c" v-model="switch1status" @change="switch1toggled"
+                        style="transform: scale(0.9);" />
+                    </div>
+                  </div>
+                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
+                    <div style="display:block; min-width:60px; padding-top:17px">
+                      <span style="padding:0; margin:0;">Switch 2</span>
+                      <toggle-button color="#74601c" v-model="switch2status" @change="switch2toggled"
+                        style="transform: scale(0.9);" />
+                    </div>
+                  </div>
+                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
+                    <div style="display:block; min-width:60px; padding-top:17px">
+                      <span style="padding:0; margin:0;">Switch 3</span>
+                      <toggle-button color="#74601c" v-model="switch3status" @change="switch3toggled"
+                        style="transform: scale(0.9);" />
+                    </div>
+                  </div>
+                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
+                    <div style="display:block; min-width:60px; padding-top:17px">
+                      <span style="padding:0; margin:0;">Switch 4</span>
+                      <toggle-button color="#74601c" v-model="switch4status" @change="switch4toggled"
+                        style="transform: scale(0.9);" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="md-layout-item md-large-size-100">
+              <md-button @click="resetNetwork" style="width: 100%">
+                <md-icon class="forceTextColor">close</md-icon>
+                <span class="forceTextColor">Reset Network</span>
+              </md-button>
             </div>
           </div>
         </div>
@@ -146,26 +215,29 @@
             <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
               <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
                 <p style="height:15px;margin:0;line-height:0;">User Bus</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanVolume * 10 }} % </p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanVolume * 10 }} %
+                </p>
               </div>
               <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
               <div style="display:block; min-width:60px; padding-top:17px">
-              <span style="padding:0; margin:0;">Mute</span>
-              <toggle-button color="#74601c" v-model="humanSamplerMuted" @change="toggleHumanSamplers"
-                style="transform: scale(0.9);" />
+                <span style="padding:0; margin:0;">Mute</span>
+                <toggle-button color="#74601c" v-model="humanSamplerMuted" @change="toggleHumanSamplers"
+                  style="transform: scale(0.9);" />
               </div>
             </div>
 
             <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
               <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
                 <p style="height:15px;margin:0;line-height:0;">Upright Bass</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanUprightBassVolume * 10 }} % </p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanUprightBassVolume
+                  *
+                  10 }} % </p>
               </div>
               <HorizontalSlider v-model="humanUprightBassVolume" :min="1" :max="10" />
               <div style="display:block; min-width:60px; padding-top:17px">
-              <span style="padding:0; margin:0;">Mute</span>
-              <toggle-button color="#74601c" v-model="humanUprightBassMuted" @change="togglehumanUprightBass"
-                style="transform: scale(0.9);" />
+                <span style="padding:0; margin:0;">Mute</span>
+                <toggle-button color="#74601c" v-model="humanUprightBassMuted" @change="togglehumanUprightBass"
+                  style="transform: scale(0.9);" />
               </div>
             </div>
 
@@ -173,13 +245,15 @@
             <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
               <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
                 <p style="height:15px;margin:0;line-height:0;">Metronome</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ metronomeVolume * 10 }} % </p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ metronomeVolume * 10 }}
+                  %
+                </p>
               </div>
               <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" />
               <div style="display:block; min-width:60px; padding-top:17px">
-              <span style="padding:0; margin:0;">Mute</span>
-              <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
-                style="transform: scale(0.9);" />
+                <span style="padding:0; margin:0;">Mute</span>
+                <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
+                  style="transform: scale(0.9);" />
               </div>
             </div>
 
@@ -187,13 +261,14 @@
             <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
               <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
                 <p style="height:15px;margin:0;line-height:0;">Worker Bus</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ workerVolume * 10 }} % </p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ workerVolume * 10 }} %
+                </p>
               </div>
               <HorizontalSlider v-model="workerVolume" :min="1" :max="10" />
               <div style="display:block; min-width:60px; padding-top:17px">
-              <span style="padding:0; margin:0;">Mute</span>
-              <toggle-button color="#74601c" :value="false" @change="toggleWorkerSamplers"
-                style="transform: scale(0.9);" />
+                <span style="padding:0; margin:0;">Mute</span>
+                <toggle-button color="#74601c" :value="false" @change="toggleWorkerSamplers"
+                  style="transform: scale(0.9);" />
               </div>
             </div>
           </div>
@@ -305,6 +380,11 @@ export default {
       slider2: 0,
       slider3: 0,
       slider4: 0,
+
+      switch1status: false,
+      switch2status: false,
+      switch3status: false,
+      switch4status: false,
 
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
@@ -1242,7 +1322,7 @@ export default {
     toggleWorkerSamplers() {
       this.$store.commit("flipWorkerSamplersMuteStatus");
     },
-    
+
     // example code for toggle a sampler.
     togglehumanUprightBass() {
       console.log(this.humanUprightBassMuted)
@@ -1324,6 +1404,32 @@ export default {
       const dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
       vm.maxBPM = Math.round(1000 * 60 / dt / vm.$store.getters.getTicksPerBeat);
       // console.log("maxBPM", vm.maxBPM);
+    },
+
+    btn1Action() {
+      console.log("btn1Action");
+    },
+    btn2Action() {
+      console.log("btn2Action");
+    },
+    btn3Action() {
+      console.log("btn3Action");
+    },
+    btn4Action() {
+      console.log("btn4Action");
+    },
+
+    switch1toggled() {
+      console.log("switch1toggled, status: ", this.switch1status);
+    },
+    switch2toggled() {
+      console.log("switch2toggled, status: ", this.switch2status);
+    },
+    switch3toggled() {
+      console.log("switch3toggled, status: ", this.switch3status);
+    },
+    switch4toggled() {
+      console.log("switch4toggled, status: ", this.switch4status);
     },
   },
 };
