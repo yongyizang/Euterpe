@@ -11,9 +11,9 @@ class NoteEventSortedArray {
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         if (this.array[mid].timestamp.tick > noteEvent.timestamp.tick) {
-            left = mid + 1;
-        } else if (this.array[mid].timestamp.tick < noteEvent.timestamp.tick){
             right = mid - 1;
+        } else if (this.array[mid].timestamp.tick < noteEvent.timestamp.tick){
+            left = mid + 1;
         }
         else{
             left = mid;
@@ -45,7 +45,7 @@ let pianoState = pianoMidiNumbers.reduce((map, midi) => {
 
 const state = {
 
-    noteTypes: {},
+    noteType: {},
     // Define all basic states.
     pianoMidiNumbers: [],
     pianoState: pianoState,
@@ -87,6 +87,9 @@ const state = {
 }
 
 const getters = {
+    getNoteType (state){
+        return state.noteType;
+    },
     // Return all notes that are currently "pressed"/active
     // the notes are sorted alphabetically
     getActivePianoNotes (state){
@@ -150,7 +153,7 @@ const getters = {
     getQuantizedBufferHuman (state){
         return state.quantizedBufferHuman;
     },
-    // these two below are only used by scoreUI
+    // these two below are only used by score
     getLastHumanNoteQuantized (state){
         return state.lastHumanQuantizedNote;
     },
@@ -162,11 +165,20 @@ const getters = {
     },
     popWorkerNotesToBePlayedAt: (state) => (currentGlobalTick) => {
         const notesToBePlayed = [];
-        while (state.workerNotesToBePlayed.length > 0){
-            if (state.workerNotesToBePlayed.get(0).timestamp.tick < currentGlobalTick){
-                let discard = state.workerNotesToBePlayed.remove(0);
-            } else if (state.workerNotesToBePlayed.get(0).timestamp.tick === currentGlobalTick){
-                notesToBePlayed.push(state.workerNotesToBePlayed.remove(0));
+        let numElems = state.workerNotesToBePlayed.length;
+        if (numElems > 0) {
+            let ind = 0;
+            while (state.workerNotesToBePlayed.length > 0 && ind <= numElems){
+                if (state.workerNotesToBePlayed.get(0).timestamp.tick < currentGlobalTick){
+                    let discard = state.workerNotesToBePlayed.remove(0);
+                    ind++;
+                } else if (state.workerNotesToBePlayed.get(0).timestamp.tick === currentGlobalTick){
+                    notesToBePlayed.push(state.workerNotesToBePlayed.remove(0));
+                    ind++;
+                }
+                else{
+                    ind++;
+                }
             }
         }
         return notesToBePlayed;
@@ -190,11 +202,11 @@ const actions = {
         state.quantizedBufferWorker[nextTick] = workerNoteEvent
 
         // now update the lastWorkerNote
-        // this is only used in scoreUI.js to display the notes
+        // this is only used in score.js to display the notes
         // so maybe it should go there
         const midi = workerNoteEvent.midi;
         const cpc = workerNoteEvent.chroma;
-        const articulation =  workerNoteEvent.type === state.noteTypes.NOTE_ON ? 1 : 0;
+        const articulation =  workerNoteEvent.type === state.noteType.NOTE_ON ? 1 : 0;
 
         if (midi == 128) {
             if (state.lastWorkerNote.midi == 0){
@@ -232,16 +244,16 @@ const actions = {
     storeHumanQuantizedInput ({ commit, state, getters }, quantizedEventList) {
         
         state.quantizedBufferHuman[getters.getLocalTick] = quantizedEventList
-        // TODO : I still need this to display the notes in the scoreUI  
-        // TODO : Move this code to scoreUI.js 
+        // TODO : I still need this to display the notes in the score  
+        // TODO : Move this code to score.js 
         let args = {};
         // keep only the "on" and "hold" type events from quantizedEventList in a new array
-        const quantizedEventListOnHold = quantizedEventList.filter((event) => event.type === state.noteTypes.NOTE_ON || event.type === state.noteTypes.NOTE_HOLD);
+        const quantizedEventListOnHold = quantizedEventList.filter((event) => event.type === state.noteType.NOTE_ON || event.type === state.noteType.NOTE_HOLD);
 
         if ( quantizedEventListOnHold.length > 0 ) {
             args = {midi : quantizedEventList[0].midi,
                     // articulation is 1 if type="on" and 0 if type="hold"
-                    articulation : quantizedEventList[0].type === state.noteTypes.NOTE_ON ? 1 : 0,
+                    articulation : quantizedEventList[0].type === state.noteType.NOTE_ON ? 1 : 0,
             }
         }
         else {
@@ -322,16 +334,16 @@ const mutations = {
     //     }, {});
     // },
 
-    setNoteTypes (state, noteTypes){
-        state.noteTypes = noteTypes;
-        console.log(state.noteTypes);
+    setNoteType (state, noteType){
+        state.noteType = noteType;
+        console.log(state.noteType);
     },
     initQuantBuffers(state, config) {
         const restNote = {
             midi : 128,
             chroma : 12,
             name : "R",
-            type : state.noteTypes.REST,
+            type : state.noteType.REST,
         };
         let ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
         // initialize quantizedBufferWorker and quantizedBufferHuman with 16 restNotes

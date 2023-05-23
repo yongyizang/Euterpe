@@ -7,7 +7,7 @@ const state = {
   clockInitialized: false,
   bpm: null,
   frequency: null,
-  randomness: null,
+  // randomness: null,
   modalStatus: false,
 };
 
@@ -24,9 +24,9 @@ const getters = {
   getBPM(state){
     return state.bpm;
   },
-  getRandomness(state){
-    return state.randomness;
-  },
+  // getRandomness(state){
+  //   return state.randomness;
+  // },
   getModalStatus(state){
     return state.modalStatus;
   },
@@ -75,9 +75,9 @@ const mutations = {
   changeModalStatus(state){
     state.modalStatus = !state.modalStatus;
   },
-  setRandomness(state, randomness){
-    state.randomness = randomness;
-  }
+  // setRandomness(state, randomness){
+  //   state.randomness = randomness;
+  // }
 };
 
 export default {
