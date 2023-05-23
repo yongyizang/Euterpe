@@ -36,9 +36,9 @@
       <!-- Custom Vue UI Components -->
       <Score />
       <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="128" orientation="top"
-        style="position:absolute; z-index:0; top:0; left:400; background-color:transparent" />
-      <ChromaChart ref="chromaChart" :width="300" :height="100"
-        :styles="{ position: 'absolute', zIndex: 0, top: '100px', left: '0px', backgroundColor: 'transparent' }" />
+        style="position:absolute; z-index:0; top:10px; left:0; background-color:rgba(23, 51, 110, 0.753)" />
+      <ChromaChart ref="chromaChart" :width="300" :height="110"
+        :styles="{ position: 'absolute', zIndex: 0, top: '10px', right: '0px', backgroundColor: 'rgba(23, 51, 110, 0.753)' }" />
       <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
@@ -96,7 +96,7 @@
                 placeholder="Type here to search for MIDI device">
               </Dropdown>
             </div>
-            <span v-else="WebMIDISupport">
+            <span v-else>
               Currently, Using MIDI devices in browser is only supported by Google
               Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
               one of those browsers if you want to use Web MIDI
@@ -255,6 +255,7 @@ import yaml from "js-yaml";
 import * as rb from "ringbuf.js"; // /dist/index.js
 import { messageType, statusType, noteType, uiParameterType, workerParameterType } from '@/utils/types.js'
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
+import { sliders, buttons, switches} from '@/utils/widgets_config.js'
 
 // This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
 window.onclick = () => {
@@ -274,6 +275,10 @@ export default {
       noteType,
       uiParameterType,
       workerParameterType,
+
+      switches,
+      sliders,
+      buttons,
 
       workerName: "arpeggiator",
 
@@ -301,9 +306,6 @@ export default {
 
 
       workerParameterInterval: null,
-      // reset signal to notify the Worker to reset.
-      // If your worker doesn't support reseting, you can ignore this.
-      reset: false,
 
       WebMIDISupport: false,
       pageLoadTime: null,
@@ -317,27 +319,6 @@ export default {
       humanUprightBassMuted: false,
       workerVolume: 5,
       metronomeVolume: 5,
-
-      switches: [
-        { id: 1, label: "Switch 1", status: false }, // Switch 1
-        { id: 2, label: "Switch 2", status: false }, // Switch 2
-        { id: 3, label: "Switch 3", status: false }, // Switch 3
-        { id: 4, label: "Switch 4", status: false }, // Switch 4
-      ],
-
-      sliders: [
-        { id: 1, label: "Slider 1", value: 0, min: 0, max: 100 }, // Slider 1
-        { id: 2, label: "Slider 2", value: 0, min: 0, max: 100 }, // Slider 2
-        { id: 3, label: "Slider 3", value: 0, min: 0, max: 100 }, // Slider 3
-        { id: 4, label: "Slider 4", value: 0, min: 0, max: 100 }, // Slider 4
-      ],
-
-      buttons: [
-        { id: 1, label: "Button 1" }, // Button 1
-        { id: 2, label: "Button 2" }, // Button 2
-        { id: 3, label: "Button 3" }, // Button 3
-        { id: 4, label: "Button 4" }, // Button 4
-      ],
 
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
@@ -492,27 +473,7 @@ export default {
 
     // send the mic to the recorderNode --> recorderWorklet
     vm.mediaStreamSource.connect(vm.recorderWorkletNode);
-    // vm.recorderWorkSletNode.connect(vm.audioContext.destination);
     // vm.workerPlayer = new Tone.Player().toDestination();
-
-    // vm.osc = new OscillatorNode(vm.audioContext);
-    // var fm = new OscillatorNode(vm.audioContext);
-    // var gain = new GainNode(vm.audioContext);
-    // var panner = new StereoPannerNode(vm.audioContext);
-    // var panModulation = new OscillatorNode(vm.audioContext);
-
-    // panModulation.frequency.value = 2.0;
-    // fm.frequency.value = 1.0;
-    // gain.gain.value = 110;
-
-    // panModulation.connect(panner.pan);
-    // fm.connect(gain).connect(vm.osc.frequency);
-    // vm.osc.connect(panner).connect(vm.audioContext.destination);
-    // // panner.connect(vm.recorderWorkletNode);
-
-    // vm.osc.start(0);
-    // fm.start(0);
-    // panModulation.start(0);
 
     /*
      * Web MIDI logic
@@ -752,7 +713,9 @@ export default {
       // immediate: true,
       deep: true,
       handler(newStates, oldStates) {
+        console.log(newStates[0])
         newStates.forEach((newState, index) => {
+          console.log("skata");
           if (newState.value !== oldStates[index].value) {
             // let floatStatus = newState.status ? 1.0 : 0.0;
             const sliderPropertyName = `SLIDER_${index + 1}`;
@@ -1059,10 +1022,6 @@ export default {
       else if (e.data.messageType === vm.messageType.CHROMA_VECTOR) {
         this.$root.$refs.chromaChart.updateChromaData(e.data.content);
       }
-    },
-
-    resetNetwork() {
-      this.reset = true;
     },
 
     triggerWorkerSamplerSync() {

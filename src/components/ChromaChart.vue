@@ -87,7 +87,7 @@
             {
                 label: 'chromaData',
                 backgroundColor: '#f87979',
-                data: [0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0]
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             }
           ]
         };

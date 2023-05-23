@@ -56,11 +56,11 @@ let switch3 = null;
 let switch4 = null;
 
 
-// Read some float32 pcm from the queue, convert to int16 pcm, and push it to
-// our global queue.
+// Read some audio samples from queue, and process them
+// Here we create audio_frames based on windowSize and hopSize
+// and we do some basic analysis on each frame (RMS, loudness, chroma)
 function readFromQueue() {
     const samples_read = self._audio_reader.dequeue(self.staging);
-    // console.log("staestaging", Date.now());
     if (!samples_read) {
       return 0;
     }
@@ -94,7 +94,6 @@ function readFromQueue() {
         self.currentFrame[self.sampleCounter] = self.staging[i];
         self.sampleCounter += 1;
         
-    //   self.local_audio_buffer.push(self.staging[i]);
     }
     self.pcm.push(segment);
     return samples_read;
@@ -298,7 +297,6 @@ async function processClockEvent(content) {
     // simulateBlockingOperation(20);
 
     let features = self.audio_features_queue.toArrayAndClear()
-    console.log(predictTime + "  " + features.length)
     // get all the chroma features since the last clock event (tick)
     let chromas = features.map(f => f.chroma);
     let rms = features.map(f => f.rms);
