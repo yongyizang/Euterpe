@@ -42,6 +42,9 @@
       <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
+      <div style="position: absolute; bottom: 300px; right: 20px" background-color: transparent>
+        <TextBox :initialText="textBoxText" />
+      </div>
       <!-- On-screen buttons -->
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
@@ -245,6 +248,7 @@ import VerticalSlider from '@/components/VerticalSlider.vue'
 import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "../components/AudioMeter.vue";
 import ChromaChart from "../components/ChromaChart.vue";
+import TextBox from "../components/TextBox.vue";
 import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
@@ -300,7 +304,8 @@ export default {
       paramWriter: null,
       sab_par_worker: null,
       rb_par_worker: null,
-
+      
+      textBoxText: "Gm7/D",
 
       workerParameterInterval: null,
 
@@ -340,6 +345,7 @@ export default {
     Dropdown,
     AudioMeter,
     ChromaChart,
+    TextBox
   },
 
   created() {
@@ -771,7 +777,18 @@ export default {
     workerParameterObserver() {
       let newParameterWorker = { index: null, value: null };
       if (this.paramReader.dequeue_change(newParameterWorker)) {
-        // console.log("param index: " + newParameterWorker.index + " value: " + newParameterWorker.value);
+        switch (newParameterWorker.index) {
+          case this.workerParameterType.INFERENCE_TIME:
+            this.modelInferenceTimes.push(newParameterWorker.value);
+            break;
+          case this.workerParameterType.RMS:
+            break;
+          case this.workerParameterType.LOUDNESS:
+            break;
+          default:
+            console.log("Unknown parameter index: " + newParameterWorker.index + 
+                        " make sure you have registerd it in utils/types.js");
+        }
       }
     },
 
@@ -918,7 +935,6 @@ export default {
         // console.log("worker callback EVENTS BUFFER for tick", e.data.content.tick);
 
         const workerPrediction = e.data.content;
-        vm.modelInferenceTimes.push(workerPrediction.predictTime);
         const noteEventsList = workerPrediction.events;
         noteEventsList.forEach((noteEvent) => {
           if (noteEvent.playAfter.tick > 0) {
@@ -1019,6 +1035,10 @@ export default {
       else if (e.data.messageType === vm.messageType.CHROMA_VECTOR) {
         this.$root.$refs.chromaChart.updateChromaData(e.data.content);
       }
+      else if (e.data.messageType === vm.messageType.CHORD_TEXT) {
+        this.textBoxText = 'New Text';
+      }
+
     },
 
     triggerWorkerSamplerSync() {

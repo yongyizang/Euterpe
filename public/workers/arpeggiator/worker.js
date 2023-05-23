@@ -294,7 +294,7 @@ async function processClockEvent(content) {
     
 
     let predictTime = performance.now();
-    // simulateBlockingOperation(20);
+    simulateBlockingOperation(20);
 
     let features = self.audio_features_queue.toArrayAndClear()
     // get all the chroma features since the last clock event (tick)
@@ -349,6 +349,8 @@ async function processClockEvent(content) {
     // the UI keeps track of this, and will warn the user
     // if the inference time higher than the clock's period
     predictTime = performance.now() - predictTime;
+    self._param_writer.enqueue_change(self.workerParameterType.INFERENCE_TIME, predictTime);
+
     // console.log("predictTime: " + predictTime)
     // The MICP package the UI expects.
     postMessage({

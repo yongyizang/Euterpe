@@ -43,4 +43,5 @@ export const uiParameterType = {
 export const workerParameterType = {
     RMS : 0,
     LOUDNESS : 1,
+    INFERENCE_TIME : 2,
 }

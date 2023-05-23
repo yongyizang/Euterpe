@@ -21,12 +21,6 @@
     -webkit-box-shadow: -4px 6px 15px -9px #000000;
     box-shadow: -4px 6px 15px -9px #000000;
     background-color: var(--score-background-color);
-    /* -webkit-border-bottom-right-radius: 10px;
-    -webkit-border-bottom-left-radius: 10px;
-    -moz-border-radius-bottomright: 10px;
-    -moz-border-radius-bottomleft: 10px;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 1px; */
   }
   
   #collapseBtn2 {
