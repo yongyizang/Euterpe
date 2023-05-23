@@ -1,14 +1,21 @@
 <template>
-  <div>
-    <canvas 
-        ref="audioCanvas"
-        :width="width" 
-        :height="height">
+  <div ref="audioMeter" id="audioMeter">
+    <div v-touch:swipe.up="triggerCollapse" id="canvasWrapper">
+      <canvas 
+          ref="audioCanvas"
+          :width="width" 
+          :height="height">
       </canvas>
+    </div>
+    <button type="button" @click="triggerCollapse" id="collapseBtn2">
+      <i ref="collapseBtnSymbol2" class="ri-arrow-up-s-line"></i>
+    </button>
   </div>
 </template>
 
 <script>
+import "../css/audioMeter.css";
+
 export default {
   name: 'AudioMeter',
   props: {
@@ -38,9 +45,30 @@ export default {
     };
   },
   created() {
+    this.$root.$refs.audioMeter = this;
     this.startAnalyser();
   },
   methods: {
+
+    triggerCollapse() {
+      const btnSymbol = this.$refs.collapseBtnSymbol2.classList;
+      const score = this.$refs.audioMeter;
+      const scoreClass = score.classList;
+      console.log("in colapse")
+      if (scoreClass.contains("slide-up")) {
+        console.log("skata up")
+        scoreClass.replace("slide-up", "slide-down");
+        btnSymbol.replace("ri-arrow-down-s-line", "ri-arrow-up-s-line");
+      } else if (scoreClass.contains("slide-down")) {
+        console.log("skata down")
+        scoreClass.replace("slide-down", "slide-up");
+        btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
+      } else {
+        scoreClass.add("slide-up");
+        btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
+      }
+    },
+
     startAnalyser() {
       console.log('Starting analyser');
       if (!this.audioContext) {

@@ -35,10 +35,10 @@
       </div>
       <!-- Custom Vue UI Components -->
       <Score />
-      <AudioMeter ref="audioMeter" :width="300" :height="100" :fft_bins="128" orientation="top"
-        style="position:absolute; z-index:0; top:10px; left:0; background-color:rgba(23, 51, 110, 0.753)" />
+      <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
+        style="position:absolute; z-index:0; top:0px; left:0; background-color:transparent" />
       <ChromaChart ref="chromaChart" :width="300" :height="110"
-        :styles="{ position: 'absolute', zIndex: 0, top: '10px', right: '0px', backgroundColor: 'rgba(23, 51, 110, 0.753)' }" />
+        :styles="{ position: 'absolute', zIndex: 0, top: '10px', right: '0px', backgroundColor: 'transparent' }" />
       <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
@@ -46,15 +46,12 @@
       <div style="position: absolute; bottom: 230px; right: 20px">
         <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
           <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
-          <!-- <span> {{ localSyncClockStatus ? "Pause" : "Play" }}</span> -->
         </md-button>
         <md-button class="controlBtn" @click="showSettingsModal">
           <md-icon>settings</md-icon>
-          <!-- <span> Settings </span> -->
         </md-button>
         <md-button class="controlBtn" @click="showMixerModal">
           <md-icon>tune</md-icon>
-          <!-- <span> Settings </span> -->
         </md-button>
       </div>
       <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
