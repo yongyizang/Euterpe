@@ -105,40 +105,18 @@
             <div class="md-layout md-gutter md-alignment-center">
               <div class="md-layout-item md-large-size-50 md-small-size-100">
                 <div class="md-layout md-gutter md-alignment-center">
-                  <div class="md-layout-item md-large-size-25 md-alignment-center">
-                    <VerticalSlider v-model="slider1" :min="1" :max="100" label="Slider 1" />
-                  </div>
-                  <div class="md-layout-item md-large-size-25 md-alignment-center">
-                    <VerticalSlider v-model="slider2" :min="1" :max="100" label="Slider 2" />
-                  </div>
-                  <div class="md-layout-item md-large-size-25 md-alignment-center">
-                    <VerticalSlider v-model="slider3" :min="1" :max="100" label="Slider 3" />
-                  </div>
-                  <div class="md-layout-item md-large-size-25 md-alignment-center">
-                    <VerticalSlider v-model="slider4" :min="1" :max="100" label="Slider 4" />
+                  <!-- Sliders for worker parameters -->
+                  <div v-for="sliderItem in sliders" :key="sliderItem.id"  class="md-layout-item md-large-size-25 md-alignment-center">
+                    <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max :label="sliderItem.label" />
                   </div>
                 </div>
               </div>
               <div class="md-layout-item md-large-size-50 md-small-size-100">
                 <div class="md-layout md-gutter md-alignment-center">
-                  <div class="md-layout-item md-large-size-100">
-                    <md-button @click="btn1Action" style="width: 100%">
-                      <span class="forceTextColor">Button 1</span>
-                    </md-button>
-                  </div>
-                  <div class="md-layout-item md-large-size-100">
-                    <md-button @click="btn2Action" style="width: 100%">
-                      <span class="forceTextColor">Button 2</span>
-                    </md-button>
-                  </div>
-                  <div class="md-layout-item md-large-size-100">
-                    <md-button @click="btn3Action" style="width: 100%">
-                      <span class="forceTextColor">Button 3</span>
-                    </md-button>
-                  </div>
-                  <div class="md-layout-item md-large-size-100">
-                    <md-button @click="btn4Action" style="width: 100%">
-                      <span class="forceTextColor">Button 4</span>
+                  <!-- Buttons for worker parameters -->
+                  <div v-for="buttonItem in buttons" :key="buttonItem.id" class="md-layout-item md-large-size-100">
+                    <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
+                      <span class="forceTextColor">{{ buttonItem.label }}</span>
                     </md-button>
                   </div>
                 </div>
@@ -147,42 +125,19 @@
             <div class="md-layout md-gutter md-alignment-center">
               <div class="md-layout-item md-large-size-100">
                 <div class="md-layout md-gutter md-alignment-center">
-                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
+                  <!-- Switches for worker parameters -->
+                  <div v-for="swi in switches" :key="swi.id" class="md-layout-item md-large-size-25 md-medium-size-50">
                     <div style="display:block; min-width:60px; padding-top:17px">
-                      <span style="padding:0; margin:0;">Switch 1</span>
-                      <toggle-button color="#74601c" v-model="switch1status" @change="switch1toggled"
-                        style="transform: scale(0.9);" />
-                    </div>
-                  </div>
-                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
-                    <div style="display:block; min-width:60px; padding-top:17px">
-                      <span style="padding:0; margin:0;">Switch 2</span>
-                      <toggle-button color="#74601c" v-model="switch2status" @change="switch2toggled"
-                        style="transform: scale(0.9);" />
-                    </div>
-                  </div>
-                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
-                    <div style="display:block; min-width:60px; padding-top:17px">
-                      <span style="padding:0; margin:0;">Switch 3</span>
-                      <toggle-button color="#74601c" v-model="switch3status" @change="switch3toggled"
-                        style="transform: scale(0.9);" />
-                    </div>
-                  </div>
-                  <div class="md-layout-item md-large-size-25 md-medium-size-50">
-                    <div style="display:block; min-width:60px; padding-top:17px">
-                      <span style="padding:0; margin:0;">Switch 4</span>
-                      <toggle-button color="#74601c" v-model="switch4status" @change="switch4toggled"
-                        style="transform: scale(0.9);" />
+                      <span style="padding:0; margin:0;">{{ swi.label }}</span>
+                        <toggle-button
+                          color="#74601c"
+                          v-model="swi.status"
+                          style="transform: scale(0.9);"
+                        />
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="md-layout-item md-large-size-100">
-              <md-button @click="resetNetwork" style="width: 100%">
-                <md-icon class="forceTextColor">close</md-icon>
-                <span class="forceTextColor">Reset Network</span>
-              </md-button>
             </div>
           </div>
         </div>
@@ -363,16 +318,26 @@ export default {
       workerVolume: 5,
       metronomeVolume: 5,
 
-      sliderValue: 0,
-      slider1: 0,
-      slider2: 0,
-      slider3: 0,
-      slider4: 0,
+      switches: [
+        { id: 1, label: "Switch 1", status: false }, // Switch 1
+        { id: 2, label: "Switch 2", status: false }, // Switch 2
+        { id: 3, label: "Switch 3", status: false }, // Switch 3
+        { id: 4, label: "Switch 4", status: false }, // Switch 4
+      ],
 
-      switch1status: false,
-      switch2status: false,
-      switch3status: false,
-      switch4status: false,
+      sliders: [
+        { id: 1, label: "Slider 1", value: 0, min: 0, max: 100 }, // Slider 1
+        { id: 2, label: "Slider 2", value: 0, min: 0, max: 100 }, // Slider 2
+        { id: 3, label: "Slider 3", value: 0, min: 0, max: 100 }, // Slider 3
+        { id: 4, label: "Slider 4", value: 0, min: 0, max: 100 }, // Slider 4
+      ],
+
+      buttons: [
+        { id: 1, label: "Button 1" }, // Button 1
+        { id: 2, label: "Button 2" }, // Button 2
+        { id: 3, label: "Button 3" }, // Button 3
+        { id: 4, label: "Button 4" }, // Button 4
+      ],
 
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
@@ -700,6 +665,19 @@ export default {
 
   },
 
+  computed: {
+    // This copies the switches array to computedSwitches
+    // so that we can watch() the computedSwitches while
+    // havin access to the old switches array.
+    // https://github.com/vuejs/vue/issues/2164
+    computedSwitches: function() {
+        return this.switches.map(a => {return {...a}})
+    },
+    computedSliders: function() {
+        return this.sliders.map(a => {return {...a}})
+    }
+  },
+
   watch: {
     screenWidth: {
       // At every screenWidth data change, this would automatically change the keyboard's octave number.
@@ -749,53 +727,49 @@ export default {
         this.$store.commit("setBPM", newValue);
       },
     },
-    slider1: {
-      immediate: true,
-      handler(newValue) {
-        console.log("paramWriter " + this.paramWriter + " type" + this.uiParameterType.SLIDER_1);
-        if (this.paramWriter != null &&
-          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_1, newValue)) {
-          console.error("Couldn't enqueue.");
-        }
-      },
+    computedSwitches: {
+      // immediate: true,
+      deep: true,
+      handler(newStates, oldStates) {
+        newStates.forEach((newState, index) => {
+          if (newState.status !== oldStates[index].status) {
+            let floatStatus = newState.status ? 1.0 : 0.0;
+            const switchPropertyName = `SWITCH_${index + 1}`;
+            if (
+              this.paramWriter != null &&
+              !this.paramWriter.enqueue_change(
+                this.uiParameterType[switchPropertyName],
+                floatStatus
+              )
+            ) {
+              console.error("Couldn't enqueue.");
+            }
+          }
+        });
+      }
     },
-    slider2: {
-      immediate: true,
-      handler(newValue) {
-        if (this.paramWriter != null &&
-          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_2, newValue)) {
-          console.error("Couldn't enqueue.");
-        }
-      },
+    computedSliders: {
+      // immediate: true,
+      deep: true,
+      handler(newStates, oldStates) {
+        newStates.forEach((newState, index) => {
+          if (newState.value !== oldStates[index].value) {
+            // let floatStatus = newState.status ? 1.0 : 0.0;
+            const sliderPropertyName = `SLIDER_${index + 1}`;
+            if (
+              this.paramWriter != null &&
+              !this.paramWriter.enqueue_change(
+                this.uiParameterType[sliderPropertyName],
+                newState.value
+              )
+            ) {
+              console.error("Couldn't enqueue.");
+            }
+          }
+        });
+      }
     },
-    slider3: {
-      immediate: true,
-      handler(newValue) {
-        if (this.paramWriter != null &&
-          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_3, newValue)) {
-          console.error("Couldn't enqueue.");
-        }
-      },
-    },
-    slider4: {
-      immediate: true,
-      handler(newValue) {
-        if (this.paramWriter != null &&
-          !this.paramWriter.enqueue_change(this.uiParameterType.SLIDER_4, newValue)) {
-          console.error("Couldn't enqueue.");
-        }
-      },
-    },
-    // randomness: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     if (this.paramWriter!=null && !this.paramWriter.enqueue_change(0, newValue)) {
-    //       console.error("Couldn't enqueue.");
-    //     }
-    //     console.log("inside randomness handler")
-    //     // this.$store.commit("setRandomness", newValue / 1000);
-    //   },
-    // },
+
     humanVolume: {
       immediate: true,
       handler(newValue) {
@@ -828,12 +802,6 @@ export default {
       immediate: true,
       handler(newValue) {
         this.$store.commit("setMetronomeVolume", newValue);
-      },
-    },
-    sliderValue: {
-      immediate: true,
-      handler(newValue) {
-        console.log("sliderValue changed to: " + newValue);
       },
     },
   },
@@ -1394,30 +1362,13 @@ export default {
       // console.log("maxBPM", vm.maxBPM);
     },
 
-    btn1Action() {
-      console.log("btn1Action");
-    },
-    btn2Action() {
-      console.log("btn2Action");
-    },
-    btn3Action() {
-      console.log("btn3Action");
-    },
-    btn4Action() {
-      console.log("btn4Action");
-    },
-
-    switch1toggled() {
-      console.log("switch1toggled, status: ", this.switch1status);
-    },
-    switch2toggled() {
-      console.log("switch2toggled, status: ", this.switch2status);
-    },
-    switch3toggled() {
-      console.log("switch3toggled, status: ", this.switch3status);
-    },
-    switch4toggled() {
-      console.log("switch4toggled, status: ", this.switch4status);
+    buttonAction(buttonId){
+      // use paramWriter to write a parameter to the worker
+      const buttonPropertyName = `BUTTON_${buttonId}`;
+      if (this.paramWriter != null &&
+          !this.paramWriter.enqueue_change(this.uiParameterType[buttonPropertyName], 1.0)) {
+          console.error("Couldn't enqueue.");
+      }
     },
   },
 };
