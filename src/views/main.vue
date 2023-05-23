@@ -143,50 +143,58 @@
           </div>
           <div class="modalContent" style="overflow-y: scroll; height:600px">
             <p class="settingsSubtitle">User</p>
-            <div class="md-layout md-gutter md-alignment-left">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
-                <p style="height:15px;margin:0;line-height:0;">Total Volume</p>
+            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
+                <p style="height:15px;margin:0;line-height:0;">User Bus</p>
                 <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanVolume * 10 }} % </p>
               </div>
               <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
-              <p>Mute</p>
+              <div style="display:block; min-width:60px; padding-top:17px">
+              <span style="padding:0; margin:0;">Mute</span>
               <toggle-button color="#74601c" v-model="humanSamplerMuted" @change="toggleHumanSamplers"
-                style="transform: scale(0.9); padding-top: 17px" />
+                style="transform: scale(0.9);" />
+              </div>
             </div>
 
-            <div class="md-layout md-gutter md-alignment-left">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
-                <p style="height:15px;margin:0;line-height:0;">Upright Bass Volume</p>
+            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
+                <p style="height:15px;margin:0;line-height:0;">Upright Bass</p>
                 <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanUprightBassVolume * 10 }} % </p>
               </div>
               <HorizontalSlider v-model="humanUprightBassVolume" :min="1" :max="10" />
-              <p>Mute</p>
-              <toggle-button color="#74601c" :value="humanUprightBassMuted" @change="togglehumanUprightBass"
-                style="transform: scale(0.9); padding-top: 17px" />
+              <div style="display:block; min-width:60px; padding-top:17px">
+              <span style="padding:0; margin:0;">Mute</span>
+              <toggle-button color="#74601c" v-model="humanUprightBassMuted" @change="togglehumanUprightBass"
+                style="transform: scale(0.9);" />
+              </div>
             </div>
 
             <p class="settingsSubtitle">Metronome</p>
-            <div class="md-layout md-gutter md-alignment-left">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
-                <p style="height:15px;margin:0;line-height:0;">Metronome Volume</p>
+            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
+                <p style="height:15px;margin:0;line-height:0;">Metronome</p>
                 <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ metronomeVolume * 10 }} % </p>
               </div>
               <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" />
-              <p>Mute</p>
-              <toggle-button color="#74601c" :value="false" @change="toggleMetronome"
-                style="transform: scale(0.9); padding-top: 17px" />
+              <div style="display:block; min-width:60px; padding-top:17px">
+              <span style="padding:0; margin:0;">Mute</span>
+              <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
+                style="transform: scale(0.9);" />
+              </div>
             </div>
 
             <p class="settingsSubtitle">Worker</p>
-            <div class="md-layout md-gutter md-alignment-left">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:200px;">
-                <p style="height:15px;margin:0;line-height:0;">Worker Total Volume</p>
+            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
+                <p style="height:15px;margin:0;line-height:0;">Worker Bus</p>
                 <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ workerVolume * 10 }} % </p>
               </div>
               <HorizontalSlider v-model="workerVolume" :min="1" :max="10" />
-              <p>Mute</p>
+              <div style="display:block; min-width:60px; padding-top:17px">
+              <span style="padding:0; margin:0;">Mute</span>
               <toggle-button color="#74601c" :value="false" @change="toggleWorkerSamplers"
-                style="transform: scale(0.9); padding-top: 17px" />
+                style="transform: scale(0.9);" />
+              </div>
             </div>
           </div>
         </div>
