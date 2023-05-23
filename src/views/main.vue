@@ -271,6 +271,8 @@ export default {
 
   data() {
     return {
+      workerName: "arpeggiator",
+
       config: null,
 
       messageType,
@@ -283,9 +285,7 @@ export default {
       switches,
       sliders,
       buttons,
-
-      workerName: "arpeggiator",
-
+      
       BPM: null,
       randomness: null,
       localSyncClockStatus: false, // used to trigger local UI change
@@ -295,7 +295,7 @@ export default {
       keyboardoctaveStart: 2,
       keyboardoctaveEnd: 6,
 
-      audioContext: null,
+      // audioContext: null,
       mediaStreamSource: null,
       audioSettings: null,
       recorderWorkletNode: null,
@@ -389,8 +389,9 @@ export default {
 
     vm.BPM = vm.config.clockBasedSettings.tempo;
 
-    vm.audioContext = new AudioContext;
+    vm.audioContext = new AudioContext();
     Tone.context.lookAhead = 0.01;
+    
 
     // SAB
     // get a memory region for the Audio ring buffer
@@ -457,6 +458,8 @@ export default {
     //   }
     // });
 
+    
+
     vm.workerParameterInterval = setInterval(vm.workerParameterObserver, 10);
     /*
      * Initialize Audio Recorder (for audio recording).
@@ -469,6 +472,13 @@ export default {
     vm.mediaStreamSource = vm.audioContext.createMediaStreamSource(
       stream
     );
+
+
+    vm.analyserNode = vm.audioContext.createAnalyser();
+    
+    vm.mediaStreamSource.connect(vm.analyserNode);
+    vm.$root.$refs.audioMeter.init(vm.analyserNode);
+    vm.$root.$refs.audioMeter.updateAnalysis();
 
     const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
     await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
@@ -533,7 +543,7 @@ export default {
         midi: note.note,
         velocity: 127,
         timestamp: {
-          seconds: Tone.now(),
+          seconds:Tone.now(),
           tick: vm.$store.getters.getGlobalTickDelayed,
         },
         playAfter: {
@@ -575,7 +585,7 @@ export default {
         midi: note.note,
         velocity: 127,
         timestamp: {
-          seconds: Tone.now(),
+          seconds:Tone.now(),
           tick: vm.$store.getters.getGlobalTickDelayed, //null,//this.$store.getters.getGlobalTickDelayed
         },
         playAfter: {

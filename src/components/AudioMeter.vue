@@ -38,7 +38,7 @@ export default {
   },
   data() {
     return {
-      audioContext: null,
+      // audioContext: null,
       analyserNode: null,
       dataArray: null,
       bufferLength: null,
@@ -46,7 +46,7 @@ export default {
   },
   created() {
     this.$root.$refs.audioMeter = this;
-    this.startAnalyser();
+    // this.startAnalyser();
   },
   methods: {
 
@@ -69,26 +69,31 @@ export default {
       }
     },
 
-    startAnalyser() {
-      console.log('Starting analyser');
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        this.analyserNode = this.audioContext.createAnalyser();
-      }
-
+    init(analyser) {
+      this.analyserNode = analyser;
       this.analyserNode.fftSize = this.fft_bins;
       this.bufferLength = this.analyserNode.frequencyBinCount; // half of FFT size
       this.dataArray = new Uint8Array(this.bufferLength);
+      console.log('Got the node');
 
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((stream) => {
-          const source = this.audioContext.createMediaStreamSource(stream);
-          source.connect(this.analyserNode);
-          this.updateAnalysis();
-        })
-        .catch((error) => {
-          console.error('Error capturing audio.', error);
-        });
+      // if (!this.audioContext) {
+      //   this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      //   this.analyserNode = this.audioContext.createAnalyser();
+      // }
+
+      // this.analyserNode.fftSize = this.fft_bins;
+      // this.bufferLength = this.analyserNode.frequencyBinCount; // half of FFT size
+      // this.dataArray = new Uint8Array(this.bufferLength);
+
+      // navigator.mediaDevices.getUserMedia({ audio: true })
+      //   .then((stream) => {
+      //     const source = this.audioContext.createMediaStreamSource(stream);
+      //     source.connect(this.analyserNode);
+      //     this.updateAnalysis();
+      //   })
+      //   .catch((error) => {
+      //     console.error('Error capturing audio.', error);
+      //   });
     },
     
     updateAnalysis() {
