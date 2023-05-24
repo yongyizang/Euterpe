@@ -422,19 +422,28 @@ async function processNoteEvent(content){
     // content is a midiEvent object
     let noteList = [];
 
-    /* An example of a simple MIDI processor
+    /* 
+     * An example of a simple MIDI processor
      * take the user's input and create an arpeggio
-     * the arpeggio should be 3, 5, 8, 12 above the user's input
-     * and every note played with a delay of 0.1 seconds from the previous note
+     * the arpeggio should type depends on the state of switch1
+     * and it is [3, 5, 8, 12] if switch is one
+     * or [4, 7, 9, 12] if switch is zero
+     * and every note of the arpegio played with a delay
+     * of 0.1 seconds from the previous note
      */
-    let arpeggio = [3, 5, 8, 12];
+    let arpeggio = [];
+    if (self.switch1 == 1){
+        arpeggio = [3, 5, 8, 12];
+    } else{
+        arpeggio = [4, 7, 9, 12];
+    }
     // if this a not off event, add an extra 0.1 sec offset
     let extraSecOffset = content.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
     for (let i = 0; i < arpeggio.length; i++) {
         // console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
         let arp_note = {
             player: "worker",
-            instrument: "piano",
+            instrument: "synth",
             name: null,
             type: content.type,
             midi: content.midi + arpeggio[i],
@@ -448,6 +457,10 @@ async function processNoteEvent(content){
             //     tick: 0,
             //     seconds: content.timestamp.seconds + 0.1 * (i+1)
             // }
+            duration: {
+                tick: null,
+                seconds: null,
+            }
         }
         noteList.push(arp_note);
     }
