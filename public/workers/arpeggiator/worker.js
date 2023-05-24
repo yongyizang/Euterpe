@@ -1,22 +1,9 @@
 // This is the older type of worker (non module). 
 // You need to use importScripts to import libraries.
 // Essentia.js can't be imported this way but Meyda can.
-
 importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
-
-// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
-// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
-
-// importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
-
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.module.js")
-
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js")
-
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-extractor.js")
-// importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-plot.js")
-
 importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js")
+
 importScripts("../../libraries/index_rb_no_exports.js");
 importScripts("../../utils_no_exports.js");
 
