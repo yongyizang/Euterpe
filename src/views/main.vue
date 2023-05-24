@@ -253,7 +253,7 @@ import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
 import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
-import * as rb from "ringbuf.js"; // /dist/index.js
+import * as rb from "ringbuf.js";
 import { messageType, statusType, noteType, 
         uiParameterType, workerParameterType,
         workerHookType } from '@/utils/types.js'
