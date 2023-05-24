@@ -56,9 +56,7 @@ function readFromQueue() {
       return 0;
     }
     // samples_read can have less length than staging
-    const segment = new Int16Array(samples_read);
     for (let i = 0; i < samples_read; i++) {
-      segment[i] = Math.min(Math.max(self.staging[i], -1.0), 1.0) * (2 << 14 - 1);
       if (self.sampleCounter == self.windowSize - 1){
         
         // Here you can do some analysis on the current audio frame
@@ -86,7 +84,6 @@ function readFromQueue() {
         self.sampleCounter += 1;
         
     }
-    self.pcm.push(segment);
     return samples_read;
 }
 
@@ -408,7 +405,7 @@ async function processClockEvent(content) {
         hookType: self.workerHookType.CLOCK_EVENT,
         message:{
             [self.messageType.CHROMA_VECTOR]: 
-                    pcsPredictionsArray,
+                    tickAverageChroma,
             [self.messageType.NOTE_LIST]: 
                     noteList,
             [self.messageType.CLOCK_TIME]:

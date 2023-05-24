@@ -271,7 +271,7 @@ export default {
 
   data() {
     return {
-      workerName: "arpeggiator",
+      workerName: "template",
 
       config: null,
 
