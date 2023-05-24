@@ -2,10 +2,13 @@
 // You need to use importScripts to import libraries.
 // Essentia.js can't be imported this way but Meyda can.
 
-// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
+importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
+
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/core.js");
 // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.23.1/es6/music_rnn.js");
-importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
+
+// importScripts("https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js");
+
 // importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.module.js")
 
 // importScripts("https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js")
@@ -56,7 +59,56 @@ let switch2 = null;
 let switch3 = null;
 let switch4 = null;
 
+function modelInference(inpConcat, hidden1, hidden2){
+    let embdsOut = self.embds.predict(inpConcat);
+    // gru layer 1
+    let i_t_1 = self.ih1.predict(embdsOut);
+    let h_t_1 = self.hh1.predict(hidden1);
+    let i_t_1_split = tf.split(i_t_1, 3, axis=1);
+    let h_t_1_split = tf.split(h_t_1, 3, axis=1);
+    let i_reset_1 = i_t_1_split[0];
+    let i_upd_1 = i_t_1_split[1];
+    let i_new_1 = i_t_1_split[2];
+    let h_reset_1 = h_t_1_split[0];
+    let h_upd_1 = h_t_1_split[1];
+    let h_new_1 = h_t_1_split[2];
+    let reset_gate_1 = tf.sigmoid(tf.add(i_reset_1, h_reset_1))
+    let update_gate_1 = tf.sigmoid(tf.add(i_upd_1, h_upd_1));
+    let new_gate_1 = tf.tanh(tf.add(i_new_1, tf.mul(reset_gate_1, h_new_1)));
+    let y1 = tf.add(tf.mul(update_gate_1, hidden1), tf.mul(tf.sub(1, update_gate_1), new_gate_1));
+    // gru layer 2
+    let i_t_2 = self.ih2.predict(y1);
+    let h_t_2 = self.hh2.predict(hidden2);
+    let i_t_2_split = tf.split(i_t_2, 3, axis=1);
+    let h_t_2_split = tf.split(h_t_2, 3, axis=1);
+    let i_reset_2 = i_t_2_split[0];
+    let i_upd_2 = i_t_2_split[1];
+    let i_new_2 = i_t_2_split[2];
+    let h_reset_2 = h_t_2_split[0];
+    let h_upd_2 = h_t_2_split[1];
+    let h_new_2 = h_t_2_split[2];
+    let reset_gate_2 = tf.sigmoid(tf.add(i_reset_2, h_reset_2))
+    let update_gate_2 = tf.sigmoid(tf.add(i_upd_2, h_upd_2));
+    let new_gate_2 = tf.tanh(tf.add(i_new_2, tf.mul(reset_gate_2, h_new_2)));
+    let y2 = tf.add(tf.mul(update_gate_2, hidden2), tf.mul(tf.sub(1, update_gate_2), new_gate_2));
 
+    // onset features and mish
+    let onset1 = self.onsetLayer1.predict(y2);
+    let onset1_soft  = tf.softplus(onset1);
+    let onset1_tanh = tf.tanh(onset1_soft);
+    onset1 = tf.mul(onset1, onset1_tanh)
+
+    // pcs features and mish
+    let pcs1 = self.pcsLayer1.predict(y2);
+    let pcs1_soft  = tf.softplus(pcs1);
+    let pcs1_tanh = tf.tanh(pcs1_soft);
+    pcs1 = tf.mul(pcs1, pcs1_tanh)
+    // final predictions
+    let onset_pred = tf.sigmoid(self.onsetLayer2.predict(onset1));
+    let pcs_pred = tf.sigmoid(self.pcsLayer2.predict(pcs1));
+    
+    return [onset_pred, pcs_pred, y1, y2]
+}
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize
 // and we do some basic analysis on each frame (RMS, loudness, chroma)
@@ -192,15 +244,21 @@ async function loadConfig(content) {
 async function loadAlgorithm() {
 
     // Load/initialize your algorithm/model here
-    // const sess = new ort.InferenceSession();
-    // const ortWasm = new OrtWasm.OrtWasmThreaded();
+    tf.setBackend('webgl');
+    try {
+        self.embds = await tf.loadLayersModel('Checkpoints/embdsLayer/model.json');
+        self.ih1 = await tf.loadLayersModel('Checkpoints/ih_1_layer/model.json');
+        self.hh1 = await tf.loadLayersModel('Checkpoints/hh_1_layer/model.json')
+        self.ih2 = await tf.loadLayersModel('Checkpoints/ih_2_layer/model.json')
+        self.hh2 = await tf.loadLayersModel('Checkpoints/hh_2_layer/model.json')
+        self.onsetLayer1 = await tf.loadLayersModel('Checkpoints/onsetLayer1/model.json')
+        self.onsetLayer2 = await tf.loadLayersModel('Checkpoints/onsetLayer2/model.json')
+        self.pcsLayer1 = await tf.loadLayersModel('Checkpoints/pcsLayer1/model.json')
+        self.pcsLayer2 = await tf.loadLayersModel('Checkpoints/pcsLayer2/model.json')
+    } catch (error) {
+        console.error(error);
+    }
 
-    // The UI expects a LOADED status message.
-    // postMessage({
-    //     messageType: self.messageType.STATUS,
-    //     statusType: self.statusType.LOADED,
-    //     content: "Worker is loaded!",
-    // });
     postMessage({
         hookType: self.workerHookType.INIT_WORKER,
         message:{
@@ -212,14 +270,21 @@ async function loadAlgorithm() {
     })
 
     // If your model/worker/algorithm needs to be warmed up, do it here
+    let inferenceTimes = [];
     for (let i = 0; i < self.config.workerSettings.warmupRounds; i++) {
-
         // you can sent WARMUP status messages to the UI if you want.
-        // postMessage({
-        //     messageType: self.messageType.STATUS,
-        //     statusType: self.statusType.WARMUP,
-        //     content: "Worker is warming up. Current round: " + (i + 1) + "/" + self.config.workerSettings.warmupRounds,
-        // });
+
+        let aa = performance.now();
+        let inpConcat = tf.ones([1, 18]);
+        let hidden1 = tf.ones([1, 100]);
+        let hidden2 = tf.ones([1, 100]);
+
+        let modelPredictions = modelInference(inpConcat, hidden1, hidden2);
+        
+        let inferenceTime = performance.now() - aa;
+        inferenceTimes.push(inferenceTime);
+        console.log(inferenceTime);
+
         postMessage({
             hookType: self.workerHookType.INIT_WORKER,
             message:{
@@ -230,14 +295,10 @@ async function loadAlgorithm() {
             },
         })
     }
+    console.log("Average inference time: " + inferenceTimes.reduce((a, b) => a + b, 0) / inferenceTimes.length);
 
     // Once your model/worker is ready to play, 
     // UI expects a success message
-    // postMessage({
-    //     messageType: self.messageType.STATUS,
-    //     statusType: self.statusType.SUCCESS,
-    //     content: "Worker is ready to interact with you!",
-    // });
     postMessage({
         hookType: self.workerHookType.INIT_WORKER,
         message:{
@@ -322,11 +383,6 @@ async function initAudio(content){
 
     Meyda.bufferSize = self.windowSize;
     
-    // const input0 = new ort.Tensor(
-    //     new Float32Array([1.0, 2.0, 3.0, 4.0]) /* data */,
-    //     [2, 2] /* dims */
-    //   );
-
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
     //   interval = setInterval(readFromQueue, 100);
@@ -347,9 +403,6 @@ async function processClockEvent(content) {
 
     let predictTime = performance.now();
 
-    // A dummy blocking operation to simulate a long running
-    // simulateBlockingOperation(20);
-
     let features = self.audio_features_queue.toArrayAndClear()
     // get all the chroma features since the last clock event (tick)
     let chromas = features.map(f => f.chroma);
@@ -359,11 +412,16 @@ async function processClockEvent(content) {
     // The chroma's we get from Meyda seem to be shifted by 1 left. 
     // That's probably a bug in Meyda. We'll shift it back here.
     shiftRight(tickAverageChroma)
-    // postMessage({
-    //     messageType: self.messageType.CHROMA_VECTOR,
-    //     content: tickAverageChroma,
-    // });
     
+    // A dummy blocking operation to simulate a long running
+    // simulateBlockingOperation(20);
+    let inpConcat = tf.randomNormal([1, 18]);
+    let hidden1 = tf.randomNormal([1, 100]);
+    let hidden2 = tf.randomNormal([1, 100]);
+
+    let modelPredictions = modelInference(inpConcat, hidden1, hidden2);
+    let pcsPredictions = modelPredictions[1].dataSync();
+    let pcsPredictionsArray = Array.from(pcsPredictions);
 
     // The list of notes to be sent to the UI
     let noteList = [];
@@ -419,7 +477,7 @@ async function processClockEvent(content) {
         hookType: self.workerHookType.CLOCK_EVENT,
         message:{
             [self.messageType.CHROMA_VECTOR]: 
-                    tickAverageChroma,
+                    pcsPredictionsArray,
             [self.messageType.NOTE_LIST]: 
                     noteList,
             [self.messageType.CLOCK_TIME]:

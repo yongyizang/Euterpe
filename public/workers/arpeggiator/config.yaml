@@ -48,7 +48,7 @@ polyphony:
 # Worker related settings.
 workerSettings:
   # For Workers that require warmup (such as neural networks)
-  warmupRounds: 2
+  warmupRounds: 100
   # Many music interaction algorithms support controlling their output randomness 
   # (e.g., sampling temperature).
   # Default value for randomness(stochasticity) is 0, and is controlled by a slider
