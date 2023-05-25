@@ -1,3 +1,27 @@
+export const playerType = {
+    HUMAN: 0,
+    WORKER: 1,
+    METRONOME: 2,
+}
+export const instrumentType = {
+    PIANO: 0,
+    DRUMS: 1,
+    BASS: 2,
+    SYNTH: 3,
+}
+export const instNamesTemp = {
+    0: "piano",
+    1: "drums",
+    2: "upright_bass",
+    3: "synth"
+}
+
+export const eventSourceType =  {
+    MOUSE: 0, // for on-screen keyboard
+    MIDI_KEYBOARD: 1,// external midi keyboard
+    KEYBOARD: 2, // laptop keyboard
+}
+
 export const messageType = {
     STATUS: 0,
     NOTE_LIST: 4,

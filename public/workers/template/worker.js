@@ -5,9 +5,11 @@ importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
 importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js")
 
 importScripts("../../libraries/index_rb_no_exports.js");
-importScripts("../../utils_no_exports.js");
+importScripts("../../utils.js");
 
 let config = null;
+let playerType = null;
+let instrumentType = null;  
 let messageType = null;
 let statusType = null;
 let noteType = null;
@@ -34,6 +36,9 @@ let _param_reader = null;
 let _param_writer = null;
 let newParameterUI = null;
 
+// worker parameters that correspond to UI widgets
+// you should change their names to match your 
+// worker's parameters, e.g. slider3 --> randomness
 let slider1 = null;
 let slider2 = null;
 let slider3 = null;
@@ -89,7 +94,12 @@ function readFromQueue() {
 
 function updateParameter(newUpdate){
 
-    // use switch instead
+    // This is where the mapping of the UI widgets
+    // to the worker parameters happens
+    // E.g., if you want to map slider3 to 
+    // the 'randomness' parameter of the algorithm
+    // you can modify the SLIDER_3 case
+    // to be: self.randomness = newUpdate.value;
     switch(newUpdate.index){
         case self.uiParameterType.SLIDER_1:
             self.slider1 = newUpdate.value;
@@ -156,6 +166,8 @@ async function initWorker(content) {
 
 async function loadConfig(content) {
     self.config = content.config;
+    self.playerType = content.playerType;
+    self.instrumentType = content.instrumentType;
     self.noteType = content.noteType;
     self.statusType = content.statusType;
     self.messageType = content.messageType;
@@ -359,32 +371,30 @@ async function processClockEvent(content) {
     let noteList = [];
 
     // An example of the Note object the UI expects
-    // const note = {
-    //     player: "worker",
-    //     instrument: "piano",
-    //     name: null, 
-    //     // Note type can be NOTE_ON, NOTE_OFF, NOTE_HOLD, REST
-    //     type: self.noteType.NOTE_ON,
-    //     // a number 0-127. 128 is a rest
-    //     midi: 60,
-    //     // a number 0-11. 12 is a rest
-    //     chroma: 0,
-    //     // a number 0-127
-    //     velocity: 127, 
-    //     timestamp: {
-    //         // note was generated at this tick
-    //         tick: currentTick, 
-    //         //Tone.now() // note was generated at this time (seconds)
-    //         seconds: null,
-    //     },
-    //     // When to play the note. Ticks and seconds are added together
-    //     playAfter: {
-    //         // play the note at the next tick
-    //         tick: 1,
-    //         // add extra delay to the note (seconds)
-    //         seconds: 0
-    //     }
+    const note = new NoteEvent();
+    note.player = self.playerType.WORKER;
+    note.instrument = self.instrumentType.SYNTH;
+    note.name = 'C4'; // That's not necessary for playback
+    note.type = self.noteType.NOTE_ON;
+    note.midi = 60; // That's required for playback
+    note.velocity = 127; // That's required for playback
+    note.createdAt = {
+        tick: currentTick,
+        seconds: performance.now()
+    }
+    // play the note 1 tick and 0 seconds after it was generated
+    note.playAfter = {
+        
+        tick: 1,
+        seconds: 0
+    }
+    // The duration of the note if known
+    // note.duration = {
+    //     tick: 4,
+    //     seconds: 0.5
     // }
+
+    // Push the note to the list of notes to be sent to the UI
     // noteList.push(note);
 
 
@@ -417,9 +427,10 @@ async function processClockEvent(content) {
 // Hook for processing single user note events.
 // This hook is called every time a note/midi event
 // is received by the user
-async function processNoteEvent(content){
-    
-    // content is a midiEvent object
+async function processNoteEvent(noteEventPlain){
+    // The NoteEvent we receive from the UI is serialized
+    // We need to deserialize it
+    let noteEvent = NoteEvent.fromPlain(noteEventPlain);
     let noteList = [];
 
     /* 
@@ -428,40 +439,32 @@ async function processNoteEvent(content){
      * the arpeggio should type depends on the state of switch1
      * and it is [3, 5, 8, 12] if switch is one
      * or [4, 7, 9, 12] if switch is zero
-     * and every note of the arpegio played with a delay
-     * of 0.1 seconds from the previous note
+     * Every note of the arpegio played with a delay
+     * of 0.1 seconds from the previous note and 1/3 of the 
+     * velocity of its previous note
      */
     let arpeggio = [];
     if (self.switch1 == 1){
         arpeggio = [3, 5, 8, 12];
     } else{
-        arpeggio = [4, 7, 9, 12];
+        arpeggio = [4, 7, 9, 12, 9, 7, 4];
     }
     // if this a not off event, add an extra 0.1 sec offset
-    let extraSecOffset = content.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
+    // let extraSecOffset = noteEvent.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
     for (let i = 0; i < arpeggio.length; i++) {
-        // console.log("i", i, "type", content.type, "midi", content.midi, "arp", arpeggio[i])
-        let arp_note = {
-            player: "worker",
-            instrument: "synth",
-            name: null,
-            type: content.type,
-            midi: content.midi + arpeggio[i],
-            chroma: null,
-            velocity: 127/(i+3),
-            playAfter: {
-                tick: 0,
-                seconds: 0.05 * (i+1) ,//+ extraSecOffset
-            },
-            // timestamp: {
-            //     tick: 0,
-            //     seconds: content.timestamp.seconds + 0.1 * (i+1)
-            // }
-            duration: {
-                tick: null,
-                seconds: null,
-            }
-        }
+        let arp_note = new NoteEvent();
+        arp_note.player = self.playerType.WORKER;
+        arp_note.instrument = self.instrumentType.SYNTH;
+        arp_note.type = noteEvent.type;
+        arp_note.midi = noteEvent.midi + arpeggio[i];
+        arp_note.velocity = noteEvent.velocity
+        // arp_note.createdAt 
+        arp_note.playAfter = {
+            tick: 0,
+            seconds: 0.5 * (i+1) ,//+ extraSecOffset
+        },
+        arp_note.duration = null;
+
         noteList.push(arp_note);
     }
 

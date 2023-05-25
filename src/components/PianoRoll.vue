@@ -13,6 +13,12 @@
 // This project mainly uses Three.js to generate the canvas.
 import * as THREE from "three";
 import { Midi } from "@tonaljs/tonal";
+import {
+	  playerType, instrumentType, eventSourceType,
+    messageType, statusType, noteType,
+    uiParameterType, workerParameterType,
+    workerHookType
+    } from '@/utils/types.js'
 
 import("../css/variables.css");
 
@@ -139,7 +145,7 @@ export default {
             .getBoundingClientRect();
 
           // Define the noteblock plane.
-          const plane = new THREE.Mesh(geometry, (noteEvent.player == "worker") ? workerMaterial : humanMaterial);
+          const plane = new THREE.Mesh(geometry, (noteEvent.player == playerType.WORKER) ? workerMaterial : humanMaterial);
           const noteWidth =
             notePosition.right - notePosition.left - NoteAnimationMargin * 2;
           plane.scale.set(noteWidth, initialScaling, 1);
@@ -155,7 +161,7 @@ export default {
           this.scene.add(plane);
 
           // Register this noteblock to the currentNotes data.
-          const selector = (noteEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
+          const selector = (noteEvent.player == playerType.WORKER) ? playerType.WORKER + noteInput : playerType.HUMAN + noteInput;
           if (!this.currentNotes.hasOwnProperty(selector)) {
             this.currentNotes[selector] = [];
           }
@@ -174,7 +180,7 @@ export default {
           
       }
       // console.log("player", noteEvent.player, "sent keyUp note ", noteInput, noteEvent.type, noteEvent.midi);
-      const selector = (noteEvent.player == "worker") ? "worker" + noteInput : "human" + noteInput;
+      const selector = (noteEvent.player == playerType.WORKER) ? playerType.WORKER + noteInput : playerType.HUMAN + noteInput;
       // If there is the noteblock we are looking for:
       if (this.currentNotes[selector] && this.currentNotes[selector].length) {
         const note = this.currentNotes[selector].shift();

@@ -1,3 +1,4 @@
+// DOC - Add your widgets here
 export const switches = [
   { id: 1, label: "Switch 1", status: false }, // Switch 1
   { id: 2, label: "Switch 2", status: false }, // Switch 2

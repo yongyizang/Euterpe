@@ -2,10 +2,17 @@ import Vue from "vue";
 import * as Tone from "tone";
 import Instruments from "@/library/instruments";
 import { Midi } from "@tonaljs/tonal";
+import {
+	playerType, instrumentType, eventSourceType,
+    messageType, statusType, noteType,
+    uiParameterType, workerParameterType,
+    workerHookType,
+    instNamesTemp
+    } from '@/utils/types.js'
 
 window.onclick = () => {
     Tone.start();
-    Tone.context.lookAhead = 0;
+    // Tone.context.lookAhead = 0;
 };
 
 const limiter = new Tone.Limiter(-5).toDestination();
@@ -91,27 +98,29 @@ const getters = {
 
 const actions = {
     samplerOn(state, noteEvent){
-        if (noteEvent.player == "human"){
-            let instrument_to_play_on = humanSamplers[noteEvent.instrument];
+        let instrument_label = instNamesTemp[noteEvent.instrument];
+        if (noteEvent.player == playerType.HUMAN){
+            
+            let instrument_to_play_on = humanSamplers[instrument_label];
             if (instrument_to_play_on == null){
-                throw new Error("Instrument " + noteEvent.instrument + " not found in humanSamplers");
+                throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
             } else {
                 instrument_to_play_on.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
             }
-        } else if (noteEvent.player == "worker"){
+        } else if (noteEvent.player == playerType.WORKER){
             // if noteEvent.name is null then use tonal.js to get the name of the note from noteEvent.midi
             let name = noteEvent.name;
             if (name == null){
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
             }
             // console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
-            let instrument_to_play_on = workerSamplers[noteEvent.instrument];
+            let instrument_to_play_on = workerSamplers[instrument_label];
             if (instrument_to_play_on == null){
-                throw new Error("Instrument " + noteEvent.instrument + " not found in workerSamplers");
+                throw new Error("Instrument " + instrument_label + " not found in workerSamplers");
             } else {
                 instrument_to_play_on.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
             }
-        } else if (noteEvent.player == "metronome"){
+        } else if (noteEvent.player == playerType.METRONOME){
             // console.log("metronome", noteEvent)
             metronomeSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
             // release the note 0.5s after the attack
@@ -120,22 +129,23 @@ const actions = {
         }
     },
     samplerOff(state, noteEvent){
-        if (noteEvent.player == "human"){
-            let instrument_to_play_on = humanSamplers[noteEvent.instrument];
+        let instrument_label = instNamesTemp[noteEvent.instrument];
+        if (noteEvent.player == playerType.HUMAN){
+            let instrument_to_play_on = humanSamplers[instrument_label];
             if (instrument_to_play_on == null){
-                throw new Error("Instrument " + noteEvent.instrument + " not found in humanSamplers");
+                throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
             } else {
                 instrument_to_play_on.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
             }
 
-        } else if (noteEvent.player == "worker"){
+        } else if (noteEvent.player == playerType.WORKER){
             let name = noteEvent.name;
             if (name == null){
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });   
             }
-            let instrument_to_play_on = workerSamplers[noteEvent.instrument];
+            let instrument_to_play_on = workerSamplers[instrument_label];
             if (instrument_to_play_on == null){
-                throw new Error("Instrument " + noteEvent.instrument + " not found in workerSamplers");
+                throw new Error("Instrument " + instrument_label + " not found in workerSamplers");
             } else {
                 instrument_to_play_on.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
             }
