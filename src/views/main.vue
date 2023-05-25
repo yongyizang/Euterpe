@@ -225,7 +225,7 @@
           <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon class="modalIcon">close</md-icon></button>
         </div>
         <div class="modalContent">
-          <p v-for="content in config.introModalContent">
+          <p v-for="(content, index) in config.introModalContent" :key="index">
             {{ content }}
             <br />
           </p>
