@@ -658,7 +658,7 @@ export default {
 
     // spacebar trigger play btn
     document.addEventListener("keypress", function (event) {
-      if (event.code == 32 && !vm.$store.getters.getModalStatus) {
+      if (event.code == "Space" && !vm.$store.getters.getModalStatus) {
         // spacebar could toggle clock
         vm.toggleClock();
       }
