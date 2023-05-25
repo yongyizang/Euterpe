@@ -1,45 +1,60 @@
 <template>
-  <div class="textbox">
-    <input type="text" class="textbox-input" :value="text" readonly />
+  <div class="wrapper" :style="{ height: height + 'px', width: width + 'px' }">
+    <div class="title" v-if="title">{{ title }}</div>
+    <div class="text">
+      <p>{{ text }}</p>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'TextBox',
+  name: "TextBox",
   props: {
-    initialText: {
-      type: String,
+    height: {
+      type: Number,
       required: true
-    }
-  },
-  data() {
-    return {
-      text: this.initialText
-    };
-  },
-  methods: {
-    updateText(newText) {
-      this.text = newText;
+    },
+    width: {
+      type: Number,
+      required: true
+    },
+    title: {
+      type: String,
+      default: null
+    },
+    text: {
+      type: String,
+      default: ""
     }
   }
-};
+}
 </script>
 
 <style scoped>
-.textbox {
-  /* display: inline-block; */
-  position: relative;
-  width: 100px;
-  height: 200px;
-  /* right: 20px; */
-  border: none;
-  background-color: transparent;
-  text-align: center;
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  color:#e0e0e0;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px;
 }
 
-.textbox-input {
+.title {
+  font-size: 1.2em;
   font-weight: bold;
-  color: red;
+  margin-bottom: 10px;
+  position:relative;
+}
+
+.text {
+  font-size: 1em;
+  height: 100%;
+  width: 100%;
+  overflow-y: scroll;
 }
 </style>

@@ -42,8 +42,9 @@
       <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
-      <div style="position: absolute; bottom: 300px; right: 20px" background-color: transparent>
-        <TextBox :initialText="textBoxText" />
+      <div style="position: absolute; bottom: 300px; right: 20px; z-index:8" background-color: red>
+        <TextBox height="100" width="200" title="Tempo"
+          text="This thing here is scrollable by default" />
       </div>
       <!-- On-screen buttons -->
       <div style="position: absolute; bottom: 230px; right: 20px">
