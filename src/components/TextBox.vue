@@ -37,24 +37,32 @@ export default {
   flex-direction: column;
   justify-content: top;
   align-items: center;
-  border: 1px solid #e0e0e0;
-  color:#e0e0e0;
-  border-radius: 4px;
-  padding: 10px;
-  margin: 10px;
+  border: 1px solid #31a137;
+  color:#e2d690;
+  border-radius: 8px;
+  padding: 3px;
+  margin: 1px;
 }
 
 .title {
   font-size: 1.2em;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 0px;
   position:relative;
 }
 
 .text {
-  font-size: 1em;
+  font-size: 2em;
   height: 100%;
   width: 100%;
   overflow-y: scroll;
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  text-align: center; /* Center text content */
+}
+
+.text::-webkit-scrollbar {
+  display: none;
 }
 </style>

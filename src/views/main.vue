@@ -43,8 +43,8 @@
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
       <div style="position: absolute; bottom: 300px; right: 20px; z-index:8" background-color: red>
-        <TextBox height="100" width="200" title="Tempo"
-          text="This thing here is scrollable by default" />
+        <TextBox :height=100 :width=180 title="Tempo"
+          text="Cm" />
       </div>
       <!-- On-screen buttons -->
       <div style="position: absolute; bottom: 230px; right: 20px">
