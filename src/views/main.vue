@@ -261,11 +261,6 @@ import {
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
 import { sliders, buttons, switches } from '@/utils/widgets_config.js'
 import { NoteEvent } from '@/utils/NoteEvent.js'
-// This is for Web Audio restrictions, we need to make an user behavior to trigger the Tone.start() function.
-window.onclick = () => {
-  // TODO : this calls Tone.start() every time the user clicks on the screen.
-  // Tone.start();
-};
 
 export default {
   name: "mainScreen",
@@ -276,6 +271,9 @@ export default {
 			// This string should be one of
 			// dir names inside public/workers/
       workerName: "template",
+      // Provide all the config files that should be loaded
+      // These should be in public/workers/{workerName}/
+      configFiles: [`config.yaml`, `config_widgets.yaml`], 
 
       config: null,
 			
@@ -291,10 +289,10 @@ export default {
 
 			// Widgets configurations are stored and can be modified
 			// in utils/widgets_config.js
-      switches,
-      sliders,
-      buttons,
-
+      // These need to be initialized here as empty arrays (computed properties)
+      switches: [],
+      sliders: [],
+      buttons: [],
       // Score status
       scoreShown: false,
       scrollStatus: false,
@@ -303,7 +301,6 @@ export default {
       textBoxText: null,
 
       BPM: null,
-      randomness: null,
       localSyncClockStatus: false, // used to trigger local UI change
       screenWidth: document.body.clientWidth,
       screenHeight: document.body.clientHeight,
@@ -383,6 +380,12 @@ export default {
     this.scrollEnabled = this.config.gui.score;
     // Set the textBox title
     this.textBoxTitle = this.config.gui.textBox.title;
+
+    // Widgets configurations are stored and can be modified
+			// in utils/widgets_config.js
+    this.switches = this.config.gui.settings.switches;
+    this.sliders = this.config.gui.settings.sliders;
+    this.buttons = this.config.gui.settings.buttons;
 
   },
 
@@ -683,8 +686,11 @@ export default {
       // immediate: true,
       deep: true,
       handler(newStates, oldStates) {
+        console.log("new switches ", newStates);
+        console.log("old switches ", oldStates);
         newStates.forEach((newState, index) => {
-          if (newState.status !== oldStates[index].status) {
+          let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
+          if ( newState.status !== oldStatus) {
             let floatStatus = newState.status ? 1.0 : 0.0;
             const switchPropertyName = `SWITCH_${index + 1}`;
             if (
@@ -694,7 +700,7 @@ export default {
                 floatStatus
               )
             ) {
-              console.error("Couldn't enqueue.");
+              console.warn("Couldn't enqueue.");
             }
           }
         });
@@ -704,9 +710,9 @@ export default {
       // immediate: true,
       deep: true,
       handler(newStates, oldStates) {
-        // console.log(newStates[0])
         newStates.forEach((newState, index) => {
-          if (newState.value !== oldStates[index].value) {
+          let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
+          if (newState.value !== oldStatus) {
             // let floatStatus = newState.status ? 1.0 : 0.0;
             const sliderPropertyName = `SLIDER_${index + 1}`;
             if (
@@ -716,7 +722,7 @@ export default {
                 newState.value
               )
             ) {
-              console.error("Couldn't enqueue.");
+              console.warn("Couldn't enqueue.");
             }
           }
         });
@@ -726,9 +732,6 @@ export default {
     humanVolume: {
       immediate: true,
       handler(newValue) {
-        // if (!this.paramWriter.enqueue_change(1, newValue)) {
-        //   console.error("Couldn't enqueue.");
-        // }
         this.$store.commit("setHumanVolume", newValue);
       },
     },
@@ -745,9 +748,6 @@ export default {
     workerVolume: {
       immediate: true,
       handler(newValue) {
-        // if (!this.paramWriter.enqueue_change(2, newValue)) {
-        //   console.error("Couldn't enqueue.");
-        // }
         this.$store.commit("setWorkerVolume", newValue);
       },
     },
@@ -767,20 +767,36 @@ export default {
       // In our case, we need to load the config asap, since 
       // the config contains also info to generate the UI.
       // If not, the app will crash anyway, so it's worth waiting for it.
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', `/workers/${this.workerName}/config.yaml`, false); // Set async to false
-      xhr.send();
 
-      if (xhr.status === 200) {
-        const text = xhr.responseText;
-        // load config.yaml and constants.json
-        // then commit them to any vuex store that needs them
-        this.config = yaml.load(text);
+      // First, load all the configs files and merge them into one
+      let configFilesURL = this.configFiles.map((file) => {
+        return `/workers/${this.workerName}/${file}`;
+      });
+      // get all files using xhr
+      let xhrs = configFilesURL.map((url) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, false); // Set async to false
+        xhr.send();
+        return xhr;
+      });
+      // go over the xhrs, check which are 200, and concat them
+      // for the rest of the files, throw an error
+      let config = "";
+      xhrs.forEach((xhr) => {
+        if (xhr.status === 200) {
+          config += xhr.responseText + "\n";
+        } else {
+          throw new Error(`Failed to fetch config file: ${xhr.status}`);
+        }
+      });
+
+      if (config === "") {
+        throw new Error("Failed to fetch config file: empty");
+      } else {
+        this.config = yaml.load(config);
         this.$store.commit("setConfig", this.config);
         this.$store.commit("initQuantBuffers", this.config);
         this.$store.commit("setTicksPerMeasure", this.config);
-      } else {
-        console.error(`Failed to fetch config file: ${xhr.status}`);
       }
     },
 
@@ -1319,7 +1335,7 @@ export default {
       const buttonPropertyName = `BUTTON_${buttonId}`;
       if (this.paramWriter != null &&
         !this.paramWriter.enqueue_change(this.uiParameterType[buttonPropertyName], 1.0)) {
-        console.error("Couldn't enqueue.");
+        console.warn("Couldn't enqueue.");
       }
     },
   },

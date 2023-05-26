@@ -75,25 +75,6 @@ export default {
       this.bufferLength = this.analyserNode.frequencyBinCount; // half of FFT size
       this.dataArray = new Uint8Array(this.bufferLength);
       console.log('Got the node');
-
-      // if (!this.audioContext) {
-      //   this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      //   this.analyserNode = this.audioContext.createAnalyser();
-      // }
-
-      // this.analyserNode.fftSize = this.fft_bins;
-      // this.bufferLength = this.analyserNode.frequencyBinCount; // half of FFT size
-      // this.dataArray = new Uint8Array(this.bufferLength);
-
-      // navigator.mediaDevices.getUserMedia({ audio: true })
-      //   .then((stream) => {
-      //     const source = this.audioContext.createMediaStreamSource(stream);
-      //     source.connect(this.analyserNode);
-      //     this.updateAnalysis();
-      //   })
-      //   .catch((error) => {
-      //     console.error('Error capturing audio.', error);
-      //   });
     },
     
     updateAnalysis() {

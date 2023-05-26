@@ -60,8 +60,3 @@ introModal: true
 introModalContent:
   - "Hi! This is Euterpe."
   - "I am a web-framework for music interaction systems."
-
-gui:
-  score: false
-  textBox:
-    title: "Chord"
