@@ -1,11 +1,11 @@
 import { createRange } from "./music"
 import { Sampler } from "tone"
-import {
-	  playerType, instrumentType, eventSourceType,
-    messageType, statusType, noteType,
-    uiParameterType, workerParameterType,
-    workerHookType
-    } from '@/utils/types.js'
+// import {
+// 	  playerType, instrumentType, eventSourceType,
+//     messageType, statusType, noteType,
+//     uiParameterType, workerParameterType,
+//     workerHookType
+//     } from '@/utils/types.js'
 
 // Define the set of notes.
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]

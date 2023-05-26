@@ -259,7 +259,6 @@ import {
   workerHookType
 } from '@/utils/types.js'
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
-import { sliders, buttons, switches } from '@/utils/widgets_config.js'
 import { NoteEvent } from '@/utils/NoteEvent.js'
 
 export default {
@@ -273,7 +272,7 @@ export default {
       workerName: "template",
       // Provide all the config files that should be loaded
       // These should be in public/workers/{workerName}/
-      configFiles: [`config.yaml`, `config_widgets.yaml`], 
+      configFiles: ['config.yaml', 'config_widgets.yaml', 'config_instruments.yaml'], 
 
       config: null,
 			
@@ -287,12 +286,17 @@ export default {
       workerParameterType,
       workerHookType,
 
-			// Widgets configurations are stored and can be modified
-			// in utils/widgets_config.js
+			
       // These need to be initialized here as empty arrays (computed properties)
+      // They'll be filled in the created() hook
       switches: [],
       sliders: [],
       buttons: [],
+      // Information about the instruments available to each player.
+      // It's used to create the mixer modal.
+      // This is filled in the created() hook
+      instruments: [],
+
       // Score status
       scoreShown: false,
       scrollStatus: false,
@@ -386,6 +390,7 @@ export default {
     this.switches = this.config.gui.settings.switches;
     this.sliders = this.config.gui.settings.sliders;
     this.buttons = this.config.gui.settings.buttons;
+    this.instruments = this.config.instruments;
 
   },
 

@@ -10,10 +10,10 @@ import {
     instNamesTemp
     } from '@/utils/types.js'
 
-window.onclick = () => {
-    Tone.start();
-    // Tone.context.lookAhead = 0;
-};
+// window.onclick = () => {
+//     Tone.start();
+//     // Tone.context.lookAhead = 0;
+// };
 
 const limiter = new Tone.Limiter(-5).toDestination();
 // const tremolo = new Tone.Tremolo(9, 0.75).toDestination().start();
