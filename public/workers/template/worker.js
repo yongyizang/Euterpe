@@ -468,6 +468,8 @@ async function processNoteEvent(noteEventPlain){
         noteList.push(arp_note);
     }
 
+    // Let's also create a label that will be displayed in the UIs TextBox
+    let label = noteEvent.name;
 
     // Similar to the processClockEvent() hook, we send the results
     // to the UI. In this example we send a list of the arpeggio notes
@@ -477,6 +479,8 @@ async function processNoteEvent(noteEventPlain){
         message:{
             [self.messageType.NOTE_LIST]: 
                     noteList,
+            [self.messageType.LABEL]:
+                    label
         },
     })
 }

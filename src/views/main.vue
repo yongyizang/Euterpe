@@ -43,8 +43,8 @@
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
       <div style="position: absolute; bottom: 300px; right: 20px; z-index:8" background-color: red>
-        <TextBox :height=100 :width=180 title="Chord"
-          text="Cm" />
+        <TextBox :height=100 :width=180 :title="textBoxTitle"
+          :text="textBoxText" />
       </div>
       <!-- On-screen buttons -->
       <div style="position: absolute; bottom: 230px; right: 20px">
@@ -299,6 +299,9 @@ export default {
       // Score status
       scoreShown: false,
       scrollStatus: false,
+      // Textbox status
+      textBoxTitle: "",
+      textBoxText: "",
 
       BPM: null,
       randomness: null,
@@ -322,7 +325,6 @@ export default {
       sab_par_worker: null,
       rb_par_worker: null,
 
-      textBoxText: "Gm7/D",
 
       workerParameterInterval: null,
 
@@ -405,6 +407,8 @@ export default {
     // Update the score properties
     vm.scoreShown = vm.config.gui.score;
     vm.scrollEnabled = vm.config.gui.score;
+    // Set the textBox title
+    vm.textBoxTitle = vm.config.gui.textBox.title;
 
     vm.BPM = vm.config.clockBasedSettings.tempo;
 
@@ -1010,7 +1014,7 @@ export default {
           case vm.messageType.CHROMA_VECTOR:
             this.$root.$refs.chromaChart.updateChromaData(messageValue);
             break;
-          case vm.messageType.CHORD:
+          case vm.messageType.LABEL:
             this.textBoxText = messageValue;
             break;
           case vm.messageType.TEXT:

@@ -43,7 +43,7 @@ clockBasedSettings:
 # so that you don't have to do it. Currently, it only applies to the quantizedEvents (clockBased mode)
 polyphony:
   input: 1
-  output: 1
+  # output: 1
 
 # Worker related settings.
 workerSettings:
@@ -63,3 +63,5 @@ introModalContent:
 
 gui:
   score: false
+  textBox:
+    title: "Chord"

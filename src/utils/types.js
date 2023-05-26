@@ -28,6 +28,7 @@ export const messageType = {
     AUDIO_BUFFER: 7,
     CHROMA_VECTOR: 11,
     CHORD_LABEL: 12,
+    LABEL: 14,
     TEXT: 13,
     CLOCK_TIME: 1
 };
