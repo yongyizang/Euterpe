@@ -55,9 +55,6 @@ const getters = {
 };
 
 const actions = {
-    // createInstruments(context){
-    //     console.log("Inside createInstruments config is ", context.state.instrumentsConfig);
-    // },
     samplerOn(context, noteEvent){
         let instrument_label = instNamesTemp[noteEvent.instrument];
         if (noteEvent.player == playerType.HUMAN){
