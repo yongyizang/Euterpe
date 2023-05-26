@@ -8,6 +8,7 @@ ul{
     width: 100vw;
     height: 200px;
     overflow-x: hidden;
+    background: rgb(221, 221, 213);
   }
   
   .keyboard ul {
@@ -100,6 +101,8 @@ ul{
     -webkit-animation: scale-down-center 0.05s
       cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    /* color: red; */
+    background: var(--keyboard-white-active-color)
   }
   
   .black {
@@ -129,6 +132,7 @@ ul{
     -webkit-animation: scale-down-center 0.05s
       cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    background: var(--keyboard-black-active-color)
   }
   
   .blank {

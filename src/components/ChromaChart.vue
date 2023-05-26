@@ -86,7 +86,7 @@
           datasets: [
             {
                 label: 'chromaData',
-                backgroundColor: '#f87979',
+                backgroundColor: '#e6a100',
                 data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             }
           ]

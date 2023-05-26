@@ -7,16 +7,18 @@
     --button-text-color: #1a1a1a;
   
     --keyboard-white-color: #f5f5f5;
+    --keyboard-white-active-color: #e6a100;
     --keyboard-white-text-color: #1a1a1a;
     --keyboard-black-color: #1a1a1a;
     --keyboard-black-text-color: #f5f5f5;
+    --keyboard-black-active-color: #614608;
     --keyboard-border-radius: 5px;
   
     --note-color: #e6a100;
     --line-color: #ffffff;
     --score-background-color: #3d3c3ce7;
   
-    --pianoRoll-human-color: #00b2ff;
-    --pianoRoll-worker-color: #ff3b3b;
+    --pianoRoll-human-color: #17a72a;
+    --pianoRoll-worker-color: #e63600;
   }
   
