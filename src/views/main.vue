@@ -350,6 +350,9 @@ export default {
 
       isNotChrome,
       isMobile,
+      // Keep track of all the timeouts ids to clear them when the the user pauses
+      timeout_on_IDs: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
+      timeout_off_IDs: [],
 
     };
   },
@@ -1043,14 +1046,15 @@ export default {
                   // TODO : the worker should do that
                   let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
                   let whiteKey = noteName.includes('#') ? false : true;
-                  setTimeout(() => {
+                  vm.timeout_on_IDs.push(setTimeout(() => {
                     this.$root.$refs.pianoRoll.keyDown(noteEvent);
                     if (whiteKey){
                       this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
                     } else {
                       this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-worker');
                     }
-                  }, noteEvent.playAfter.seconds * 1000);
+                  }, noteEvent.playAfter.seconds * 1000)
+                  );
                 }
                 else if (noteEvent.type === vm.noteType.NOTE_OFF) {
                   this.$store.dispatch("samplerOff", noteEvent);
@@ -1113,9 +1117,10 @@ export default {
         workerNotesToBePlayed.forEach((noteEvent) => {
           if (noteEvent.type === vm.noteType.NOTE_ON) {
             this.$store.dispatch("samplerOn", noteEvent);
-            setTimeout(() => {
+            vm.timeout_on_IDs.push(setTimeout(() => {
               this.$root.$refs.pianoRoll.keyDown(noteEvent);
-            }, noteEvent.playAfter.seconds * 1000);
+            }, noteEvent.playAfter.seconds * 1000)
+            );
           } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
             this.$store.dispatch("samplerOff", noteEvent);
             setTimeout(() => {
@@ -1264,9 +1269,10 @@ export default {
             // this makes the grid a bit more flexible, and the human input is correctly parsed
             // In terms of playability, the human finds it much more easy to play along the metronome on the grid
             if (vm.config.noteBasedMode.clockBased) {
-              setTimeout(function () {
+              vm.timeout_on_IDs.push(setTimeout(function () {
                 vm.runTheWorker();
-              }, parseInt(vm.$store.getters.getClockPeriod / 4));
+              }, parseInt(vm.$store.getters.getClockPeriod / 4))
+              );
             } else {
               // inside runTheWorker we increment the "delayed" tick number.
               // If we don't run the worker, we still want to increment the "delayed" tick number
@@ -1279,7 +1285,7 @@ export default {
 
         function sendOutTicks() {
           tickBehavior();
-          setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod);
+          vm.timeout_on_IDs.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));
         }
 
         sendOutTicks();
@@ -1337,10 +1343,15 @@ export default {
     },
     startRecording() {
       this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
+      this.$store.commit("startUnMute");
     },
 
     stopRecording() {
       this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
+      this.$store.commit("stopMute");
+      this.timeout_on_IDs.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
     },
 
     showSettingsModal() {

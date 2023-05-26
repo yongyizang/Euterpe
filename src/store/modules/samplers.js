@@ -19,6 +19,7 @@ const state = {
     metronomeMuteStatus: true,
     humanMuteStatus: false,
     workerMuteStatus: false,
+
     humanSamplersVolume: 0, // in dB
     workerSamplersVolume: 0, // in dB
     metronomeSamplerVolume: 0, // in dB
@@ -55,6 +56,7 @@ const getters = {
 };
 
 const actions = {
+
     samplerOn(context, noteEvent){
         let instrument_label = instNamesTemp[noteEvent.instrument];
         if (noteEvent.player == playerType.HUMAN){
@@ -154,6 +156,17 @@ const mutations = {
         workerSamplersBus[instrument].mute = false;
     },
     
+    stopMute(state) {
+        state.metronomeBus.mute = true;
+        state.humanBus.mute = true;
+        state.workerBus.mute = true;
+    },
+    startUnMute(state) {
+        state.metronomeBus.mute = state.metronomeMuteStatus;
+        state.humanBus.mute = state.humanMuteStatus;    
+        state.workerBus.mute = state.workerMuteStatus;
+    },
+
     createInstruments(state, config){
         state.instrumentsConfig = config.instruments;
         console.log("inside setInstrumentsConfig", state.instrumentsConfig);
