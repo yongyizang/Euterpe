@@ -37,7 +37,16 @@ function NoteFormatter(note) {
 
 export default {
   name: "Score",
-  props: {},
+  props: {
+    scrollStatus: {
+      type: Boolean,
+      default: false,
+    },
+    scoreShown: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
   data() {
     return {
@@ -86,7 +95,6 @@ export default {
       // the position of the latest note will be at the 3/4s of the screen's width
       latestNotePosition: 0.75,
       // Scrolling starts once the x cursor has reached the desired latestNotePosition
-      scrollEnabled: false,
       scrollsCounter: 0,
       scrollsNumberPerMeasure: 400,
       preDur: 1
@@ -105,8 +113,34 @@ export default {
     window.removeEventListener("resize", this.resize);
   },
 
+  watch: {
+    // scoreShown: {
+    //   immediate: true,
+    //   handler(newValue, oldValue) {
+    //     if (newValue == true) {
+    //       this.triggerCollapse();
+    //     }
+    //   }
+    // },
+    scrollEnabled: {
+      immediate: true,
+      handler(newValue, oldValue) {
+        if (newValue == true) {
+          this.enableScrolling();
+        }
+      }
+    }
+
+  },
   mounted() {
     const vm = this;
+
+    // vm.scrollEnabled = this.$store.getters.config.gui.score;
+    if (vm.$props.scrollStatus == false){
+      console.log("scrolling disabled");
+      this.triggerCollapse();
+    }
+    
     vm.init();
     vm.resize();
     var grandStaff = document.getElementById("grandStaff");
@@ -222,13 +256,18 @@ export default {
       this.staves[0].setContext(this.context);
       this.staves[1].setContext(this.context);
 
+      
+      
+    },
+
+    enableScrolling() {
       setInterval(() => {
-        if (this.$store.getters.getClockStatus && this.scrollEnabled) {
-          this.scrollScore(1);
-          this.scrollsCounter += 1;
-          this.scrollsNumberPerMeasure =
-            ((60 / this.$store.getters.getBPM) * 4 * 1000) /
-            this.scrollStepTime;
+      if (this.$store.getters.getClockStatus && this.scrollEnabled) {
+        this.scrollScore(1);
+        this.scrollsCounter += 1;
+        this.scrollsNumberPerMeasure =
+          ((60 / this.$store.getters.getBPM) * 4 * 1000) /
+          this.scrollStepTime;
         }
       }, this.scrollStepTime);
     },

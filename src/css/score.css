@@ -15,6 +15,7 @@
     height: 300px;
     width: 100%;
     overflow-x: hidden;
+    overflow-y: hidden;
     -webkit-box-shadow: -4px 6px 15px -9px #000000;
     box-shadow: -4px 6px 15px -9px #000000;
     background-color: var(--score-background-color);
@@ -25,7 +26,6 @@
     border-bottom-right-radius: 40px;
     border-bottom-left-radius: 40px;
   }
-  
   #grandStaff {
     z-index: 997;
     position: absolute;

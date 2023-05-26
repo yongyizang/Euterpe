@@ -34,7 +34,7 @@
           ">
       </div>
       <!-- Custom Vue UI Components -->
-      <Score />
+      <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
       <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
         style="position:absolute; z-index:0; top:0px; left:0; background-color:transparent" />
       <ChromaChart ref="chromaChart" :width="300" :height="110"
@@ -43,7 +43,7 @@
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
       <div style="position: absolute; bottom: 300px; right: 20px; z-index:8" background-color: red>
-        <TextBox :height=100 :width=180 title="Tempo"
+        <TextBox :height=100 :width=180 title="Chord"
           text="Cm" />
       </div>
       <!-- On-screen buttons -->
@@ -296,6 +296,10 @@ export default {
       sliders,
       buttons,
 
+      // Score status
+      scoreShown: false,
+      scrollStatus: false,
+
       BPM: null,
       randomness: null,
       localSyncClockStatus: false, // used to trigger local UI change
@@ -396,6 +400,11 @@ export default {
     } catch (err) {
       console.error(err);
     }
+    console.log("config loaded");
+
+    // Update the score properties
+    vm.scoreShown = vm.config.gui.score;
+    vm.scrollEnabled = vm.config.gui.score;
 
     vm.BPM = vm.config.clockBasedSettings.tempo;
 
