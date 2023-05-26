@@ -33,6 +33,21 @@
           z-index: 999;
           ">
       </div>
+      <!-- Intro Modal -->
+      <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+        <div class="modalDiv">
+          <p class="modalTitle">
+            Introduction
+          </p>
+          <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon class="modalIcon">close</md-icon></button>
+        </div>
+        <div class="modalContent">
+          <p v-for="(content, index) in config.introModalContent" :key="index">
+            {{ content }}
+            <br />
+          </p>
+        </div>
+      </modal>
       <!-- Custom Vue UI Components -->
       <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
       <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
@@ -216,22 +231,6 @@
           </div>
         </div>
       </modal>
-      <!-- Intro Modal -->
-      <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
-        <div class="modalDiv">
-          <p class="modalTitle">
-            Introduction
-          </p>
-          <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon class="modalIcon">close</md-icon></button>
-        </div>
-        <div class="modalContent">
-          <p v-for="(content, index) in config.introModalContent" :key="index">
-            {{ content }}
-            <br />
-          </p>
-        </div>
-      </modal>
-
     </div>
   </div>
 </template>
@@ -300,8 +299,8 @@ export default {
       scoreShown: false,
       scrollStatus: false,
       // Textbox status
-      textBoxTitle: "",
-      textBoxText: "",
+      textBoxTitle: null,
+      textBoxText: null,
 
       BPM: null,
       randomness: null,
@@ -324,7 +323,6 @@ export default {
       paramWriter: null,
       sab_par_worker: null,
       rb_par_worker: null,
-
 
       workerParameterInterval: null,
 
@@ -371,12 +369,21 @@ export default {
     // that's a necessary trick. 
     // The actuall config values will
     // be loaded in mounted() 
-    this.config = {
-      'introModal': null,
-      'title': '',
-      'subtitle': '',
-      'introModalContent': [],
-    };
+    // this.config = {
+    //   'introModal': null,
+    //   'title': '',
+    //   'subtitle': '',
+    //   'introModalContent': [],
+    // };
+
+    
+    this.loadConfigSync();
+    // Update the score properties
+    this.scoreShown = this.config.gui.score;
+    this.scrollEnabled = this.config.gui.score;
+    // Set the textBox title
+    this.textBoxTitle = this.config.gui.textBox.title;
+
   },
 
   async mounted() {
@@ -387,28 +394,6 @@ export default {
      */
     vm.$refs.mainContent.style.display = "none";
     vm.$refs.entryBtn.style.visibility = "hidden";
-
-    // load config.yaml and constants.json
-    // then commit them to any vuex store that needs them
-    try {
-      await fetch(`/workers/${vm.workerName}/config.yaml`)
-        .then(response => response.text())
-        .then(text => function () {
-          this.config = yaml.load(text);
-          this.$store.commit("setConfig", this.config);
-          this.$store.commit("initQuantBuffers", this.config);
-          this.$store.commit("setTicksPerMeasure", this.config);
-        }.bind(this)());
-    } catch (err) {
-      console.error(err);
-    }
-    console.log("config loaded");
-
-    // Update the score properties
-    vm.scoreShown = vm.config.gui.score;
-    vm.scrollEnabled = vm.config.gui.score;
-    // Set the textBox title
-    vm.textBoxTitle = vm.config.gui.textBox.title;
 
     vm.BPM = vm.config.clockBasedSettings.tempo;
 
@@ -775,6 +760,29 @@ export default {
   },
 
   methods: {
+
+    loadConfigSync() {
+      // Read about sync and async requests here:
+      // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
+      // In our case, we need to load the config asap, since 
+      // the config contains also info to generate the UI.
+      // If not, the app will crash anyway, so it's worth waiting for it.
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', `/workers/${this.workerName}/config.yaml`, false); // Set async to false
+      xhr.send();
+
+      if (xhr.status === 200) {
+        const text = xhr.responseText;
+        // load config.yaml and constants.json
+        // then commit them to any vuex store that needs them
+        this.config = yaml.load(text);
+        this.$store.commit("setConfig", this.config);
+        this.$store.commit("initQuantBuffers", this.config);
+        this.$store.commit("setTicksPerMeasure", this.config);
+      } else {
+        console.error(`Failed to fetch config file: ${xhr.status}`);
+      }
+    },
 
 		processNoteEvent(noteEvent) {
 			var vm = this;
