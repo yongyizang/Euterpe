@@ -1,27 +1,56 @@
 # Euterpe
-Euterpe is a web framework designed to bridge the gap between music interaction and creation research and its deployment into user-friendly systems accessible to the general public. It offers a user-friendly interface to deploy music interaction algorithms as static web pages that can run locally on the user's end.
+Euterpe is a framework designed to bridge the gap between music interaction and creation research and its deployment into user-friendly systems accessible to the general public on the web. Euterpe aims to be a template or starting point, from which you can develop your own music interaction system.
+
+## Deployed Systems Using Euterpe
+- [BachDuet](https://bachduet.com)
 
 ## Features
-Euterpe offers several advantages over server-based frameworks, including:
+<!-- Euterpe was designed to support various music interaction modes. There are two main entities involved within Euterpe: -->
+<!-- The main components of Euterpe are: -->
 
-- Increased stability
-- Reduced delays
-- Lower maintenance costs for the developers
+### UI 
+    
+The UI is the main thread of Euterpe and it performs the following operations:
+- Receiving and displaying the user input (e.g., PianoRoll, Score, etc.)
+- Processing input and sending it to your music interaction algorithm
+- Receiving the output from your music interaction algorithm and displaying it to the user
 
-Euterpe supports both symbolic MIDI and audio user input as well as various human-computer interaction paradigms. It defines a music interaction communication protocol (MICP) that allows for flexible communication between Euterpe and the various types of music interaction algorithms it can host.
+### Worker 
 
-## Installation and Usage
+The Worker is a separate thread that hosts your music interaction algorithm.
+The Worker receives input from the UI in a timely manner, and sends back its output to the UI.
+    
+### Music Interaction Communication Protocol (MICP)
+
+The communication protocol that both UI and the Worker need to adhere to in order to communicate with each other. The protocol is designed to support various types of music interaction modes and data types:
+- Time-grid based (e.g., 16th-note quantization algorithms)
+- Event-based
+- 'Simultaneous' or 'Call and Response' playing
+- MIDI, Audio and data transfering
+---
+## Getting Started
+### Installation
 Euterpe is built on top of Vue.js, therefore need Node.js to be installed on your system. You can download Node.js from [here](https://nodejs.org/en/download/).
 
 Once Node.js is installed, you can install Euterpe by running the following command in the root directory of the project:
 
     npm install
 
-After the first installation, you can run Euterpe by running the following command in the root directory of the project:
+### Usage
+After the first installation, you can run Euterpe by running the following command in the root directory of the project to start the development server:
 
     npm run serve
 
-to start the development server. The development server by default will be available at [http://localhost:8080](http://localhost:8080).
+ The development server by default will be available at [http://localhost:8080](http://localhost:8080).
+
+As a first example, we have provided a template Worker in `public/workers/template`. This worker implements a simple music interaction algorithm that does the following:
+- Generates an sequence of MIDI notes as a response to a user's MIDI event (arpeggiator)
+- Receives raw audio data from the UI and estimate the chroma vector.
+- Displays those two using the PianRoll and VectorView components respectively.
+
+Check our [documentation](Documentation.md) for more information on how to write your own Worker.
+
+### Deployment
 
 When you are ready to deploy Euterpe, you can run the following command in the root directory of the project:
 
@@ -29,11 +58,11 @@ When you are ready to deploy Euterpe, you can run the following command in the r
 
 This will by default generate a `dist` folder in the root directory of the project. You can then deploy the contents of the `dist` folder to your web server.
 
-## Directory Structure
-### Configuration Files
-As referenced in the paper, `public/config.yaml` is the main configuration file that contains the configuration for the entire application, while `src/css/variables.css` denotes the color scheme of the application. 
-
-For further customization, all visual components' CSS files are located in `src/css`, Vue definition in `src/components`, and the main Vue file in `src/views/main.vue`.
-
-### Worker
-As defined in our paper, Worker hosts the interaction algorithm. A Worker should be defined as a (Web Worker)[https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers] and should be placed in `public/`. As an example, we have provided a Worker that implements the BachDuet algorithm described in our paper in `public/worker.js`, an audio-based example that aggregate 100 frames of audio then play it back is provided in `public/audio-worker.js`, as well as an empty template worker in `public/template-worker.js`.
+---
+## Made with 
+- [Vue.js](https://vuejs.org/)
+- [WebAudio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
+- [Tone.js](https://tonejs.github.io/)
+- [ringbuf.js](https://github.com/padenot/ringbuf.js/)
+- [tonaljs](tonaljs)
+- [audiokeys](https://github.com/kylestetz/AudioKeys)
