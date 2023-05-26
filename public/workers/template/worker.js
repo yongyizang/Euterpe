@@ -55,7 +55,7 @@ let switch4 = null;
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize
 // and we do some basic analysis on each frame (RMS, loudness, chroma)
-function readFromQueue() {
+function _readFromQueue() {
     const samples_read = self._audio_reader.dequeue(self.staging);
     if (!samples_read) {
       return 0;
@@ -92,7 +92,7 @@ function readFromQueue() {
     return samples_read;
 }
 
-function updateParameter(newUpdate){
+function _updateParameter(newUpdate){
 
     // This is where the mapping of the UI widgets
     // to the worker parameters happens
@@ -147,7 +147,7 @@ function uiParameterObserver(){
     let newParameterUI = { index: null, value: null };
     if (self._param_reader.dequeue_change(newParameterUI)) {
         console.log("param index: " + newParameterUI.index + " value: " + newParameterUI.value);
-        updateParameter(newParameterUI);
+        _updateParameter(newParameterUI);
     }
 }
 
@@ -279,10 +279,10 @@ async function initAudio(content){
     self.sampleRate = content.sampleRate;
 
     // The frame/window size
-    self.windowSize = 2048 * self.channelCount;
+    self.windowSize = self.config.audio.windowSize * self.channelCount;
 
     // The hop size
-    self.hopSize = 1024 * self.channelCount;
+    self.hopSize = self.config.audio.hopSize * self.channelCount;
 
     // Audio Frames per clock tick
     self.framesPerTick = self.sampleRate * self.channelCount * 60 / 
@@ -323,8 +323,8 @@ async function initAudio(content){
     
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
-    //   interval = setInterval(readFromQueue, 100);
-    self.interval = setInterval(readFromQueue, 100);
+    //   interval = setInterval(_readFromQueue, 100);
+    self.interval = setInterval(_readFromQueue, 100);
     console.log("finished loading audio")
 }
 
@@ -411,7 +411,7 @@ async function processClockEvent(content) {
     // Finally, when in processClockEvent() hook,
     // you should always send a CLOCK_TIME message type, so that the UI
     // can check whether the worker is in sync with the clock.
-    console.log("sending clock event");
+    // console.log("sending clock event");
     postMessage({
         hookType: self.workerHookType.CLOCK_EVENT,
         message:{

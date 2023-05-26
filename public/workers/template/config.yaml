@@ -15,9 +15,6 @@ noteBasedMode:
   # create a clock to "power" the scrolling functionality of the PianoRoll and Score UIs
   clockBased: true
 
-# If audioBasedMode = true, the worker's processAudioBuffer() hook is active.
-audioBasedMode: false
-
 # The settings for the clockBased operation.
 # These are taken into account only if clockBased: true
 clockBasedSettings:
@@ -49,11 +46,11 @@ polyphony:
 workerSettings:
   # For Workers that require warmup (such as neural networks)
   warmupRounds: 2
-  # Many music interaction algorithms support controlling their output randomness 
-  # (e.g., sampling temperature).
-  # Default value for randomness(stochasticity) is 0, and is controlled by a slider
-  # within the settings tab. (max=1)
-  randomness: 0
+
+# Audio settings
+audio:
+  windowSize: 2048
+  hopSize: 1024
 
 # Choose the text to be displayed in the splash screen animation
 introModal: true
