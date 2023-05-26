@@ -524,24 +524,7 @@ export default {
     // callback for when a laptop keyboard key is pressed
     keyboard.down(function (note) {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
-      // sound/sampler is active even when the improvisation (clock) has not started yet
-      // const midiEvent = {
-      //   type: vm.noteType.NOTE_ON,
-      //   player: "human",
-      //   instrument: "upright_bass",
-      //   name: noteName, //message.note.identifier,
-      //   channel: 140, // this is channel midi channel 0
-      //   midi: note.note,
-      //   velocity: 127,
-      //   timestamp: {
-      //     seconds:Tone.now(),
-      //     tick: vm.$store.getters.getGlobalTickDelayed,
-      //   },
-      //   playAfter: {
-      //     seconds: 0,
-      //     tick: 0
-      //   }
-      // }
+
       const newNoteEvent = new NoteEvent();
       newNoteEvent.player = vm.playerType.HUMAN;
       newNoteEvent.instrument = vm.instrumentType.PIANO;
@@ -562,50 +545,12 @@ export default {
       newNoteEvent.duration = null;
 
 			vm.processNoteEvent(newNoteEvent);
-      // // We always send the user's input directly to the sampler
-      // // for immediate playback
-      // vm.$store.dispatch("samplerOn", midiEvent);
-      // // If the clock is running, send the note to the piano roll
-      // if (vm.$store.getters.getClockStatus) {
-
-      //   // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-      //   // this packet will be sent to the processNoteEvent hook.
-      //   if (vm.config.noteBasedMode.eventBased) {
-      //     vm.worker.postMessage({
-      //       hookType: vm.workerHookType.NOTE_EVENT,
-      //       content: midiEvent,
-      //     });
-      //   };
-
-      //   vm.$root.$refs.pianoRoll.keyDown(midiEvent);
-      //   vm.$store.dispatch("noteOn", midiEvent);
-      // }
-
 
     });
 
     // callback for when a laptop keyboard key is released
     keyboard.up(function (note) {
       let noteName = Midi.midiToNoteName(note.note, { sharps: true });
-
-      // const midiEvent = {
-      //   type: vm.noteType.NOTE_OFF,
-      //   player: "human",
-      //   instrument: "upright_bass",
-      //   name: noteName, //message.note.identifier,
-      //   channel: 140, // this is channel midi channel 0
-      //   midi: note.note,
-      //   velocity: 127,
-      //   timestamp: {
-      //     seconds: Tone.now(),
-      //     tick: vm.$store.getters.getGlobalTickDelayed, //null,//this.$store.getters.getGlobalTickDelayed
-      //   },
-      //   playAfter: {
-      //     seconds: 0,
-      //     tick: 0
-      //   }
-      // }
-
       const newNoteEvent = new NoteEvent();
       newNoteEvent.player = vm.playerType.HUMAN;
       newNoteEvent.instrument = vm.instrumentType.PIANO;
@@ -626,20 +571,8 @@ export default {
       newNoteEvent.duration = null;
 
 		vm.processNoteEvent(newNoteEvent)
-    //   vm.$store.dispatch("samplerOff", midiEvent);
-    //   if (vm.$store.getters.getClockStatus) {
-    //     // this enters here, only when the clock has started
-
-    //     if (vm.config.noteBasedMode.eventBased) {
-    //       vm.worker.postMessage({
-    //         hookType: vm.workerHookType.NOTE_EVENT,
-    //         content: midiEvent,
-    //       });
-    //     };
-    //     vm.$root.$refs.pianoRoll.keyUp(midiEvent);
-    //     vm.$store.dispatch("noteOff", midiEvent);
-    //   }
     });
+
     // TODO: window.onclick is outside mounted(). How about this one.
     // When window resize, self-update this data.
     window.onresize = () => {
@@ -840,7 +773,6 @@ export default {
 			} else if (noteEvent.type == vm.noteType.NOTE_OFF) {
 				vm.$store.dispatch("samplerOff", noteEvent);
 			}
-      
       // If the clock is running, send the note to the piano roll
       if (vm.$store.getters.getClockStatus) {
         // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
@@ -912,107 +844,49 @@ export default {
       const vm = this;
       const inputDevice = WebMidi.getInputById(this.selectedMIDIDevice);
       inputDevice.addListener("noteon", (message) => {
-        // const midiEvent = {
-        //   type: vm.noteType.NOTE_ON,
-        //   player: "human",
-        //   name: message.note.identifier,
-        //   channel: message.data[0],
-        //   midi: message.data[1],
-        //   velocity: message.data[2],
-        //   timestamp: {
-        //     seconds: message.timestamp,
-        //     tick: this.$store.getters.getGlobalTickDelayed
-        //   },
-        //   playAfter: {
-        //     seconds: 0,
-        //     tick: 0
-        //   }
-        // }
+      const newNoteEvent = new NoteEvent();
+      newNoteEvent.player = vm.playerType.HUMAN;
+      newNoteEvent.instrument = vm.instrumentType.PIANO;
+      newNoteEvent.name = message.note.identifier;
+      newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
+      newNoteEvent.type = vm.noteType.NOTE_ON;
+      newNoteEvent.channel = message.data[0];
+      newNoteEvent.midi = message.data[1];
+      newNoteEvent.velocity = message.data[2];
+      newNoteEvent.createdAt = {
+        seconds: performance.now(), // message.timestamp
+        tick: vm.$store.getters.getGlobalTickDelayed,
+      };
+      newNoteEvent.playAfter = {
+        seconds: 0,
+        tick: 0
+      };
+      newNoteEvent.duration = null;
 
-        const newNoteEvent = new NoteEvent();
-        newNoteEvent.player = vm.playerType.HUMAN;
-        newNoteEvent.instrument = vm.instrumentType.PIANO;
-        newNoteEvent.name = message.note.identifier;
-        newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
-        newNoteEvent.type = vm.noteType.NOTE_ON;
-        newNoteEvent.channel = message.data[0];
-        newNoteEvent.midi = message.data[1];
-        newNoteEvent.velocity = message.data[2];
-        newNoteEvent.createdAt = {
-          seconds: performance.now(), // message.timestamp
-          tick: vm.$store.getters.getGlobalTickDelayed,
-        };
-        newNoteEvent.playAfter = {
-          seconds: 0,
-          tick: 0
-        };
-        newNoteEvent.duration = null;
+      vm.processNoteEvent(noteEvent)
+    });
 
-				vm.processNoteEvent(noteEvent)
-        // this.$store.dispatch("samplerOn", midiEvent);
-        // if (this.$store.getters.getClockStatus) {
-
-        //   if (vm.config.noteBasedMode.eventBased) {
-        //     vm.worker.postMessage({
-        //       hookType: vm.workerHookType.NOTE_EVENT,
-        //       content: midiEvent,
-        //     });
-        //   };
-        //   this.$root.$refs.pianoRoll.keyDown(midiEvent);
-        //   this.$store.dispatch("noteOn", midiEvent);
-        // }
-      });
-
-      inputDevice.addListener("noteoff", (message) => {
-        // const midiEvent = {
-        //   type: vm.noteType.NOTE_OFF,
-        //   player: "human",
-        //   name: message.note.identifier,
-        //   channel: message.data[0],
-        //   midi: message.data[1],
-        //   velocity: message.data[2],
-        //   timestamp: {
-        //     seconds: message.timestamp,
-        //     tick: this.$store.getters.getGlobalTickDelayed
-        //   },
-        //   playAfter: {
-        //     seconds: 0,
-        //     tick: 0
-        //   }
-        // }
-
-        const newNoteEvent = new NoteEvent();
-        newNoteEvent.player = vm.playerType.HUMAN;
-        newNoteEvent.instrument = vm.instrumentType.PIANO;
-        newNoteEvent.name = message.note.identifier;
-        newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
-        newNoteEvent.type = vm.noteType.NOTE_OFF;
-        newNoteEvent.channel = message.data[0];
-        newNoteEvent.midi = message.data[1];
-        newNoteEvent.velocity = message.data[2];
-        newNoteEvent.createdAt = {
-          seconds: performance.now(), // message.timestamp
-          tick: vm.$store.getters.getGlobalTickDelayed,
-        };
-        newNoteEvent.playAfter = {
-          seconds: 0,
-          tick: 0
-        };
-        newNoteEvent.duration = null;
-				
-				vm.processNoteEvent(noteEvent)
-        // this.$store.dispatch("samplerOff", midiEvent);
-        // if (this.$store.getters.getClockStatus) {
-
-        //   if (vm.config.noteBasedMode.eventBased) {
-        //     vm.worker.postMessage({
-        //       hookType: vm.workerHookType.NOTE_EVENT,
-        //       content: midiEvent,
-        //     });
-        //   };
-        //   this.$root.$refs.pianoRoll.keyUp(midiEvent);
-        //   this.$store.dispatch("noteOff", midiEvent);
-        // }
+    inputDevice.addListener("noteoff", (message) => {
+      const newNoteEvent = new NoteEvent();
+      newNoteEvent.player = vm.playerType.HUMAN;
+      newNoteEvent.instrument = vm.instrumentType.PIANO;
+      newNoteEvent.name = message.note.identifier;
+      newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
+      newNoteEvent.type = vm.noteType.NOTE_OFF;
+      newNoteEvent.channel = message.data[0];
+      newNoteEvent.midi = message.data[1];
+      newNoteEvent.velocity = message.data[2];
+      newNoteEvent.createdAt = {
+        seconds: performance.now(), // message.timestamp
+        tick: vm.$store.getters.getGlobalTickDelayed,
+      };
+      newNoteEvent.playAfter = {
+        seconds: 0,
+        tick: 0
+      };
+      newNoteEvent.duration = null;
+      
+      vm.processNoteEvent(noteEvent)
       });
     },
 
@@ -1037,7 +911,6 @@ export default {
       // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
       // it's up to the worker to use it if it wants to.
       this.estimateHumanQuantizedNote();
-
 
       // remember, runTheWorker happens with a small delay of tick/4 after the tick
       // here I just keep track of the 'delayed' tick
@@ -1172,7 +1045,6 @@ export default {
       }
     },
 
-
     estimateHumanQuantizedNote() {
       var vm = this;
       /* 
@@ -1218,16 +1090,6 @@ export default {
           currentQuantizedEvents.push(noteOnEvent)
         }
         else {
-          // const noteHoldEvent = {
-          //   type: vm.noteType.NOTE_HOLD,
-          //   player: "human",
-          //   midi: midi,
-          //   velocity: null,
-          //   timestamp: {
-          //     seconds: null,
-          //     ticks: null,
-          //   },
-          // }
 					const noteHoldEvent = new NoteEvent();
 					noteHoldEvent.type = vm.noteType.NOTE_HOLD;
 					noteHoldEvent.player = vm.playerType.HUMAN;
@@ -1370,7 +1232,6 @@ export default {
     },
 
     metronomeTrigger() {
-      // console.log("in metronomeTrigger for ", this.$store.getters.getLocalTick);
       var vm = this;
       // This method would trigger the metronome sampler.
       if (
@@ -1380,18 +1241,6 @@ export default {
       ) {
         var currentNote =
           this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
-        // const metronomeNote = {
-        //   player: "metronome",
-        //   name: currentNote,
-        //   type: this.noteType.NOTE_ON,
-        //   midi: null,
-        //   chroma: null,
-        //   velocity: 127,
-        //   playAfter: {
-        //     tick: 0,
-        //     seconds: 0
-        //   }
-        // }
 				const metronomeNote = new NoteEvent()
 				metronomeNote.player = vm.playerType.METRONOME;
 				metronomeNote.name = currentNote;
@@ -1442,7 +1291,6 @@ export default {
       const vm = this;
       const dt = vm.modelInferenceTimes.sort(function (a, b) { return a - b })[Math.floor(vm.modelInferenceTimes.length * 0.95)];
       vm.maxBPM = Math.round(1000 * 60 / dt / vm.$store.getters.getTicksPerBeat);
-      // console.log("maxBPM", vm.maxBPM);
     },
 
     buttonAction(buttonId) {

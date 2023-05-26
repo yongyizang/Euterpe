@@ -39,6 +39,13 @@ import "../css/keyboard.css";
 import * as Tone from "tone";
 import { clamp } from "@/utils/math";
 import {Note} from "@tonaljs/tonal";
+import {
+	playerType, instrumentType, eventSourceType,
+  messageType, statusType, noteType,
+  uiParameterType, workerParameterType,
+  workerHookType
+} from '@/utils/types.js'
+import { NoteEvent } from '@/utils/NoteEvent.js'
 
 
 // Here, a set of constants are defined.
@@ -192,96 +199,58 @@ export default {
 
     toggleAttack(currentNote) {
 
-      // const midiEvent = {
-      //   type: this.$store.getters.getNoteType.NOTE_ON,
-      //   player : "human",
-      //   note : currentNote, //message.note.identifier,
-      //   channel : 140, // this is channel midi channel 0
-      //   midi : Note.midi(currentNote),
-      //   velocity : 127,
-      //   timestamp : Tone.now(),
-      // }
-
-      let noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
+      let noteName = currentNote;
       // get midi number from noteName
       let midi = Note.midi(noteName);
-      // sound/sampler is active even when the improvisation (clock) has not started yet
-      const midiEvent = {
-        type: this.$store.getters.getNoteType.NOTE_ON,
-        player: "human",
-        instrument: "upright_bass",
-        name: noteName, //message.note.identifier,
-        channel: 140, // this is channel midi channel 0
-        midi: midi,
-        velocity: 127,
-        timestamp: {
-            seconds: Tone.now(),
-            tick: this.$store.getters.getGlobalTickDelayed,
-          },
-        playAfter: {
-          seconds: 0,
-          tick: 0
-        }
+
+      const newNoteEvent = new NoteEvent();
+      newNoteEvent.player = playerType.HUMAN;
+      newNoteEvent.instrument = instrumentType.PIANO;
+      newNoteEvent.source = eventSourceType.MOUSE;
+      newNoteEvent.name = noteName;
+      newNoteEvent.type = noteType.NOTE_ON;
+      newNoteEvent.channel = 140; // this is channel midi channel 0
+      newNoteEvent.midi = midi;
+      newNoteEvent.velocity = 127;
+      newNoteEvent.createdAt = {
+        seconds: performance.now(),
+        tick: this.$store.getters.getGlobalTickDelayed,
       };
-      
+      newNoteEvent.playAfter = {
+        seconds: 0,
+        tick: 0
+      };
+      newNoteEvent.duration = null;
+      // TODO : a better way to do this is to emit the event to the parent
+			this.$parent.processNoteEvent(newNoteEvent);
 
-      this.$store.dispatch("samplerOn", midiEvent);
-      if (this.$store.getters.getClockStatus) {
-
-        // TODO : Find the best way to post the note event to the worker
-      // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-      // // this packet will be sent to the processNoteEvent hook.
-      // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
-      //   this.$root.$refs.worker.postMessage({
-      //     messageType: this.$root.$refs.messageTypes.NOTE_EVENT,
-      //     content: midiEvent,
-      //   });
-      // };
-        
-        this.$root.$refs.pianoRoll.keyDown(midiEvent);
-        this.$store.dispatch("noteOn", midiEvent);
-      }
-      
     },
 
     toggleRelease(currentNote) {
       let noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
       // get midi number from noteName
       let midi = Note.midi(noteName);
-      // sound/sampler is active even when the improvisation (clock) has not started yet
-      const midiEvent = {
-        type: this.$store.getters.getNoteType.NOTE_OFF,
-        player: "human",
-        instrument: "upright_bass",
-        name: noteName, //message.note.identifier,
-        channel: 140, // this is channel midi channel 0
-        midi: midi,
-        velocity: 0,
-        timestamp: {
-            seconds: Tone.now(),
-            tick: this.$store.getters.getGlobalTickDelayed,
-          },
-        playAfter: {
-          seconds: 0,
-          tick: 0
-        }
+
+      const newNoteEvent = new NoteEvent();
+      newNoteEvent.player = playerType.HUMAN;
+      newNoteEvent.instrument = instrumentType.PIANO;
+      newNoteEvent.source = eventSourceType.MOUSE;
+      newNoteEvent.name = noteName;
+      newNoteEvent.type = noteType.NOTE_OFF;
+      newNoteEvent.channel = 140; // this is channel midi channel 0
+      newNoteEvent.midi = midi;
+      newNoteEvent.velocity = 127;
+      newNoteEvent.createdAt = {
+        seconds: performance.now(),
+        tick: this.$store.getters.getGlobalTickDelayed,
       };
-      
-      this.$store.dispatch("samplerOff", midiEvent);
-      if (this.$store.getters.getClockStatus){
-        // this enters here, only when the clock has started
-        // TODO : Find the best way to post the note event to the worker
-        // // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-        // // this packet will be sent to the processNoteEvent hook.
-        // if (this.$store.getters.getConfig.noteBasedMode.eventBased) {
-        //   vm.worker.postMessage({
-        //     messageType: vm.messageType.NOTE_EVENT,
-        //     content: midiEvent,
-        //   });
-        // };
-        this.$root.$refs.pianoRoll.keyUp(midiEvent);
-        this.$store.dispatch("noteOff", midiEvent);
-      }
+      newNoteEvent.playAfter = {
+        seconds: 0,
+        tick: 0
+      };
+      newNoteEvent.duration = null;
+			this.$parent.processNoteEvent(newNoteEvent);
+
     },
 
     calculateOctave(n) {
