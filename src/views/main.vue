@@ -367,18 +367,18 @@ export default {
   },
 
   created() {
-    // that's a necessary trick. 
-    // The actuall config values will
-    // be loaded in mounted() 
-    // this.config = {
-    //   'introModal': null,
-    //   'title': '',
-    //   'subtitle': '',
-    //   'introModalContent': [],
-    // };
 
-    
+    console.log("created start")
     this.loadConfigSync();
+    console.log("load config sync done")
+
+    this.$store.commit("setConfig", this.config);
+    this.$store.commit("initQuantBuffers", this.config);
+    this.$store.commit("setTicksPerMeasure", this.config);
+    // this.$store.commit("setInstrumentsConfig", this.config);
+
+    this.$store.commit("createInstruments", this.config);
+
     // Update the score properties
     this.scoreShown = this.config.gui.score;
     this.scrollEnabled = this.config.gui.score;
@@ -392,10 +392,11 @@ export default {
     this.buttons = this.config.gui.settings.buttons;
     this.instruments = this.config.instruments;
 
+    console.log("created end")
   },
 
   async mounted() {
-
+    console.log("mounted start")
     var vm = this;
     /*
      * Loading Animation: set initial status of both div
@@ -623,6 +624,8 @@ export default {
       window.performance.timing.navigationStart;
     vm.modelLoadTime = Date.now();
 
+    console.log("mounted end");
+
   },
 
   computed: {
@@ -734,34 +737,34 @@ export default {
       }
     },
 
-    humanVolume: {
-      immediate: true,
-      handler(newValue) {
-        this.$store.commit("setHumanVolume", newValue);
-      },
-    },
-    humanUprightBassVolume: {
-      immediate: true,
-      handler(newValue) {
-        let payload = {
-          instrument: "upright_bass",
-          volume: newValue,
-        };
-        this.$store.commit("setHumanSamplerVolume", payload);
-      },
-    },
-    workerVolume: {
-      immediate: true,
-      handler(newValue) {
-        this.$store.commit("setWorkerVolume", newValue);
-      },
-    },
-    metronomeVolume: {
-      immediate: true,
-      handler(newValue) {
-        this.$store.commit("setMetronomeVolume", newValue);
-      },
-    },
+    // humanVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     this.$store.commit("setHumanVolume", newValue);
+    //   },
+    // },
+    // humanUprightBassVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     let payload = {
+    //       instrument: "upright_bass",
+    //       volume: newValue,
+    //     };
+    //     this.$store.commit("setHumanSamplerVolume", payload);
+    //   },
+    // },
+    // workerVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     this.$store.commit("setWorkerVolume", newValue);
+    //   },
+    // },
+    // metronomeVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     this.$store.commit("setMetronomeVolume", newValue);
+    //   },
+    // },
   },
 
   methods: {
@@ -799,9 +802,10 @@ export default {
         throw new Error("Failed to fetch config file: empty");
       } else {
         this.config = yaml.load(config);
-        this.$store.commit("setConfig", this.config);
-        this.$store.commit("initQuantBuffers", this.config);
-        this.$store.commit("setTicksPerMeasure", this.config);
+        // this.$store.commit("setConfig", this.config);
+        // this.$store.commit("initQuantBuffers", this.config);
+        // this.$store.commit("setTicksPerMeasure", this.config);
+        // this.$store.commit("setInstrumentsConfig", this.config);
       }
     },
 
