@@ -411,6 +411,7 @@ async function processClockEvent(content) {
     // Finally, when in processClockEvent() hook,
     // you should always send a CLOCK_TIME message type, so that the UI
     // can check whether the worker is in sync with the clock.
+    console.log("sending clock event");
     postMessage({
         hookType: self.workerHookType.CLOCK_EVENT,
         message:{
@@ -449,8 +450,13 @@ async function processNoteEvent(noteEventPlain){
     } else{
         arpeggio = [4, 7, 9, 12, 9, 7, 4];
     }
-    // if this a not off event, add an extra 0.1 sec offset
+
+    // if this a not off event, add an extra 0.1 sec offset.
+    // This is a temp fix for the pianoSampler bug
     // let extraSecOffset = noteEvent.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
+
+    // if (noteEvent.type == self.noteType.NOTE_OFF){
+    
     for (let i = 0; i < arpeggio.length; i++) {
         let arp_note = new NoteEvent();
         arp_note.player = self.playerType.WORKER;
@@ -481,9 +487,10 @@ async function processNoteEvent(noteEventPlain){
                     noteList,
             [self.messageType.LABEL]:
                     label
-        },
-    })
+        }
+    });
 }
+// }
 
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {

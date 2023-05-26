@@ -333,12 +333,12 @@ export default {
       activeDevices: [],
       selectedMIDIDevice: "",
 
-      humanVolume: 5,
+      humanVolume: 1,
       humanSamplerMuted: false,
-      humanUprightBassVolume: 5,
+      humanUprightBassVolume: 1,
       humanUprightBassMuted: false,
-      workerVolume: 5,
-      metronomeVolume: 5,
+      workerVolume: 1,
+      metronomeVolume: 1,
 
       // used to calculate the average worker inference time (clockBased mode) 
       // and estimate maxBPM
@@ -351,8 +351,8 @@ export default {
       isNotChrome,
       isMobile,
       // Keep track of all the timeouts ids to clear them when the the user pauses
-      timeout_on_IDs: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
-      timeout_off_IDs: [],
+      timeout_IDS_kill: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
+      timeout_IDS_live: [],
 
     };
   },
@@ -740,34 +740,34 @@ export default {
       }
     },
 
-    // humanVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     this.$store.commit("setHumanVolume", newValue);
-    //   },
-    // },
-    // humanUprightBassVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     let payload = {
-    //       instrument: "upright_bass",
-    //       volume: newValue,
-    //     };
-    //     this.$store.commit("setHumanSamplerVolume", payload);
-    //   },
-    // },
-    // workerVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     this.$store.commit("setWorkerVolume", newValue);
-    //   },
-    // },
-    // metronomeVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     this.$store.commit("setMetronomeVolume", newValue);
-    //   },
-    // },
+    humanVolume: {
+      immediate: true,
+      handler(newValue) {
+        this.$store.commit("setHumanVolume", newValue);
+      },
+    },
+    humanUprightBassVolume: {
+      immediate: true,
+      handler(newValue) {
+        let payload = {
+          instrument: "upright_bass",
+          volume: newValue,
+        };
+        this.$store.commit("setHumanSamplerVolume", payload);
+      },
+    },
+    workerVolume: {
+      immediate: true,
+      handler(newValue) {
+        this.$store.commit("setWorkerVolume", newValue);
+      },
+    },
+    metronomeVolume: {
+      immediate: true,
+      handler(newValue) {
+        this.$store.commit("setMetronomeVolume", newValue);
+      },
+    },
   },
 
   methods: {
@@ -1046,7 +1046,7 @@ export default {
                   // TODO : the worker should do that
                   let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
                   let whiteKey = noteName.includes('#') ? false : true;
-                  vm.timeout_on_IDs.push(setTimeout(() => {
+                  vm.timeout_IDS_kill.push(setTimeout(() => {
                     this.$root.$refs.pianoRoll.keyDown(noteEvent);
                     if (whiteKey){
                       this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
@@ -1062,7 +1062,7 @@ export default {
                   let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
                   // If '#' in noteName then whiteKey is false else true
                   let whiteKey = noteName.includes('#') ? false : true;
-                  vm.timeout_off_IDs.push(setTimeout(() => {
+                  vm.timeout_IDS_live.push(setTimeout(() => {
                     // TODO : the worker should do that
                     if (whiteKey){
                       this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
@@ -1118,13 +1118,13 @@ export default {
         workerNotesToBePlayed.forEach((noteEvent) => {
           if (noteEvent.type === vm.noteType.NOTE_ON) {
             this.$store.dispatch("samplerOn", noteEvent);
-            vm.timeout_on_IDs.push(setTimeout(() => {
+            vm.timeout_IDS_kill.push(setTimeout(() => {
               this.$root.$refs.pianoRoll.keyDown(noteEvent);
             }, noteEvent.playAfter.seconds * 1000)
             );
           } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
             this.$store.dispatch("samplerOff", noteEvent);
-            vm.timeout_off_IDs.push(setTimeout(() => {
+            vm.timeout_IDS_live.push(setTimeout(() => {
               this.$root.$refs.pianoRoll.keyUp(noteEvent);
             }, noteEvent.playAfter.seconds * 1000)
             );
@@ -1271,7 +1271,7 @@ export default {
             // this makes the grid a bit more flexible, and the human input is correctly parsed
             // In terms of playability, the human finds it much more easy to play along the metronome on the grid
             if (vm.config.noteBasedMode.clockBased) {
-              vm.timeout_on_IDs.push(setTimeout(function () {
+              vm.timeout_IDS_kill.push(setTimeout(function () {
                 vm.runTheWorker();
               }, parseInt(vm.$store.getters.getClockPeriod / 4))
               );
@@ -1287,7 +1287,7 @@ export default {
 
         function sendOutTicks() {
           tickBehavior();
-          vm.timeout_on_IDs.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));
+          vm.timeout_IDS_live.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));
         }
 
         sendOutTicks();
@@ -1354,12 +1354,12 @@ export default {
       // this is a nice hack
       let id = setTimeout(function() {}, 0);
       while (id--) {
-          // check if id is in timeout_off_IDs. if not, then clear it
-          if (!this.timeout_off_IDs.includes(id)){
+          // check if id is in timeout_IDS_live. if not, then clear it
+          if (!this.timeout_IDS_live.includes(id)){
             clearTimeout(id); // will do nothing if no timeout with id is present
           }
       }
-      // this.timeout_on_IDs.forEach((timeoutId) => {
+      // this.timeout_IDS_kill.forEach((timeoutId) => {
       //   clearTimeout(timeoutId);
       // });
     },
