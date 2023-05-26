@@ -37,7 +37,7 @@
 import "../css/keyboard.css";
 
 import * as Tone from "tone";
-import { clamp } from "@/library/math";
+import { clamp } from "@/utils/math";
 import {Note} from "@tonaljs/tonal";
 
 

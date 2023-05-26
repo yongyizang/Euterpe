@@ -1,6 +1,6 @@
 import Vue from "vue";
 import * as Tone from "tone";
-import Instruments from "@/library/instruments";
+import Instruments from "@/utils/instruments";
 import { Midi } from "@tonaljs/tonal";
 import {
 	playerType, instrumentType, eventSourceType,

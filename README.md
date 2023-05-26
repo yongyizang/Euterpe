@@ -66,3 +66,6 @@ This will by default generate a `dist` folder in the root directory of the proje
 - [ringbuf.js](https://github.com/padenot/ringbuf.js/)
 - [tonaljs](tonaljs)
 - [audiokeys](https://github.com/kylestetz/AudioKeys)
+- [vexflow]()
+- [three.js](https://threejs.org/)
+- [vue-chartjs](https://vue-chartjs.org/)
