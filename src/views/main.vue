@@ -1062,7 +1062,7 @@ export default {
                   let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
                   // If '#' in noteName then whiteKey is false else true
                   let whiteKey = noteName.includes('#') ? false : true;
-                  setTimeout(() => {
+                  vm.timeout_off_IDs.push(setTimeout(() => {
                     // TODO : the worker should do that
                     if (whiteKey){
                       this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
@@ -1070,7 +1070,8 @@ export default {
                       this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
                     }
                     this.$root.$refs.pianoRoll.keyUp(noteEvent);
-                  }, noteEvent.playAfter.seconds * 1000);
+                  }, noteEvent.playAfter.seconds * 1000)
+                  );
                 }
               }
             });
@@ -1123,9 +1124,10 @@ export default {
             );
           } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
             this.$store.dispatch("samplerOff", noteEvent);
-            setTimeout(() => {
+            vm.timeout_off_IDs.push(setTimeout(() => {
               this.$root.$refs.pianoRoll.keyUp(noteEvent);
-            }, noteEvent.playAfter.seconds * 1000);
+            }, noteEvent.playAfter.seconds * 1000)
+            );
           }
         });
       }
@@ -1349,9 +1351,17 @@ export default {
     stopRecording() {
       this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
       this.$store.commit("stopMute");
-      this.timeout_on_IDs.forEach((timeoutId) => {
-        clearTimeout(timeoutId);
-      });
+      // this is a nice hack
+      let id = setTimeout(function() {}, 0);
+      while (id--) {
+          // check if id is in timeout_off_IDs. if not, then clear it
+          if (!this.timeout_off_IDs.includes(id)){
+            clearTimeout(id); // will do nothing if no timeout with id is present
+          }
+      }
+      // this.timeout_on_IDs.forEach((timeoutId) => {
+      //   clearTimeout(timeoutId);
+      // });
     },
 
     showSettingsModal() {
