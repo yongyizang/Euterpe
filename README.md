@@ -1,6 +1,9 @@
 # Euterpe
 Euterpe is a web framework designed to bridge the gap between music interaction and creation research and its deployment into user-friendly systems accessible to the general public. It offers a user-friendly interface to deploy music interaction algorithms as static web pages that can run locally on the user's end.
 
+`clean-template` branch is deployed with Netlify at [https://euterpe-template.netlify.app/](https://euterpe-template.netlify.app/).
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4c5d3bf5-caaa-4708-900f-15ccf212e525/deploy-status)](https://app.netlify.com/sites/euterpe-template/deploys)
+
 ## Features
 Euterpe offers several advantages over server-based frameworks, including:
 
