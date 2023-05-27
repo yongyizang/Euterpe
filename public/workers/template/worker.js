@@ -428,7 +428,7 @@ async function processClockEvent(content) {
 // Hook for processing single user note events.
 // This hook is called every time a note/midi event
 // is received by the user
-async function processNoteEvent2(noteEventPlain){
+async function processNoteEvent(noteEventPlain){
     // The NoteEvent we receive from the UI is serialized
     // We need to deserialize it
     let noteEvent = NoteEvent.fromPlain(noteEventPlain);
@@ -495,7 +495,7 @@ async function processNoteEvent2(noteEventPlain){
 }
 // }
 
-async function processNoteEvent(noteEventPlain){
+async function processNoteEventV2(noteEventPlain){
     // The NoteEvent we receive from the UI is serialized
     // We need to deserialize it
     let noteEvent = NoteEvent.fromPlain(noteEventPlain);
