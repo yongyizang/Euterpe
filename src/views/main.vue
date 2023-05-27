@@ -1106,8 +1106,16 @@ export default {
           // 1) Create a matching NOTE_OFF event and schedule it to be played after 'duration'
           // 2) Use Tone.js triggerAttackRelease() api, which takes care of the NOTE_OFF event
 
-          // ---------------- FIRST OPTION ----------------
+          
           if (noteEvent.duration.tick > 0) {
+            // ---------------- Second OPTION ----------------
+            if (vm.config.custom.useTriggerRelease) {
+              this.$store.dispatch("samplerOnOff", noteEvent);
+              console.log("option2  ")
+            } else {
+              this.$store.dispatch("samplerOn", noteEvent);
+            }
+            // else {
             // If its duration is specified in ticks, then 
             // create a noteEvent with the same properties but type NOTE_OFF
             // and modify its playAfter accordingly. Also set its duration to null
@@ -1117,12 +1125,91 @@ export default {
             noteEventOff.playAfter.tick = noteEvent.duration.tick;
             noteEventOff.playAfter.seconds += noteEvent.duration.seconds;
             noteEventOff.duration = null;
+            // An ugly hack to make the two options work together for now.
+            // Once we decide which option to use, we can remove this.
+            if (vm.config.custom.useTriggerRelease){
+              noteEventOff.custom = true;
+            }
             this.$store.dispatch("storeWorkerQuantizedOutput", noteEventOff);
-            console.log("dispatched note off at tick delayed" + vm.$store.getters.getGlobalTickDelayed, " to be played after " + noteEventOff.playAfter.tick + " ticks");
+            // }
+            
           }
 
         }
-        this.$store.dispatch("samplerOn", noteEvent);
+        // this.$store.dispatch("samplerOn", noteEvent);
+        // set a timeout to call keyDown based on noteEvent.timestamp.seconds
+        // TODO : the worker should do that
+        let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+        let whiteKey = noteName.includes('#') ? false : true;
+        // Check if the current on-screen key is within the current screen view
+        // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
+        let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
+        vm.timeout_IDS_kill.push(setTimeout(() => {
+          this.$root.$refs.pianoRoll.keyDown(noteEvent);
+          if (keyOnScreenRange){
+            if (whiteKey){
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
+            } else {
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-worker');
+            }
+          };
+        }, noteEvent.playAfter.seconds * 1000)
+        );
+      }
+      else if (noteEvent.type === vm.noteType.NOTE_OFF) {
+        if (!noteEvent.hasOwnProperty('custom')){
+          this.$store.dispatch("samplerOff", noteEvent);
+        }
+        else {
+          let aa = 42;
+          console.log("it has custom")
+        }
+        // this.$store.dispatch("samplerOff", noteEvent);
+        // set a timeout to call keyUp based on noteEvent.timestamp.seconds
+        let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+        // If '#' in noteName then whiteKey is false else true
+        let whiteKey = noteName.includes('#') ? false : true;
+        // Check if the current on-screen key is within the current screen view
+        // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
+        let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
+        vm.timeout_IDS_live.push(setTimeout(() => {
+          // TODO : the worker should do that
+          if (keyOnScreenRange){
+            if (whiteKey){
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
+            } else {
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
+            }
+          };
+          this.$root.$refs.pianoRoll.keyUp(noteEvent);
+        }, noteEvent.playAfter.seconds * 1000)
+        );
+      }
+
+    },
+
+    processWorkerNoteEventV2(noteEvent) {
+      let vm = this;
+      // The noteEvents that arrive here, have already waited for playAfter.tick ticks (if any)
+      // so we can only care about playAfter.seconds here. 
+      if (noteEvent.type === vm.noteType.NOTE_ON) {
+
+        // Here we check if this note has a defined duration. 
+        if (noteEvent.duration != null) {
+          // Two ways to dealwith notes that have predefined duration.
+          // 1) Create a matching NOTE_OFF event and schedule it to be played after 'duration'
+          // 2) Use Tone.js triggerAttackRelease() api, which takes care of the NOTE_OFF event
+
+          // ---------------- Second OPTION ----------------
+          if (noteEvent.duration.tick > 0) {
+            // Convert duration.tick + duration.seconds to seconds
+            // and use Tone.js triggerAttackRelease() api
+            this.$store.dispatch("samplerOnOff", noteEvent);
+          }
+
+        } else {
+          this.$store.dispatch("samplerOn", noteEvent);
+        }
         // set a timeout to call keyDown based on noteEvent.timestamp.seconds
         // TODO : the worker should do that
         let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
@@ -1319,6 +1406,9 @@ export default {
           }
         }
 
+        // An infinite recursion that implements the clock. 
+        // TODO: keep track of the past 'parent' setTimeout IDs and clear them every few ticks.
+        // In theory, these infinite setTimeouts will keep piling up, but still haven't noticed any performance issues.
         function sendOutTicks() {
           tickBehavior();
           vm.timeout_IDS_live.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));

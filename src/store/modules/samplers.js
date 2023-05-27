@@ -57,9 +57,24 @@ const getters = {
 
 const actions = {
 
-    // samplerOnOff(context, noteEvent){
+    samplerOnOff(context, noteEvent){
+        let durationInSeconds = noteEvent.duration.seconds + context.getters.getSecondsPerTick * noteEvent.duration.tick;
+        let instrument_label = instNamesTemp[noteEvent.instrument];
+        if (noteEvent.player == playerType.WORKER){
+            let name = noteEvent.name;
+            if (name == null){
+                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+            }
+            // console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
+            let instrument_to_play_on = context.state.workerSamplers[instrument_label];
+            if (instrument_to_play_on == null){
+                throw new Error("Instrument " + instrument_label + " not found in workerSamplers");
+            } else {
+                instrument_to_play_on.triggerAttackRelease(name, durationInSeconds, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+            }
+        }
 
-    // },
+    },
     samplerOn(context, noteEvent){
         let instrument_label = instNamesTemp[noteEvent.instrument];
         if (noteEvent.player == playerType.HUMAN){
