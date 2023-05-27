@@ -697,8 +697,6 @@ export default {
       // immediate: true,
       deep: true,
       handler(newStates, oldStates) {
-        console.log("new switches ", newStates);
-        console.log("old switches ", oldStates);
         newStates.forEach((newState, index) => {
           let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
           if ( newState.status !== oldStatus) {
@@ -821,17 +819,15 @@ export default {
       // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
       let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
 			if (noteEvent.type == vm.noteType.NOTE_ON) {
-				console.log("note on");
+				// console.log("note on");
 				vm.$store.dispatch("samplerOn", noteEvent);
         if (keyOnScreenRange){
           if (whiteKey){
             this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
           } else {
-            console.log("it's black ", noteEvent.name);
             this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-black-key-human')
           }
         }
-        
 			} else if (noteEvent.type == vm.noteType.NOTE_OFF) {
 				vm.$store.dispatch("samplerOff", noteEvent);
         if (keyOnScreenRange) {
@@ -1111,7 +1107,7 @@ export default {
             // ---------------- Second OPTION ----------------
             if (vm.config.custom.useTriggerRelease) {
               this.$store.dispatch("samplerOnOff", noteEvent);
-              console.log("option2  ")
+              // console.log("option2  ")
             } else {
               this.$store.dispatch("samplerOn", noteEvent);
             }
@@ -1160,20 +1156,15 @@ export default {
         if (!noteEvent.hasOwnProperty('custom')){
           this.$store.dispatch("samplerOff", noteEvent);
         }
-        else {
-          let aa = 42;
-          console.log("it has custom")
-        }
-        // this.$store.dispatch("samplerOff", noteEvent);
-        // set a timeout to call keyUp based on noteEvent.timestamp.seconds
+        // TODO : the worker should do that
         let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
         // If '#' in noteName then whiteKey is false else true
         let whiteKey = noteName.includes('#') ? false : true;
         // Check if the current on-screen key is within the current screen view
         // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
         let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
+        // set a timeout to call keyUp based on noteEvent.playAfter.seconds
         vm.timeout_IDS_live.push(setTimeout(() => {
-          // TODO : the worker should do that
           if (keyOnScreenRange){
             if (whiteKey){
               this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');

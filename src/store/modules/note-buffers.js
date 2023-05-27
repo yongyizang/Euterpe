@@ -181,7 +181,7 @@ const getters = {
                 }
             }
         }
-        console.log("popWorkerNotesToBePlayedAt tick ", currentGlobalTick, " notesToBePlayed ", notesToBePlayed)
+        // console.log("popWorkerNotesToBePlayedAt tick ", currentGlobalTick, " notesToBePlayed ", notesToBePlayed)
         return notesToBePlayed;
     }
 }
