@@ -1107,9 +1107,10 @@ export default {
             // ---------------- Second OPTION ----------------
             if (vm.config.custom.useTriggerRelease) {
               this.$store.dispatch("samplerOnOff", noteEvent);
-              // console.log("option2  ")
+              console.log("option2  ")
             } else {
               this.$store.dispatch("samplerOn", noteEvent);
+              console.log("option1 ")
             }
             // else {
             // If its duration is specified in ticks, then 
@@ -1129,8 +1130,37 @@ export default {
             this.$store.dispatch("storeWorkerQuantizedOutput", noteEventOff);
             // }
             
+          } else if (noteEvent.duration.tick == 0){
+            if (noteEvent.duration.seconds > 0){
+              if (vm.config.custom.useTriggerRelease) {
+                this.$store.dispatch("samplerOnOff", noteEvent);
+                vm.timeout_IDS_live.push(setTimeout(() => {
+                  this.uiNoteOff(noteEvent);
+                }, noteEvent.duration.seconds * 1000)
+                );
+                console.log("option2  ")
+              } else {
+                this.$store.dispatch("samplerOn", noteEvent);
+                console.log("option1 ")
+                // if I want option1 when duration is 0ticks and >0seconds
+                // I need to create a new noteOff event, and send it after >0seconds
+                // to a new method  that will call samplerOff and uiNoteOff. TODO
+                // For now, I just use option2
+                vm.timeout_IDS_live.push(setTimeout(() => {
+                  this.uiNoteOff(noteEvent);
+                  this.$store.dispatch("samplerOff", noteEvent)
+                }, noteEvent.duration.seconds * 1000)
+                );
+              }
+            } else {
+              // throw error, worker generated note with duration 0ticks and 0seconds
+              console.error("Worker generated note with duration 0 ticks and 0 seconds")
+            }
           }
 
+        } 
+        else {
+          this.$store.dispatch("samplerOn", noteEvent);
         }
         // this.$store.dispatch("samplerOn", noteEvent);
         // set a timeout to call keyDown based on noteEvent.timestamp.seconds
@@ -1177,6 +1207,30 @@ export default {
         );
       }
 
+    },
+
+    uiNoteOff(noteEvent){
+      let vm = this;
+      console.log("uiNoteOff")
+      // TODO : the worker should do that
+      let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+        // If '#' in noteName then whiteKey is false else true
+        let whiteKey = noteName.includes('#') ? false : true;
+        // Check if the current on-screen key is within the current screen view
+        // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
+        let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
+        // set a timeout to call keyUp based on noteEvent.playAfter.seconds
+        vm.timeout_IDS_live.push(setTimeout(() => {
+          if (keyOnScreenRange){
+            if (whiteKey){
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
+            } else {
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
+            }
+          };
+          this.$root.$refs.pianoRoll.keyUp(noteEvent);
+        }, noteEvent.playAfter.seconds * 1000)
+        );
     },
 
     processWorkerNoteEventV2(noteEvent) {

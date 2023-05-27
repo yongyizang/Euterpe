@@ -428,7 +428,7 @@ async function processClockEvent(content) {
 // Hook for processing single user note events.
 // This hook is called every time a note/midi event
 // is received by the user
-async function processNoteEvent(noteEventPlain){
+async function processNoteEvent2(noteEventPlain){
     // The NoteEvent we receive from the UI is serialized
     // We need to deserialize it
     let noteEvent = NoteEvent.fromPlain(noteEventPlain);
@@ -459,7 +459,7 @@ async function processNoteEvent(noteEventPlain){
         for (let i = 0; i < arpeggio.length; i++) {
             let arp_note = new NoteEvent();
             arp_note.player = self.playerType.WORKER;
-            arp_note.instrument = self.instrumentType.SYNTH;
+            arp_note.instrument = self.instrumentType.PIANO;
             arp_note.type = noteEvent.type;
             arp_note.midi = noteEvent.midi + arpeggio[i];
             arp_note.velocity = noteEvent.velocity
@@ -494,6 +494,72 @@ async function processNoteEvent(noteEventPlain){
     };
 }
 // }
+
+async function processNoteEvent(noteEventPlain){
+    // The NoteEvent we receive from the UI is serialized
+    // We need to deserialize it
+    let noteEvent = NoteEvent.fromPlain(noteEventPlain);
+    let noteList = [];
+
+    /* 
+     * An example of a simple MIDI processor
+     * take the user's input and create an arpeggio
+     * the arpeggio should type depends on the state of switch1
+     * and it is [3, 5, 8, 12] if switch is one
+     * or [4, 7, 9, 12] if switch is zero
+     * Every note of the arpegio played with a delay
+     * of 0.1 seconds from the previous note and 1/3 of the 
+     * velocity of its previous note
+     */
+    let arpeggio = [];
+    if (self.switch1 == 1){
+        arpeggio = [3, 5, 8, 12];
+    } else{
+        arpeggio = [4, 7, 9, 12, 9, 7, 4];
+    }
+
+    // if this a not off event, add an extra 0.1 sec offset.
+    // This is a temp fix for the pianoSampler bug
+    // let extraSecOffset = noteEvent.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
+    if (noteEvent.type == self.noteType.NOTE_ON){
+        for (let i = 0; i < arpeggio.length; i++) {
+            let arp_note = new NoteEvent();
+            arp_note.player = self.playerType.WORKER;
+            arp_note.instrument = self.instrumentType.PIANO;
+            arp_note.type = noteEvent.type;
+            arp_note.midi = noteEvent.midi + arpeggio[i];
+            arp_note.velocity = noteEvent.velocity
+            // arp_note.createdAt 
+            arp_note.playAfter = {
+                tick: 0,//i + 1,
+                seconds: 0.2 * (i+1) ,//+ extraSecOffset
+            },
+            arp_note.duration = {
+                tick: 0,
+                seconds: 0.1,//+ extraSecOffset
+            },
+
+            noteList.push(arp_note);
+        }
+    
+
+        // Let's also create a label that will be displayed in the UIs TextBox
+        let label = noteEvent.name;
+
+        // Similar to the processClockEvent() hook, we send the results
+        // to the UI. In this example we send a list of the arpeggio notes
+        // we estimated for the user's input.
+        postMessage({
+            hookType: self.workerHookType.NOTE_EVENT,
+            message:{
+                [self.messageType.NOTE_LIST]: 
+                        noteList,
+                [self.messageType.LABEL]:
+                        label
+            }
+        });
+    }
+}
 
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {

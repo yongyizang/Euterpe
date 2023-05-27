@@ -222,7 +222,7 @@ export default {
       };
       newNoteEvent.duration = null;
       // TODO : a better way to do this is to emit the event to the parent
-			this.$parent.processNoteEvent(newNoteEvent);
+			this.$parent.processUserNoteEvent(newNoteEvent);
 
     },
 
@@ -249,7 +249,7 @@ export default {
         tick: 0
       };
       newNoteEvent.duration = null;
-			this.$parent.processNoteEvent(newNoteEvent);
+			this.$parent.processUserNoteEvent(newNoteEvent);
 
     },
 
