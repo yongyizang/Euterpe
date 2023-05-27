@@ -10,9 +10,9 @@ class NoteEventSortedArray {
     let right = this.array.length - 1;
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
-        if (this.array[mid].timestamp.tick > noteEvent.timestamp.tick) {
+        if (this.array[mid]._playAt.tick > noteEvent._playAt.tick) {
             right = mid - 1;
-        } else if (this.array[mid].timestamp.tick < noteEvent.timestamp.tick){
+        } else if (this.array[mid]._playAt.tick < noteEvent._playAt.tick){
             left = mid + 1;
         }
         else{
@@ -169,10 +169,10 @@ const getters = {
         if (numElems > 0) {
             let ind = 0;
             while (state.workerNotesToBePlayed.length > 0 && ind <= numElems){
-                if (state.workerNotesToBePlayed.get(0).timestamp.tick < currentGlobalTick){
+                if (state.workerNotesToBePlayed.get(0)._playAt.tick < currentGlobalTick){
                     let discard = state.workerNotesToBePlayed.remove(0);
                     ind++;
-                } else if (state.workerNotesToBePlayed.get(0).timestamp.tick === currentGlobalTick){
+                } else if (state.workerNotesToBePlayed.get(0)._playAt.tick === currentGlobalTick){
                     notesToBePlayed.push(state.workerNotesToBePlayed.remove(0));
                     ind++;
                 }
@@ -181,6 +181,7 @@ const getters = {
                 }
             }
         }
+        console.log("popWorkerNotesToBePlayedAt tick ", currentGlobalTick, " notesToBePlayed ", notesToBePlayed)
         return notesToBePlayed;
     }
 }
@@ -188,18 +189,18 @@ const getters = {
 const actions = {
     storeWorkerQuantizedOutput ({ commit, state, getters }, workerNoteEvent) {
 
-        // increase noteEvent.timestamp.tick by state.globalTick
+        // set the playAt to noteEvent.playAfter.tick + state.globalTick
         // this will be its actual tick when it's supposed to be played
         // and the SortedArray will use that to sort the notes correctly based on their globalTick
         // console.log("inside storeWorkerQuantizedOutput", workerNoteEvent)
-        workerNoteEvent.timestamp = {
-            tick: workerNoteEvent.playAfter.tick + getters.getGlobalTick,
+        workerNoteEvent._playAt = {
+            tick: workerNoteEvent.playAfter.tick + getters.getGlobalTickDelayed,
             seconds: workerNoteEvent.playAfter.seconds
         }
         state.workerNotesToBePlayed.insert(workerNoteEvent);
         const nextTick = getters.getNextLocalTick;//(noteEvent.tick);
         // store the predicted note in the quantizedBufferWorker 
-        state.quantizedBufferWorker[nextTick] = workerNoteEvent
+        // state.quantizedBufferWorker[nextTick] = workerNoteEvent
 
         // now update the lastWorkerNote
         // this is only used in score.js to display the notes

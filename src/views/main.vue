@@ -554,7 +554,7 @@ export default {
       };
       newNoteEvent.duration = null;
 
-			vm.processNoteEvent(newNoteEvent);
+			vm.processUserNoteEvent(newNoteEvent);
 
     });
 
@@ -580,7 +580,7 @@ export default {
       };
       newNoteEvent.duration = null;
 
-		vm.processNoteEvent(newNoteEvent)
+		vm.processUserNoteEvent(newNoteEvent)
     });
 
     // TODO: window.onclick is outside mounted(). How about this one.
@@ -812,28 +812,34 @@ export default {
       }
     },
 
-		processNoteEvent(noteEvent) {
+		processUserNoteEvent(noteEvent) {
 			var vm = this;
 			// We always send the user's input directly to the sampler
       // for immediate playback
+      let whiteKey = noteEvent.name.includes('#') ? false : true;
+      // Check if the current on-screen key is within the current screen view
+      // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
+      let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
 			if (noteEvent.type == vm.noteType.NOTE_ON) {
 				console.log("note on");
 				vm.$store.dispatch("samplerOn", noteEvent);
-        let whiteKey = noteEvent.name.includes('#') ? false : true;
-        if (whiteKey){
-          this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
-        } else {
-          console.log("it's black ", noteEvent.name);
-          this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-black-key-human')
+        if (keyOnScreenRange){
+          if (whiteKey){
+            this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
+          } else {
+            console.log("it's black ", noteEvent.name);
+            this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-black-key-human')
+          }
         }
         
 			} else if (noteEvent.type == vm.noteType.NOTE_OFF) {
 				vm.$store.dispatch("samplerOff", noteEvent);
-        let whiteKey = noteEvent.name.includes('#') ? false : true;
-        if (whiteKey){
-          this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
-        } else {
-          this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-black-key-human')
+        if (keyOnScreenRange) {
+          if (whiteKey){
+            this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
+          } else {
+            this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-black-key-human')
+          }
         }
 			}
       // 
@@ -842,7 +848,7 @@ export default {
       // If the clock is running, send the note to the piano roll
       if (vm.$store.getters.getClockStatus) {
         // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-        // this packet will be sent to the processNoteEvent hook.
+        // this packet will be sent to the processUserNoteEvent hook.
         if (vm.config.noteBasedMode.eventBased) {
           vm.worker.postMessage({
             hookType: vm.workerHookType.NOTE_EVENT,
@@ -929,7 +935,7 @@ export default {
       };
       newNoteEvent.duration = null;
 
-      vm.processNoteEvent(noteEvent)
+      vm.processUserNoteEvent(noteEvent)
     });
 
     inputDevice.addListener("noteoff", (message) => {
@@ -952,7 +958,7 @@ export default {
       };
       newNoteEvent.duration = null;
       
-      vm.processNoteEvent(noteEvent)
+      vm.processUserNoteEvent(noteEvent)
       });
     },
 
@@ -1040,39 +1046,7 @@ export default {
               if (noteEvent.playAfter.tick > 0) {
                 this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
               } else {
-                if (noteEvent.type === vm.noteType.NOTE_ON) {
-                  this.$store.dispatch("samplerOn", noteEvent);
-                  // set a timeout to call keyDown based on noteEvent.timestamp.seconds
-                  // TODO : the worker should do that
-                  let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
-                  let whiteKey = noteName.includes('#') ? false : true;
-                  vm.timeout_IDS_kill.push(setTimeout(() => {
-                    this.$root.$refs.pianoRoll.keyDown(noteEvent);
-                    if (whiteKey){
-                      this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
-                    } else {
-                      this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-worker');
-                    }
-                  }, noteEvent.playAfter.seconds * 1000)
-                  );
-                }
-                else if (noteEvent.type === vm.noteType.NOTE_OFF) {
-                  this.$store.dispatch("samplerOff", noteEvent);
-                  // set a timeout to call keyUp based on noteEvent.timestamp.seconds
-                  let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
-                  // If '#' in noteName then whiteKey is false else true
-                  let whiteKey = noteName.includes('#') ? false : true;
-                  vm.timeout_IDS_live.push(setTimeout(() => {
-                    // TODO : the worker should do that
-                    if (whiteKey){
-                      this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
-                    } else {
-                      this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
-                    }
-                    this.$root.$refs.pianoRoll.keyUp(noteEvent);
-                  }, noteEvent.playAfter.seconds * 1000)
-                  );
-                }
+                vm.processWorkerNoteEvent(noteEvent);
               }
             });
             break;
@@ -1111,26 +1085,86 @@ export default {
     triggerWorkerSamplerSync() {
       var vm = this;
       const workerNotesToBePlayed = this.$store.getters.popWorkerNotesToBePlayedAt(
-        this.$store.getters.getGlobalTick
+        this.$store.getters.getGlobalTickDelayed
       );
-
       if (workerNotesToBePlayed.length > 0) {
         workerNotesToBePlayed.forEach((noteEvent) => {
-          if (noteEvent.type === vm.noteType.NOTE_ON) {
-            this.$store.dispatch("samplerOn", noteEvent);
-            vm.timeout_IDS_kill.push(setTimeout(() => {
-              this.$root.$refs.pianoRoll.keyDown(noteEvent);
-            }, noteEvent.playAfter.seconds * 1000)
-            );
-          } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
-            this.$store.dispatch("samplerOff", noteEvent);
-            vm.timeout_IDS_live.push(setTimeout(() => {
-              this.$root.$refs.pianoRoll.keyUp(noteEvent);
-            }, noteEvent.playAfter.seconds * 1000)
-            );
-          }
+          vm.processWorkerNoteEvent(noteEvent);
         });
       }
+    },
+
+    processWorkerNoteEvent(noteEvent) {
+      let vm = this;
+      // The noteEvents that arrive here, have already waited for playAfter.tick ticks (if any)
+      // so we can only care about playAfter.seconds here. 
+      if (noteEvent.type === vm.noteType.NOTE_ON) {
+
+        // Here we check if this note has a defined duration. 
+        if (noteEvent.duration != null) {
+          // Two ways to dealwith notes that have predefined duration.
+          // 1) Create a matching NOTE_OFF event and schedule it to be played after 'duration'
+          // 2) Use Tone.js triggerAttackRelease() api, which takes care of the NOTE_OFF event
+
+          // ---------------- FIRST OPTION ----------------
+          if (noteEvent.duration.tick > 0) {
+            // If its duration is specified in ticks, then 
+            // create a noteEvent with the same properties but type NOTE_OFF
+            // and modify its playAfter accordingly. Also set its duration to null
+            // so that it doesn't get processed again in this if statement
+            let noteEventOff = NoteEvent.copy(noteEvent);
+            noteEventOff.type = vm.noteType.NOTE_OFF;
+            noteEventOff.playAfter.tick = noteEvent.duration.tick;
+            noteEventOff.playAfter.seconds += noteEvent.duration.seconds;
+            noteEventOff.duration = null;
+            this.$store.dispatch("storeWorkerQuantizedOutput", noteEventOff);
+            console.log("dispatched note off at tick delayed" + vm.$store.getters.getGlobalTickDelayed, " to be played after " + noteEventOff.playAfter.tick + " ticks");
+          }
+
+        }
+        this.$store.dispatch("samplerOn", noteEvent);
+        // set a timeout to call keyDown based on noteEvent.timestamp.seconds
+        // TODO : the worker should do that
+        let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+        let whiteKey = noteName.includes('#') ? false : true;
+        // Check if the current on-screen key is within the current screen view
+        // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
+        let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
+        vm.timeout_IDS_kill.push(setTimeout(() => {
+          this.$root.$refs.pianoRoll.keyDown(noteEvent);
+          if (keyOnScreenRange){
+            if (whiteKey){
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
+            } else {
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-worker');
+            }
+          };
+        }, noteEvent.playAfter.seconds * 1000)
+        );
+      }
+      else if (noteEvent.type === vm.noteType.NOTE_OFF) {
+        this.$store.dispatch("samplerOff", noteEvent);
+        // set a timeout to call keyUp based on noteEvent.timestamp.seconds
+        let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
+        // If '#' in noteName then whiteKey is false else true
+        let whiteKey = noteName.includes('#') ? false : true;
+        // Check if the current on-screen key is within the current screen view
+        // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
+        let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
+        vm.timeout_IDS_live.push(setTimeout(() => {
+          // TODO : the worker should do that
+          if (keyOnScreenRange){
+            if (whiteKey){
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
+            } else {
+              this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
+            }
+          };
+          this.$root.$refs.pianoRoll.keyUp(noteEvent);
+        }, noteEvent.playAfter.seconds * 1000)
+        );
+      }
+
     },
 
     estimateHumanQuantizedNote() {

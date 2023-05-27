@@ -57,6 +57,9 @@ const getters = {
 
 const actions = {
 
+    // samplerOnOff(context, noteEvent){
+
+    // },
     samplerOn(context, noteEvent){
         let instrument_label = instNamesTemp[noteEvent.instrument];
         if (noteEvent.player == playerType.HUMAN){
@@ -120,40 +123,40 @@ const mutations = {
     flipMetronomeSamplerMuteStatus(state){
         state.metronomeMuteStatus = !state.metronomeMuteStatus;
         if (state.metronomeMuteStatus){
-            metronomeBus.mute = true;
+            state.metronomeBus.mute = true;
         } else {
-            metronomeBus.mute = false;
+            state.metronomeBus.mute = false;
         }
     },
 
     flipHumanSamplersMuteStatus(state){
         state.humanMuteStatus = !state.humanMuteStatus;
         if (state.humanMuteStatus){
-            humanBus.mute = true;
+            state.humanBus.mute = true;
         } else {
-            humanBus.mute = false;
+            state.humanBus.mute = false;
         }
     },
     flipWorkerSamplersMuteStatus(state){
         state.workerMuteStatus = !state.workerMuteStatus;
         if (state.workerMuteStatus){
-            workerBus.mute = true;
+            state.workerBus.mute = true;
         } else {
-            workerBus.mute = false;
+            state.workerBus.mute = false;
         }
     },
 
     muteHumanSampler(state, instrument){
-        humanSamplersBus[instrument].mute = true;
+        state.humanSamplersBus[instrument].mute = true;
     },
     unmuteHumanSampler(state, instrument){
-        humanSamplersBus[instrument].mute = false;
+        state.humanSamplersBus[instrument].mute = false;
     },
     muteWorkerSampler(state, instrument){
-        workerSamplersBus[instrument].mute = true;
+        state.workerSamplersBus[instrument].mute = true;
     },
     unmuteWorkerSampler(state, instrument){
-        workerSamplersBus[instrument].mute = false;
+        state.workerSamplersBus[instrument].mute = false;
     },
     
     stopMute(state) {

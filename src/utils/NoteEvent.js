@@ -41,13 +41,15 @@ export class NoteEvent {
 
   // copy - static method
   static copy(noteEvent) {
-    return new NoteEvent(noteEvent.player, noteEvent.instrument,
-        noteEvent.eventSource,
-        noteEvent.name, noteEvent.type,
-        noteEvent.midi, noteEvent.chroma,
-        noteEvent.channel, noteEvent.velocity,
-        noteEvent.createdAt, noteEvent.playAfter,
-        noteEvent.duration);
+    let copy = new NoteEvent(noteEvent.player, noteEvent.instrument,
+      noteEvent.eventSource,
+      noteEvent.name, noteEvent.type,
+      noteEvent.midi, noteEvent.chroma,
+      noteEvent.channel, noteEvent.velocity,
+      noteEvent.createdAt, noteEvent.playAfter,
+      noteEvent.duration);
+    copy._playAt = noteEvent._playAt;
+    return copy;
   }
 
     // Getters

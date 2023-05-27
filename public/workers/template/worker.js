@@ -455,40 +455,43 @@ async function processNoteEvent(noteEventPlain){
     // This is a temp fix for the pianoSampler bug
     // let extraSecOffset = noteEvent.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
 
-    // if (noteEvent.type == self.noteType.NOTE_OFF){
-    
-    for (let i = 0; i < arpeggio.length; i++) {
-        let arp_note = new NoteEvent();
-        arp_note.player = self.playerType.WORKER;
-        arp_note.instrument = self.instrumentType.SYNTH;
-        arp_note.type = noteEvent.type;
-        arp_note.midi = noteEvent.midi + arpeggio[i];
-        arp_note.velocity = noteEvent.velocity
-        // arp_note.createdAt 
-        arp_note.playAfter = {
-            tick: 0,
-            seconds: 0.5 * (i+1) ,//+ extraSecOffset
-        },
-        arp_note.duration = null;
+    if (noteEvent.type == self.noteType.NOTE_ON){
+        for (let i = 0; i < arpeggio.length; i++) {
+            let arp_note = new NoteEvent();
+            arp_note.player = self.playerType.WORKER;
+            arp_note.instrument = self.instrumentType.SYNTH;
+            arp_note.type = noteEvent.type;
+            arp_note.midi = noteEvent.midi + arpeggio[i];
+            arp_note.velocity = noteEvent.velocity
+            // arp_note.createdAt 
+            arp_note.playAfter = {
+                tick: i + 1,
+                seconds: 0 ,//+ extraSecOffset
+            },
+            arp_note.duration = {
+                tick: 1,
+                seconds: 0,//+ extraSecOffset
+            },
 
-        noteList.push(arp_note);
-    }
-
-    // Let's also create a label that will be displayed in the UIs TextBox
-    let label = noteEvent.name;
-
-    // Similar to the processClockEvent() hook, we send the results
-    // to the UI. In this example we send a list of the arpeggio notes
-    // we estimated for the user's input.
-    postMessage({
-        hookType: self.workerHookType.NOTE_EVENT,
-        message:{
-            [self.messageType.NOTE_LIST]: 
-                    noteList,
-            [self.messageType.LABEL]:
-                    label
+            noteList.push(arp_note);
         }
-    });
+
+        // Let's also create a label that will be displayed in the UIs TextBox
+        let label = noteEvent.name;
+
+        // Similar to the processClockEvent() hook, we send the results
+        // to the UI. In this example we send a list of the arpeggio notes
+        // we estimated for the user's input.
+        postMessage({
+            hookType: self.workerHookType.NOTE_EVENT,
+            message:{
+                [self.messageType.NOTE_LIST]: 
+                        noteList,
+                [self.messageType.LABEL]:
+                        label
+            }
+        });
+    };
 }
 // }
 

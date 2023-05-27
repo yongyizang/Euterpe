@@ -65,13 +65,13 @@ const mutations = {
             state.barNumber += 1;
         };
         state.barTick = Math.floor(state.globalTick / state.ticksPerMeasure); 
-        // console.log('incrementTick to ', state.localTick)
+        console.log('incrementTick to ', state.globalTick);
     },
     incrementTickDelayed (state) {
         state.localTickDelayed += 1;
         state.localTickDelayed = state.localTickDelayed % state.ticksPerMeasure;
         state.globalTickDelayed += 1;
-        // console.log('incrementDelayedTick to ', state.localTickDelayed)
+        console.log('incrementDelayedTick to ', state.globalTickDelayed);
     }
 }
 
