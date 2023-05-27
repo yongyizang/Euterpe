@@ -1,7 +1,10 @@
 # Euterpe
-Euterpe is a web framework designed to bridge the gap between music interaction and creation research and its deployment into user-friendly systems accessible to the general public. It offers a user-friendly interface to deploy music interaction algorithms as static web pages that can run locally on the user's end.
+
 ![GitHub last commit](https://img.shields.io/github/last-commit/mrmrmrfinch/Euterpe)
+
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/mrmrmrfinch/Euterpe)
+
+Euterpe is a web framework designed to bridge the gap between music interaction and creation research and its deployment into user-friendly systems accessible to the general public. It offers a user-friendly interface to deploy music interaction algorithms as static web pages that can run locally on the user's end.
 
 `clean_template` branch is deployed with Netlify at [https://euterpe-template.netlify.app/](https://euterpe-template.netlify.app/).
 
