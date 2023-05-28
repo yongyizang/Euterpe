@@ -407,7 +407,7 @@ export default {
       sab_par_worker: null,
       rb_par_worker: null,
 
-      workerParameterInterval: null,
+      monitorObserverInterval: null,
 
       WebMIDISupport: false,
       pageLoadTime: null,
@@ -479,6 +479,8 @@ export default {
     this.buttons = this.config.gui.settings.buttons;
     this.instruments = this.config.instruments;
 
+    // 
+    this.monitorObserverInterval = 10;
     //
     this.dataForChild = {
         'rms': 0,
@@ -551,9 +553,7 @@ export default {
         sampleRate: vm.audioContext.sampleRate,
       }
     });
-    vm.workerParameterInterval = setInterval(vm.workerParameterObserver, 10);
-    console.log("interval ID is " + vm.workerParameterInterval);
-    vm.timeout_IDS_live.push(vm.workerParameterInterval);
+    vm.timeout_IDS_live.push(setInterval(vm.workerParameterObserver, vm.monitorObserverInterval));
     /*
      * Initialize Audio Recorder (for audio recording).
      */
@@ -936,7 +936,13 @@ export default {
         }
 			}
       // 
-      
+      if (noteEvent.type == vm.noteType.NOTE_ON) {
+					vm.$root.$refs.pianoRoll.keyDown(noteEvent);
+        	vm.$store.dispatch("noteOn", noteEvent);
+				} else {
+					vm.$root.$refs.pianoRoll.keyUp(noteEvent);
+					vm.$store.dispatch("noteOff", noteEvent);
+				}
 
       // If the clock is running, send the note to the piano roll
       if (vm.$store.getters.getClockStatus) {
@@ -948,13 +954,6 @@ export default {
             content: noteEvent,
           });
         };
-				if (noteEvent.type == vm.noteType.NOTE_ON) {
-					vm.$root.$refs.pianoRoll.keyDown(noteEvent);
-        	vm.$store.dispatch("noteOn", noteEvent);
-				} else {
-					vm.$root.$refs.pianoRoll.keyUp(noteEvent);
-					vm.$store.dispatch("noteOff", noteEvent);
-				}
 			}
 		},
 				
@@ -1545,8 +1544,8 @@ export default {
       let id = setTimeout(function() {}, 0);
       while (id--) {
           // check if id is in timeout_IDS_live. if not, then clear it
-          if (!this.timeout_IDS_live.includes(id)){
-            console.log("deleting timeout id " + id);
+          if (this.timeout_IDS_kill.includes(id)){
+            // console.log("deleting timeout id " + id);
             clearTimeout(id); // will do nothing if no timeout with id is present
           }
       }
