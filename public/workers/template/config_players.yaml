@@ -1,0 +1,43 @@
+players:
+  - label: 'User' # player labels must be unique
+    mute: false
+    volume: 5
+    instruments:  
+      - id: 1 # not used
+        name: "piano"
+        mute: false
+        volume: 5
+        default: true
+      - id: 2
+        name: "synth"
+        mute: false
+        volume: 6
+  - label: 'Worker'
+    mute: false
+    volume: 5
+    instruments:
+      - id: 1
+        name: "piano"
+        mute: false
+        volume: 7
+        default: true
+      - id: 2
+        name: "synth"
+        mute: false
+        volume: 8
+      - id: 3
+        name: "drums"
+        mute: false
+        volume: 9
+      - id: 4
+        name: "bass"
+        mute: false
+        volume: 10
+  - label: 'Metronome'
+    mute: true
+    volume: 5
+    instruments:
+      - id: 1
+        name: "click"
+        mute: true
+        volume: 5

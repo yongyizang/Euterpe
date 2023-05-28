@@ -24,7 +24,7 @@ const state = {
     workerSamplersVolume: 0, // in dB
     metronomeSamplerVolume: 0, // in dB
 
-    instrumentsConfig: null,
+    playersConfig: null,
     // metronome
     metronomeSampler: null,
     metronomeBus: null,
@@ -100,7 +100,7 @@ const actions = {
                 instrument_to_play_on.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
             }
         } else if (noteEvent.player == playerType.METRONOME){
-            // console.log("metronome", noteEvent)
+            // console.log("click", noteEvent)
             context.state.metronomeSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
             // release the note 0.5s after the attack
             // TODO : make that depend on the beat duration
@@ -187,8 +187,8 @@ const mutations = {
     },
 
     createInstruments(state, config){
-        state.instrumentsConfig = config.instruments;
-        console.log("inside setInstrumentsConfig", state.instrumentsConfig);
+        state.playersConfig = config.players;
+        console.log("inside setInstrumentsConfig", state.playersConfig);
         state.limiter = new Tone.Limiter(-5).toDestination();
         // const tremolo = new Tone.Tremolo(9, 0.75).toDestination().start();
         
@@ -236,7 +236,7 @@ const mutations = {
         }
         
         state.metronomeSampler = new Instruments().createSampler(
-            "metronome",
+            "click",
             (metronome) => {
                 metronome.release = 0.2;
             }

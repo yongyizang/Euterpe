@@ -1,6 +1,6 @@
 <template>
-    <div ref="mixerTweak" id="mixerTweakId" :width="width" :height="height" 
-            style="position: absolute; bottom: 430px; right: 100px">
+    <div ref="monitor" id="monitorId" :width="width" :height="height" 
+            style="position: absolute; bottom: 430px; right: 20px">
     </div>
   </template>
   
@@ -8,7 +8,7 @@
   import {Pane} from 'tweakpane';
 
   export default {
-    name: 'MixerTweak',
+    name: 'Monitor',
     props: {
         dataFromParent: {
             type: Object,
@@ -40,18 +40,18 @@
         };
     },
     beforeCreate(){
-        console.log("beforeCreate mixerTweak start")
-        // this.$root.$refs.mixerTweak = this;
-        console.log("beforeCreate mixerTweak end")
+        console.log("beforeCreate monitor start")
+        // this.$root.$refs.monitor = this;
+        console.log("beforeCreate monitor end")
     },
     created() {
-        console.log("created mixerTweak start")
-        this.$root.$refs.mixerTweak = this;
+        console.log("created monitor start")
+        this.$root.$refs.monitor = this;
         // this.startAnalyser();
-        console.log(" created mixerTweak end")
+        console.log(" created monitor end")
     },
     mounted() {
-        console.log("mounted mixerTweak start")
+        console.log("mounted monitor start")
 
         
         
@@ -64,26 +64,15 @@
             vm.structure = monitorConfig.structure;
             vm.title = monitorConfig.title;
 
-            vm.pane = new Pane({container: vm.$refs.mixerTweak})
+            vm.pane = new Pane({
+              container: vm.$refs.monitor,
+              title: vm.title,
+            })
             // vm.data = data;
-            const f = vm.pane.addFolder({
-                title: vm.title,
-                expanded: true,
-            });
-            // let data = {x: 0, y: 1, z: 2};
-            // f.addInput(vm.$props.dataFromParent, 'rms');
-            // f.addInput(vm.$props.dataFromParent, 'loudness');
-            // vm.pane.addInput(
-            //     vm.$props.dataFromParent, 'infereceTime',
-            //     {min: 0, max: 100, step: 10}
-            // );
-            // f.addMonitor(vm.$props.dataFromParent, 'rms', {
-            //     interval: 30,
-            //     view: 'graph',
-            //     min: 0,
-            //     max: 1,
+            // const f = vm.pane.addFolder({
+            //     title: vm.title,
+            //     expanded: true,
             // });
-
             // vm.pane.on('change', (ev) => {
             //     console.log('changed: ' + JSON.stringify(ev.value));
             // });

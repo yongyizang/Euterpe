@@ -50,12 +50,13 @@
       </modal>
       <!-- Custom Vue UI Components -->
       <!-- <MixerDat ref="mixerDat"/> -->
-      <MixerTweak ref="mixerTweak" :dataFromParent="dataForMonitoring"/>
+      <Mixer ref="mixer"/>
+      <Monitor ref="monitor" :dataFromParent="dataForMonitoring"/>
       <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
       <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
         style="position:absolute; z-index:0; top:0px; left:0; background-color:transparent" />
       <ChromaChart ref="chromaChart" :width="300" :height="110"
-        :styles="{ position: 'absolute', zIndex: 0, top: '10px', right: '0px', backgroundColor: 'transparent' }" />
+        :styles="{ position: 'absolute', zIndex: 0, top: '10px', right: '20px', backgroundColor: 'transparent' }" />
       <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
@@ -71,11 +72,11 @@
         <md-button class="controlBtn" @click="showSettingsModal">
           <md-icon>settings</md-icon>
         </md-button>
-        <md-button class="controlBtn" @click="showMixerModal">
+        <md-button class="controlBtn" @click="toggleMixer">
           <md-icon>tune</md-icon>
         </md-button>
-        <md-button class="controlBtn" @click="toggleMixer">
-          <md-icon>settings</md-icon>
+        <md-button class="controlBtn" @click="toggleMonitor">
+          <md-icon>monitor</md-icon>
         </md-button>
       </div>
       <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
@@ -318,7 +319,8 @@ import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "../components/AudioMeter.vue";
 import ChromaChart from "../components/ChromaChart.vue";
 // import MixerDat from "../components/MixerDat.vue";
-import MixerTweak from "../components/MixerTweak.vue";
+import Monitor from "../components/Monitor.vue";
+import Mixer from "../components/Mixer.vue";
 import TextBox from "../components/TextBox.vue";
 import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
@@ -345,7 +347,7 @@ export default {
       workerName: "template",
       // Provide all the config files that should be loaded
       // These should be in public/workers/{workerName}/
-      configFiles: ['config.yaml', 'config_widgets.yaml', 'config_instruments.yaml'], 
+      configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
 
       config: null,
 			
@@ -365,10 +367,11 @@ export default {
       switches: [],
       sliders: [],
       buttons: [],
-      // Information about the instruments available to each player.
+      // Information about the players and 
+      // instruments available to each player.
       // It's used to create the mixer modal.
       // This is filled in the created() hook
-      instruments: [],
+      players: [],
 
       // monitor variables from worker
       // the values of this object will be read by the tweak pane
@@ -450,7 +453,8 @@ export default {
     ChromaChart,
     TextBox,
     // MixerDat,
-    MixerTweak,
+    Mixer,
+    Monitor,
   },
 
   created() {
@@ -477,7 +481,7 @@ export default {
     this.switches = this.config.gui.settings.switches;
     this.sliders = this.config.gui.settings.sliders;
     this.buttons = this.config.gui.settings.buttons;
-    this.instruments = this.config.instruments;
+    this.players = this.config.players;
 
     // 
     this.monitorObserverInterval = 10;
@@ -509,7 +513,8 @@ export default {
   async mounted() {
     console.log("mounted main start")
     var vm = this;
-    vm.$root.$refs.mixerTweak.loadMonitorConfig(vm.config.gui.monitor);
+    vm.$root.$refs.monitor.loadMonitorConfig(vm.config.gui.monitor);
+    vm.$root.$refs.mixer.loadMixerConfig(vm.config.players);
 
     /*
      * Loading Animation: set initial status of both div
@@ -1582,9 +1587,12 @@ export default {
     showMixerModalAuto() {
       this.$modal.show("mixerModalAuto");
     },
-    toggleMixer() {
+    toggleMonitor() {
       // this.$root.$refs.mixerDat.guiMixer.hide();
-      this.$root.$refs.mixerTweak.pane.hidden = !this.$root.$refs.mixerTweak.pane.hidden;
+      this.$root.$refs.monitor.pane.hidden = !this.$root.$refs.monitor.pane.hidden;
+    },
+    toggleMixer(){
+      this.$root.$refs.mixer.pane.hidden = !this.$root.$refs.mixer.pane.hidden;
     },
 
     transposeOctUp() {

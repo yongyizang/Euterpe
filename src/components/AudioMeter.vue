@@ -1,5 +1,5 @@
 <template>
-  <div ref="audioMeter" id="audioMeter">
+  <div ref="audioMeter" id="audioMeter" style="position: absolute; top: 5px; left: 20px">
     <div v-touch:swipe.up="triggerCollapse" id="canvasWrapper">
       <canvas 
           ref="audioCanvas"

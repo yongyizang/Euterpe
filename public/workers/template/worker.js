@@ -71,6 +71,7 @@ function _readFromQueue() {
         // console.log("in read from queue");
         deinterleave_custom(self.currentFrame, channels, self.channelCount);
         let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
+        // use the parameter ids for rms and loudness in config_widgets.yaml
         self._param_writer.enqueue_change(0, features.rms);
         self._param_writer.enqueue_change(1, features.loudness.total);
         
@@ -403,6 +404,7 @@ async function processClockEvent(content) {
     // the UI keeps track of this, and updates the 
     // maximum supported BPM (in settings)
     predictTime = performance.now() - predictTime;
+    // use the parameter id for Inference Time in config_widgets.yaml
     self._param_writer.enqueue_change(2, predictTime);
 
     // At this stage, the worker has finished processing the clock event
