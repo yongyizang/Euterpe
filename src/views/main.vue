@@ -50,7 +50,7 @@
       </modal>
       <!-- Custom Vue UI Components -->
       <!-- <MixerDat ref="mixerDat"/> -->
-      <Mixer ref="mixer"/>
+      <Mixer ref="mixer" @newEventSignal="handleMixerUpdate"/>
       <Monitor ref="monitor" :dataFromParent="dataForMonitoring"/>
       <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
       <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
@@ -1507,32 +1507,6 @@ export default {
       }
     },
 
-    /*
-     * metronome status.
-     */
-    toggleMetronomeSampler() {
-      // This method would update the status of metronome in Vuex Store.
-      // this.$store.commit("muteMetronome");
-      this.$store.commit("flipMetronomeSamplerMuteStatus");
-    },
-    toggleHumanSamplers() {
-      this.$store.commit("flipHumanSamplersMuteStatus");
-    },
-    toggleWorkerSamplers() {
-      this.$store.commit("flipWorkerSamplersMuteStatus");
-    },
-
-    // example code for toggle a sampler.
-    togglehumanUprightBass() {
-      console.log(this.humanUprightBassMuted)
-      if (this.humanUprightBassMuted) {
-        this.$store.commit("unmuteHumanSampler", "upright_bass");
-      } else {
-        this.$store.commit("muteHumanSampler", "upright_bass");
-      }
-      this.humanUprightBassMuted = !this.humanUprightBassMuted;
-    },
-
     metronomeTrigger() {
       var vm = this;
       // This method would trigger the metronome sampler.
@@ -1581,12 +1555,13 @@ export default {
     showSettingsModal() {
       this.$modal.show("settingsModal");
     },
-    showMixerModal() {
-      this.$modal.show("mixerModal");
-    },
-    showMixerModalAuto() {
-      this.$modal.show("mixerModalAuto");
-    },
+    // showMixerModal() {
+    //   this.$modal.show("mixerModal");
+    // },
+    // showMixerModalAuto() {
+    //   this.$modal.show("mixerModalAuto");
+    // },
+
     toggleMonitor() {
       // this.$root.$refs.mixerDat.guiMixer.hide();
       this.$root.$refs.monitor.pane.hidden = !this.$root.$refs.monitor.pane.hidden;
@@ -1623,6 +1598,38 @@ export default {
         console.warn("Couldn't enqueue.");
       }
     },
+
+    handleMixerUpdate(event) {
+      console.log('in handler ', event);
+      this.$store.commit("handleMixerUpdate", event);
+    },
+
+    /*
+     * metronome status.
+     */
+     toggleMetronomeSampler() {
+      // This method would update the status of metronome in Vuex Store.
+      // this.$store.commit("muteMetronome");
+      this.$store.commit("flipMetronomeSamplerMuteStatus");
+    },
+    toggleHumanSamplers() {
+      this.$store.commit("flipHumanSamplersMuteStatus");
+    },
+    toggleWorkerSamplers() {
+      this.$store.commit("flipWorkerSamplersMuteStatus");
+    },
+
+    // example code for toggle a sampler.
+    togglehumanUprightBass() {
+      console.log(this.humanUprightBassMuted)
+      if (this.humanUprightBassMuted) {
+        this.$store.commit("unmuteHumanSampler", "upright_bass");
+      } else {
+        this.$store.commit("muteHumanSampler", "upright_bass");
+      }
+      this.humanUprightBassMuted = !this.humanUprightBassMuted;
+    },
+
   },
 };
 </script>

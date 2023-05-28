@@ -26,8 +26,10 @@ const state = {
 
     playersConfig: null,
     // metronome
-    metronomeSampler: null,
+    
     metronomeBus: null,
+    metronomeSamplersBus: null,
+    metronomeSamplers: null,
     // human
     humanBus: null,
     humanSamplersBus: null,
@@ -101,10 +103,10 @@ const actions = {
             }
         } else if (noteEvent.player == playerType.METRONOME){
             // console.log("click", noteEvent)
-            context.state.metronomeSampler.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+            context.state.metronomeSamplers["click"].triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
             // release the note 0.5s after the attack
             // TODO : make that depend on the beat duration
-            context.state.metronomeSampler.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 500);
+            context.state.metronomeSamplers["click"].triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 500);
         }
     },
     samplerOff(context, noteEvent){
@@ -136,6 +138,7 @@ const mutations = {
     // muteMetronome(state){
     //     metronomeBus.mute = state.metronomeMuteStatus;
     // },
+
     flipMetronomeSamplerMuteStatus(state){
         state.metronomeMuteStatus = !state.metronomeMuteStatus;
         if (state.metronomeMuteStatus){
@@ -235,68 +238,116 @@ const mutations = {
             }),
         }
         
-        state.metronomeSampler = new Instruments().createSampler(
-            "click",
-            (metronome) => {
-                metronome.release = 0.2;
-            }
-        );
-        
         state.metronomeBus = new Tone.Channel().connect(state.limiter);
+        state.metronomeSamplersBus = {
+            click: new Tone.Channel().connect(state.metronomeBus),
+        }
+        state.metronomeSamplers = {
+            click: new Instruments().createSampler(
+                "click",
+                (metronome) => {
+                    metronome.release = 0.2;
+                    metronome.connect(state.metronomeSamplersBus["click"]);
+                }),
+        }
+        
         state.metronomeBus.mute = true;
-        state.metronomeSampler.connect(state.metronomeBus);
+        // state.metronomeSampler.connect(state.metronomeBus);
         console.log(state.humanSamplers);
-
     },
 
-    setHumanVolume(state, volume){
-        console.log("inside set Human Volum ", volume)
-        if (volume == 10){
-            state.humanSamplerVolume = 0;
-        } else{
-            var toDB = -Math.abs(20*Math.log(volume/10));
-            state.humanSamplerVolume = toDB;
+    handleMixerUpdate(state, update){
+        console.log("inside handleMixerUpdate ", update);
+        let isVolume = false;
+        let isMute = false; 
+        if (update.what == 'mute'){
+            isMute = true;
+        } else if (update.what == 'volume'){
+            isVolume = true
+        } else {
+            console.error("unknown mixer variable type, check confi_players.yaml, we only suppoer 'mute' and 'volume'")
         }
-        state.humanBus.volume.value = state.humanSamplerVolume;
-    },
-    setHumanSamplerVolume(state, payload){
-        let instrument = payload.instrument;
-        let volume = payload.volume;
-        if (volume == 10){
-            state.humanSamplersBus[instrument].volume.value = 0;
-        } else {
-            var toDB = -Math.abs(20*Math.log(volume/10));
-            state.humanSamplersBus[instrument].volume.value = toDB;
+        
+        // find which bus
+        let player = update.playerId;
+        let instrument = update.instrumentId;
+        let playerBus = null;
+        let instrumentsBus = null;
+        let finalBus = null;
+        if (player == 'human'){
+            playerBus = state.humanBus;
+            instrumentsBus = state.humanSamplersBus;
+        } else if (player == 'worker'){
+            playerBus = state.workerBus;
+            instrumentsBus = state.workerSamplersBus;
+        } else if (player == 'metronome'){
+            playerBus = state.metronomeBus;
+            instrumentsBus = state.metronomeSamplersBus;
         }
-    },
-    setWorkerVolume(state, volume){
-        if (volume == 10){
-            state.workerSamplerVolume = 0;
+        if (instrument != null){
+            finalBus = instrumentsBus[`${instrument}`];
         } else {
-            var toDB = -Math.abs(20*Math.log(volume/10));
-            state.workerSamplerVolume = toDB;
-        };
-        state.workerBus.volume.value = state.workerSamplerVolume;
-    },
-    setWorkerSamplerVolume(state, payload){
-        let instrument = payload.instrument;
-        let volume = payload.volume;
-        if (volume == 10){
-            state.workerSamplersBus[instrument].volume.value = 0;
-        } else {
-            var toDB = -Math.abs(20*Math.log(volume/10));
-            state.workerSamplersBus[instrument].volume.value = toDB;
+            finalBus = playerBus;
         }
+        if (isVolume == true){
+            let volume = update.value.value;
+            // if volume == 10, then volumeDB = 0 else,  -Math.abs(20*Math.log(volume/10));
+            const volumeDB = volume === 10 ? 0 : -Math.abs(20 * Math.log(volume / 10));
+            finalBus.volume.value = volumeDB;
+            console.log("settin volume ", volumeDB, "to channel ", finalBus);
+        } else if (isMute == true) {
+            finalBus.mute = update.value.value;
+        }
+        
     },
-    setMetronomeVolume(state, volume){
-        if (volume == 10){
-            state.metronomeSamplerVolume = 0;
-        } else {
-            var toDB = -Math.abs(20*Math.log(volume/10));
-            state.metronomeSamplerVolume = toDB;
-        };
-        state.metronomeSampler.volume.value = state.metronomeSamplerVolume;
-    }
+    // setHumanVolume(state, volume){
+    //     console.log("inside set Human Volum ", volume)
+    //     if (volume == 10){
+    //         state.humanSamplerVolume = 0;
+    //     } else{
+    //         var toDB = -Math.abs(20*Math.log(volume/10));
+    //         state.humanSamplerVolume = toDB;
+    //     }
+    //     state.humanBus.volume.value = state.humanSamplerVolume;
+    // },
+    // setHumanSamplerVolume(state, payload){
+    //     let instrument = payload.instrument;
+    //     let volume = payload.volume;
+    //     if (volume == 10){
+    //         state.humanSamplersBus[instrument].volume.value = 0;
+    //     } else {
+    //         var toDB = -Math.abs(20*Math.log(volume/10));
+    //         state.humanSamplersBus[instrument].volume.value = toDB;
+    //     }
+    // },
+    // setWorkerVolume(state, volume){
+    //     if (volume == 10){
+    //         state.workerSamplerVolume = 0;
+    //     } else {
+    //         var toDB = -Math.abs(20*Math.log(volume/10));
+    //         state.workerSamplerVolume = toDB;
+    //     };
+    //     state.workerBus.volume.value = state.workerSamplerVolume;
+    // },
+    // setWorkerSamplerVolume(state, payload){
+    //     let instrument = payload.instrument;
+    //     let volume = payload.volume;
+    //     if (volume == 10){
+    //         state.workerSamplersBus[instrument].volume.value = 0;
+    //     } else {
+    //         var toDB = -Math.abs(20*Math.log(volume/10));
+    //         state.workerSamplersBus[instrument].volume.value = toDB;
+    //     }
+    // },
+    // setMetronomeVolume(state, volume){
+    //     if (volume == 10){
+    //         state.metronomeSamplerVolume = 0;
+    //     } else {
+    //         var toDB = -Math.abs(20*Math.log(volume/10));
+    //         state.metronomeSamplerVolume = toDB;
+    //     };
+    //     state.metronomeSampler.volume.value = state.metronomeSamplerVolume;
+    // }
 };
 
 export default {

@@ -34,8 +34,7 @@
     data() {
         return {
             pane: null,
-            data: [],
-            data2: {},
+            data: {},
             playersConfig: null,
             title: "",
         };
@@ -59,22 +58,18 @@
         loadMixerConfig(playersConfig) {
             let vm = this;
             vm.playersConfig = playersConfig;
-            // vm.title = mixerConfig.title;
-            // vm.data2 = vm.playersConfig;
-
             vm.pane = new Pane({
               container: vm.$refs.mixer,
               title: 'Mixer',
             })
             // vm.pane.on('change', (ev) => {
+            //     console.log(ev);
             //     console.log('changed: ' + JSON.stringify(ev.value));
             // });
             
+            // Create the mixer data object for Pane. 
             for (const [player, playerData] of Object.entries(vm.playersConfig)) {
-                // let playerName = player.label;
-                // vm.data[`${playerName}mute`] = player.mute;
-                // vm.data[`${playerName}volume`] = player.volume;
-                vm.data2[`${player}`] = {
+                vm.data[`${player}`] = {
                     label: playerData.label,
                     mute: playerData.mute,
                     volume: playerData.volume,
@@ -82,33 +77,49 @@
                 };
                 playerData.instruments.forEach((instrument) => {
                     console.log(instrument.id + " " + instrument.label)
-                    vm.data2[`${player}`].instruments[`${instrument.id}`] = {
+                    vm.data[`${player}`].instruments[`${instrument.id}`] = {
                         label: instrument.label,
                         mute: instrument.mute,
                         volume: instrument.volume,
                     };
-                    // vm.data[`${playerName}${instrument.name}mute`] = instrument.mute;
-                    // vm.data[`${playerName}${instrument.name}volume`] = instrument.volume;
                 });
             };
 
             // Iterate over the 'players' in the config file
-            for (const [player, playerData] of Object.entries(vm.data2)) {
+            for (const [player, playerData] of Object.entries(vm.data)) {
                 console.log(player, " ", playerData);
                 const playerFolder = vm.pane.addFolder({
                     title: playerData.label,
                     expanded: true,
                 });
-                playerFolder.addInput(vm.data2[player], 'volume',
+                playerFolder.addInput(vm.data[player], 'volume',
                     {
                         label: "vol.",
                         min: 1,
                         max: 10
-                    });
-                playerFolder.addInput(vm.data2[player], 'mute',
+                    }).on('change', (ev) => {
+                        let changeEvent = {
+                            playerId: player,
+                            instrumentId: null,
+                            what: 'volume',
+                            value : ev
+                        }
+                        vm.updateData(changeEvent);
+                    }
+                );
+                playerFolder.addInput(vm.data[player], 'mute',
                     {
                         label: "mute",
-                    });
+                    }).on('change', (ev) => {
+                        let changeEvent = {
+                            playerId: player,
+                            instrumentId: null,
+                            what: 'mute',
+                            value : ev
+                        }
+                        vm.updateData(changeEvent);
+                    }
+                );
                 for (const [instId, instData] of Object.entries(playerData.instruments)) {
                     console.log(instData.label);
                     // player.instruments.forEach((instrument) => {
@@ -117,65 +128,42 @@
                         expanded: false,
                     });
                     console.log("added sub")
-                    instFolder.addInput(vm.data2[player].instruments[instId], 'volume',
-                    {
-                        label: "vol.",
-                        min: 1,
-                        max: 10
-                    });
-                    instFolder.addInput(vm.data2[player].instruments[instId], 'mute',
-                    {
-                        label: "mute",
-                    });
+                    instFolder.addInput(vm.data[player].instruments[instId], 'volume',
+                        {
+                            label: "vol.",
+                            min: 1,
+                            max: 10
+                        }).on('change', (ev) => {
+                            let changeEvent = {
+                                playerId: player,
+                                instrumentId: instId,
+                                what: 'volume',
+                                value : ev
+                            }
+                            vm.updateData(changeEvent);
+                        }
+                    );
+                    instFolder.addInput(vm.data[player].instruments[instId], 'mute',
+                        {
+                            label: "mute",
+                        }).on('change', (ev) => {
+                            let changeEvent = {
+                                playerId: player,
+                                instrumentId: instId,
+                                what: 'mute',
+                                value : ev
+                            }
+                            vm.updateData(changeEvent);
+                        }
+                    );
                 };
             }
-
-            // vm.playersConfig.forEach((player) => {
-            // // Create a folder for each tab
-            //     const playerFolder = vm.pane.addFolder({
-            //         title: player.label,
-            //         expanded: true,
-            //     });
-                
-            //     let playerName = player.label;
-            //     playerFolder.addInput(vm.data, `${playerName}volume`,
-            //     {
-            //         label: "vol.",
-            //         min: 1,
-            //         max: 10
-            //     });
-            //     playerFolder.addInput(vm.data, `${playerName}mute`,
-            //     {
-            //         label: "mute",
-            //     });
-
-            //     console.log("instuments for player " + player.label + " are " + player.instruments)
-            //     player.instruments.forEach((instrument) => {
-            //         console.log(instrument.name);
-            //         // player.instruments.forEach((instrument) => {
-            //         const instFolder = playerFolder.addFolder({
-            //             title: instrument.name,
-            //             // expanded: true,
-            //         });
-            //         console.log("added sub")
-            //         instFolder.addInput(vm.data, `${playerName}${instrument.name}volume`,
-            //         {
-            //             label: "vol.",
-            //             min: 1,
-            //             max: 10
-            //         });
-            //         instFolder.addInput(vm.data, `${playerName}${instrument.name}mute`,
-            //         {
-            //             label: "mute",
-            //         });
-            //         // });
-            //     });
-            // });
         },
-        updateData() {
-            // Modify the local copy of the propData and emit an event
-            this.propData = 'Updated Data';
-            this.$emit('update-data', this.propData);
+        updateData(changeEvent) {
+            // Emit a signal to push the mixer change
+            // to the parent component, which will update 
+            // the samplers' statuses
+            this.$emit('newEventSignal', changeEvent);
         }
     },
   
