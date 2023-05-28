@@ -253,11 +253,14 @@ const mutations = {
         
         state.metronomeBus.mute = true;
         // state.metronomeSampler.connect(state.metronomeBus);
+
+        // TODO : automatically parse the playersConfig create only the samplers we need
+        // TODO : also set the default volumes and mute states. 
         console.log(state.humanSamplers);
     },
 
     handleMixerUpdate(state, update){
-        console.log("inside handleMixerUpdate ", update);
+        // console.log("inside handleMixerUpdate ", update);
         let isVolume = false;
         let isMute = false; 
         if (update.what == 'mute'){
@@ -294,60 +297,12 @@ const mutations = {
             // if volume == 10, then volumeDB = 0 else,  -Math.abs(20*Math.log(volume/10));
             const volumeDB = volume === 10 ? 0 : -Math.abs(20 * Math.log(volume / 10));
             finalBus.volume.value = volumeDB;
-            console.log("settin volume ", volumeDB, "to channel ", finalBus);
+            // console.log("settin volume ", volumeDB, "to channel ", finalBus);
         } else if (isMute == true) {
             finalBus.mute = update.value.value;
         }
         
     },
-    // setHumanVolume(state, volume){
-    //     console.log("inside set Human Volum ", volume)
-    //     if (volume == 10){
-    //         state.humanSamplerVolume = 0;
-    //     } else{
-    //         var toDB = -Math.abs(20*Math.log(volume/10));
-    //         state.humanSamplerVolume = toDB;
-    //     }
-    //     state.humanBus.volume.value = state.humanSamplerVolume;
-    // },
-    // setHumanSamplerVolume(state, payload){
-    //     let instrument = payload.instrument;
-    //     let volume = payload.volume;
-    //     if (volume == 10){
-    //         state.humanSamplersBus[instrument].volume.value = 0;
-    //     } else {
-    //         var toDB = -Math.abs(20*Math.log(volume/10));
-    //         state.humanSamplersBus[instrument].volume.value = toDB;
-    //     }
-    // },
-    // setWorkerVolume(state, volume){
-    //     if (volume == 10){
-    //         state.workerSamplerVolume = 0;
-    //     } else {
-    //         var toDB = -Math.abs(20*Math.log(volume/10));
-    //         state.workerSamplerVolume = toDB;
-    //     };
-    //     state.workerBus.volume.value = state.workerSamplerVolume;
-    // },
-    // setWorkerSamplerVolume(state, payload){
-    //     let instrument = payload.instrument;
-    //     let volume = payload.volume;
-    //     if (volume == 10){
-    //         state.workerSamplersBus[instrument].volume.value = 0;
-    //     } else {
-    //         var toDB = -Math.abs(20*Math.log(volume/10));
-    //         state.workerSamplersBus[instrument].volume.value = toDB;
-    //     }
-    // },
-    // setMetronomeVolume(state, volume){
-    //     if (volume == 10){
-    //         state.metronomeSamplerVolume = 0;
-    //     } else {
-    //         var toDB = -Math.abs(20*Math.log(volume/10));
-    //         state.metronomeSamplerVolume = toDB;
-    //     };
-    //     state.metronomeSampler.volume.value = state.metronomeSamplerVolume;
-    // }
 };
 
 export default {

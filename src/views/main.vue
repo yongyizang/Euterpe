@@ -1600,24 +1600,24 @@ export default {
     },
 
     handleMixerUpdate(event) {
-      console.log('in handler ', event);
+      // console.log('in handler ', event);
       this.$store.commit("handleMixerUpdate", event);
     },
 
     /*
      * metronome status.
      */
-     toggleMetronomeSampler() {
-      // This method would update the status of metronome in Vuex Store.
-      // this.$store.commit("muteMetronome");
-      this.$store.commit("flipMetronomeSamplerMuteStatus");
-    },
-    toggleHumanSamplers() {
-      this.$store.commit("flipHumanSamplersMuteStatus");
-    },
-    toggleWorkerSamplers() {
-      this.$store.commit("flipWorkerSamplersMuteStatus");
-    },
+    //  toggleMetronomeSampler() {
+    //   // This method would update the status of metronome in Vuex Store.
+    //   // this.$store.commit("muteMetronome");
+    //   this.$store.commit("flipMetronomeSamplerMuteStatus");
+    // },
+    // toggleHumanSamplers() {
+    //   this.$store.commit("flipHumanSamplersMuteStatus");
+    // },
+    // toggleWorkerSamplers() {
+    //   this.$store.commit("flipWorkerSamplersMuteStatus");
+    // },
 
     // example code for toggle a sampler.
     togglehumanUprightBass() {
