@@ -2,6 +2,16 @@ gui:
   score: false
   textBox:
     title: "Chord"
+  monitor:
+    title: "Monitor"
+    variables:
+      - id: 1
+        label: "Variable 1"
+        graph:
+          min: 0
+          max: 1
+
+      
   settings:
     switches:
       - id: 1

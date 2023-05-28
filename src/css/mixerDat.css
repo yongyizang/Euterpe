@@ -1,0 +1,65 @@
+@import url('variables.css');
+
+.dg.main.taller-than-window .close-button {
+    border-top: 1px solid #b3d327;
+}
+
+.dg.main .close-button {
+    background-color: var(--score-background-color);
+}
+ 
+.dg.main .close-button:hover {
+    background-color: #dd2c2c;
+}
+/* text */
+.dg {
+    color: var(--foreground-color);
+    text-shadow: none !important;
+}
+
+.dg.main::-webkit-scrollbar {
+    background: #b60f0f;
+}
+
+.dg.main::-webkit-scrollbar-thumb {
+    background: #0b0d75;
+}
+ /* folder elements */
+.dg li:not(.folder) {
+    background: #970808;
+    border-bottom: 1px solid #ddd;
+}
+ 
+.dg li.save-row .button {
+    text-shadow: none !important;
+}
+/* folders */
+.dg li.title {
+    background: #b60f92 url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 10px no-repeat;
+}
+
+.dg .cr.function:hover,.dg .cr.boolean:hover {
+    background: #0ec259;
+}
+/* value boxes */
+.dg .c input[type=text] {
+    background: #1c744f;
+}
+ /* value boxes hover */
+.dg .c input[type=text]:hover {
+    background: #ffee05;
+}
+ /* value boxes click */
+
+.dg .c input[type=text]:focus {
+    background: #aca1a1;
+    color: #555;
+}
+ /* remaining part of slider */
+.dg .c .slider {
+    background: #e00303;
+}
+/* remaining part of slider hovering */
+.dg .c .slider:hover {
+    background: #eee;
+}

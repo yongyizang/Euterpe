@@ -49,6 +49,8 @@
         </div>
       </modal>
       <!-- Custom Vue UI Components -->
+      <!-- <MixerDat ref="mixerDat"/> -->
+      <MixerTweak ref="mixerTweak" :dataFromParent="dataForChild"/>
       <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
       <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
         style="position:absolute; z-index:0; top:0px; left:0; background-color:transparent" />
@@ -72,6 +74,9 @@
         <md-button class="controlBtn" @click="showMixerModal">
           <md-icon>tune</md-icon>
         </md-button>
+        <md-button class="controlBtn" @click="toggleMixer">
+          <md-icon>settings</md-icon>
+        </md-button>
       </div>
       <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
         style="position: absolute; right: 20px; bottom: 100px">
@@ -82,6 +87,69 @@
         <md-icon>arrow_back</md-icon>
       </md-button>
 
+      <!-- <div id="skata" ref="guiContainer" style="position: absolute; bottom: 430px; right: 20px">
+        <dat-gui closeText="Close controls" openText="Open controls" closePosition="bottom">
+          <dat-color v-model="background" label="Background"/>
+          <dat-number v-model="titleFontSize" label="Title font-size"/>
+          <dat-string v-model="title" label="Title"/>
+          <dat-button @click="triggerAlert" label="Trigger alert"/> -->
+          <!-- <dat-folder label="Picture"> -->
+            <!-- <dat-select v-model="pictureUrl" :items="pictures" label="Picture"/> -->
+            <!-- <dat-boolean v-model="showPicture" label="Show Picture"/> -->
+            <!-- <dat-folder label="Box shadow">
+              <dat-number v-model="boxShadow.offsetX" :min="-100" :max="100" :step="1" label="Offset X"/>
+              <dat-number v-model="boxShadow.offsetY" :min="-100" :max="100" :step="1" label="Offset Y"/>
+              <dat-number v-model="boxShadow.blurRadius" :min="0" :max="100" :step="1" label="Blur radius"/>
+              <dat-number v-model="boxShadow.spreadRadius" label="Spread radius"/>
+              <dat-color v-model="boxShadow.color" label="Color"/>
+            </dat-folder>
+          </dat-folder> -->
+        <!-- </dat-gui>
+      </div> -->
+      <!-- Mixer Modal Auto -->
+      <!-- <div id="guiMixerId" ref="guiMixerRef" style="position: absolute; bottom: 430px; left: 20px">
+      </div> -->
+      <modal name="mixerModalAuto" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+        <div style="padding:0; margin: 0; ">
+          <div class="modalDiv">
+            <p class="modalTitle">
+              Mixer Auto
+            </p>
+            <button class="modalBtn" @click="$modal.hide('mixerModalAuto')">
+              <md-icon class="modalIcon">close</md-icon>
+            </button>
+          </div>
+          <div class="modalContent" style="overflow-y: scroll; height:600px">
+            <p class="settingsSubtitle">User</p>
+            <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
+
+            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
+              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
+                <p style="height:15px;margin:0;line-height:0;">User Bus</p>
+                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanVolume * 10 }} %
+                </p>
+              </div>
+              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
+
+              <div style="display:block; min-width:60px; padding-top:17px">
+                <span style="padding:0; margin:0;">Mute</span>
+                <toggle-button color="#74601c" v-model="humanSamplerMuted" @change="toggleHumanSamplers"
+                  style="transform: scale(0.9);" />
+              </div>
+
+
+            </div>
+            
+
+          </div>
+
+
+
+
+        </div>
+        
+
+      </modal>
       <!-- Settings Modal -->
       <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
@@ -158,7 +226,6 @@
       </modal>
       <!-- Mixer Modal -->
       <modal name="mixerModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
-        <!-- overflow-y: scroll; -->
         <div style="padding:0; margin: 0; ">
           <div class="modalDiv">
             <p class="modalTitle">
@@ -238,6 +305,10 @@
 <script>
 import "../css/main.css";
 import * as Tone from "tone";
+// import {Pane} from 'tweakpane';
+// import { DatGui } from '@cyrilf/vue-dat-gui';
+// import * as dat from 'dat.gui'
+
 import { Midi, note } from "@tonaljs/tonal";
 import Keyboard from "@/components/Keyboard.vue";
 import PianoRoll from "@/components/PianoRoll.vue";
@@ -246,6 +317,8 @@ import VerticalSlider from '@/components/VerticalSlider.vue'
 import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "../components/AudioMeter.vue";
 import ChromaChart from "../components/ChromaChart.vue";
+// import MixerDat from "../components/MixerDat.vue";
+import MixerTweak from "../components/MixerTweak.vue";
 import TextBox from "../components/TextBox.vue";
 import { WebMidi } from "webmidi";
 import Dropdown from "vue-simple-search-dropdown";
@@ -296,6 +369,15 @@ export default {
       // It's used to create the mixer modal.
       // This is filled in the created() hook
       instruments: [],
+
+      // monitor variables from worker
+      // the values of this object will be read by the tweak pane
+      monitorWorkerVars: {
+        'rms': 0,
+        'loudness': 0,
+        'inferenceTime': 0,
+      },
+      dataForChild: null,
 
       // Score status
       scoreShown: false,
@@ -366,7 +448,9 @@ export default {
     Dropdown,
     AudioMeter,
     ChromaChart,
-    TextBox
+    TextBox,
+    // MixerDat,
+    MixerTweak,
   },
 
   created() {
@@ -394,6 +478,13 @@ export default {
     this.sliders = this.config.gui.settings.sliders;
     this.buttons = this.config.gui.settings.buttons;
     this.instruments = this.config.instruments;
+
+    //
+    this.dataForChild = {
+        'rms': 0,
+        'loudness': 3,
+        'inferenceTime': 10,
+      },
 
     console.log("created end")
   },
@@ -460,9 +551,9 @@ export default {
         sampleRate: vm.audioContext.sampleRate,
       }
     });
-
-    console.log("whatever")
     vm.workerParameterInterval = setInterval(vm.workerParameterObserver, 10);
+    console.log("interval ID is " + vm.workerParameterInterval);
+    vm.timeout_IDS_live.push(vm.workerParameterInterval);
     /*
      * Initialize Audio Recorder (for audio recording).
      */
@@ -739,37 +830,42 @@ export default {
       }
     },
 
-    humanVolume: {
-      immediate: true,
-      handler(newValue) {
-        this.$store.commit("setHumanVolume", newValue);
-      },
-    },
-    humanUprightBassVolume: {
-      immediate: true,
-      handler(newValue) {
-        let payload = {
-          instrument: "upright_bass",
-          volume: newValue,
-        };
-        this.$store.commit("setHumanSamplerVolume", payload);
-      },
-    },
-    workerVolume: {
-      immediate: true,
-      handler(newValue) {
-        this.$store.commit("setWorkerVolume", newValue);
-      },
-    },
-    metronomeVolume: {
-      immediate: true,
-      handler(newValue) {
-        this.$store.commit("setMetronomeVolume", newValue);
-      },
-    },
+    // humanVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     this.$store.commit("setHumanVolume", newValue);
+    //   },
+    // },
+    // humanUprightBassVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     let payload = {
+    //       instrument: "upright_bass",
+    //       volume: newValue,
+    //     };
+    //     this.$store.commit("setHumanSamplerVolume", payload);
+    //   },
+    // },
+    // workerVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     this.$store.commit("setWorkerVolume", newValue);
+    //   },
+    // },
+    // metronomeVolume: {
+    //   immediate: true,
+    //   handler(newValue) {
+    //     this.$store.commit("setMetronomeVolume", newValue);
+    //   },
+    // },
   },
 
   methods: {
+
+    triggerAlert() {
+          alert('Yeah, you pressed it!')
+        },
+
 
     loadConfigSync() {
       // Read about sync and async requests here:
@@ -865,6 +961,7 @@ export default {
     //   }
 		// }
     workerParameterObserver() {
+      
       let newParameterWorker = { index: null, value: null };
       if (this.paramReader.dequeue_change(newParameterWorker)) {
         switch (newParameterWorker.index) {
@@ -872,6 +969,8 @@ export default {
             this.modelInferenceTimes.push(newParameterWorker.value);
             break;
           case this.workerParameterType.RMS:
+            // console.log("inside rms observer")
+            this.dataForChild.rms = newParameterWorker.value;
             break;
           case this.workerParameterType.LOUDNESS:
             break;
@@ -1359,7 +1458,7 @@ export default {
             // this makes the grid a bit more flexible, and the human input is correctly parsed
             // In terms of playability, the human finds it much more easy to play along the metronome on the grid
             if (vm.config.noteBasedMode.clockBased) {
-              vm.timeout_IDS_kill.push(setTimeout(function () {
+              vm.timeout_IDS_live.push(setTimeout(function () {
                 vm.runTheWorker();
               }, parseInt(vm.$store.getters.getClockPeriod / 4))
               );
@@ -1435,18 +1534,19 @@ export default {
       }
     },
     startRecording() {
-      this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
+      // this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(1, this.audioContext.currentTime);
       this.$store.commit("startUnMute");
     },
 
     stopRecording() {
-      this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
+      // this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
       this.$store.commit("stopMute");
       // this is a nice hack
       let id = setTimeout(function() {}, 0);
       while (id--) {
           // check if id is in timeout_IDS_live. if not, then clear it
           if (!this.timeout_IDS_live.includes(id)){
+            console.log("deleting timeout id " + id);
             clearTimeout(id); // will do nothing if no timeout with id is present
           }
       }
@@ -1461,9 +1561,12 @@ export default {
     showMixerModal() {
       this.$modal.show("mixerModal");
     },
-
-    hideSettingsModal() {
-      this.$modal.hide("settingsModal");
+    showMixerModalAuto() {
+      this.$modal.show("mixerModalAuto");
+    },
+    toggleMixer() {
+      // this.$root.$refs.mixerDat.guiMixer.hide();
+      this.$root.$refs.mixerTweak.paneMixer.hidden = !this.$root.$refs.mixerTweak.paneMixer.hidden;
     },
 
     transposeOctUp() {

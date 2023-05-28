@@ -68,6 +68,7 @@ function _readFromQueue() {
         let channel1 = new Float32Array(self.currentFrame.length / self.channelCount);
         let channel2 = new Float32Array(self.currentFrame.length / self.channelCount);
         let channels = [channel1, channel2];
+        // console.log("in read from queue");
         deinterleave_custom(self.currentFrame, channels, self.channelCount);
         let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
         self._param_writer.enqueue_change(self.workerParameterType.RMS, features.rms);
