@@ -916,7 +916,7 @@ export default {
       // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
       let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
 			if (noteEvent.type == vm.noteType.NOTE_ON) {
-				// console.log("note on");
+				console.log("note on");
 				vm.$store.dispatch("samplerOn", noteEvent);
         if (keyOnScreenRange){
           if (whiteKey){

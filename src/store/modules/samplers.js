@@ -83,6 +83,7 @@ const actions = {
             if (instrument_to_play_on == null){
                 throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
             } else {
+                console.log("samplerON before play ", Tone.now());
                 instrument_to_play_on.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
             }
         } else if (noteEvent.player == playerType.WORKER){
@@ -176,12 +177,12 @@ const mutations = {
     
     stopMute(state) {
         state.metronomeBus.mute = true;
-        state.humanBus.mute = true;
+        // state.humanBus.mute = true;
         state.workerBus.mute = true;
     },
     startUnMute(state) {
         state.metronomeBus.mute = state.metronomeMuteStatus;
-        state.humanBus.mute = state.humanMuteStatus;    
+        // state.humanBus.mute = state.humanMuteStatus;    
         state.workerBus.mute = state.workerMuteStatus;
     },
 
