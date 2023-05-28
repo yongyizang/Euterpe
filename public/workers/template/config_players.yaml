@@ -1,43 +1,48 @@
 players:
-  - label: 'User' # player labels must be unique
+  human:
+    label: 'User' # player labels must be unique
     mute: false
     volume: 5
-    instruments:  
-      - id: 1 # not used
-        name: "piano"
+    instruments: 
+        # it must be one of the available instrument ids in audio/samples
+        # you can't have two instruments with the same id in the same player 
+      - id: "piano" 
+        label: "Piano" # can be anything
         mute: false
         volume: 5
         default: true
-      - id: 2
-        name: "synth"
+      - id: "synth"
+        label: "Synth"
         mute: false
         volume: 6
-  - label: 'Worker'
+  worker:
+    label: 'Worker'
     mute: false
     volume: 5
     instruments:
-      - id: 1
-        name: "piano"
+      - id: "piano"
+        label: "Piano"
         mute: false
         volume: 7
         default: true
-      - id: 2
-        name: "synth"
+      - id: "synth"
+        label: "Synth"
         mute: false
         volume: 8
-      - id: 3
-        name: "drums"
+      - id: "drums"
+        label: "Drums"
         mute: false
         volume: 9
-      - id: 4
-        name: "bass"
+      - id: "upright_bass"
+        label: "Bass"
         mute: false
         volume: 10
-  - label: 'Metronome'
+  metronome:
+    label: 'Metronome'
     mute: true
     volume: 5
     instruments:
-      - id: 1
-        name: "click"
+      - id: "click"
+        label: "Click"
         mute: true
         volume: 5
