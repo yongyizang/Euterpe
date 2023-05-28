@@ -71,8 +71,8 @@ function _readFromQueue() {
         // console.log("in read from queue");
         deinterleave_custom(self.currentFrame, channels, self.channelCount);
         let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
-        self._param_writer.enqueue_change(self.workerParameterType.RMS, features.rms);
-        self._param_writer.enqueue_change(self.workerParameterType.LOUDNESS, features.loudness.total);
+        self._param_writer.enqueue_change(0, features.rms);
+        self._param_writer.enqueue_change(1, features.loudness.total);
         
 
         self.audio_frames_queue.push(self.currentFrame);
@@ -403,7 +403,7 @@ async function processClockEvent(content) {
     // the UI keeps track of this, and updates the 
     // maximum supported BPM (in settings)
     predictTime = performance.now() - predictTime;
-    self._param_writer.enqueue_change(self.workerParameterType.INFERENCE_TIME, predictTime);
+    self._param_writer.enqueue_change(2, predictTime);
 
     // At this stage, the worker has finished processing the clock event
     // and sends the results to the UI. Since we estimated a chroma vector
@@ -429,7 +429,7 @@ async function processClockEvent(content) {
 // Hook for processing single user note events.
 // This hook is called every time a note/midi event
 // is received by the user
-async function processNoteEventV2(noteEventPlain){
+async function processNoteEvent(noteEventPlain){
     // The NoteEvent we receive from the UI is serialized
     // We need to deserialize it
     let noteEvent = NoteEvent.fromPlain(noteEventPlain);
@@ -496,7 +496,7 @@ async function processNoteEventV2(noteEventPlain){
 }
 // }
 
-async function processNoteEvent(noteEventPlain){
+async function processNoteEventV2(noteEventPlain){
     // The NoteEvent we receive from the UI is serialized
     // We need to deserialize it
     let noteEvent = NoteEvent.fromPlain(noteEventPlain);

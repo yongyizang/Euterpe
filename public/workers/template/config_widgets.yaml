@@ -4,17 +4,34 @@ gui:
     title: "Chord"
   monitor:
     title: "Monitor"
-    variables:
-      - id: 1
-        label: "Variable 1"
-        graph:
-          min: 0
-          max: 1
+    structure:
+      - label: "Audio levels"
+        parameters:
+          - id: 0 # id's must be unique
+            label: "rms" # choose any name
+            interval: 50 # in ms
+            graph: true
+            min: 0
+            max: 0.2
+          - id: 1
+            label: "Loudness"
+            interval: 50 # in ms
+            graph: true
+            min: 0
+            max: 100
+      - label: "Worker"
+        parameters:
+          - id: 2
+            label: "Inference Time"
+            interval: 100 # in ms
+            graph: false
+            min: 0
+            max: 30
 
       
   settings:
     switches:
-      - id: 1
+      - id: 1 # unique within switches
         label: "Switch 1"
         status: false
       - id: 2
@@ -28,7 +45,7 @@ gui:
         status: false
 
     sliders:
-      - id: 1
+      - id: 1 # unique within sliders
         label: "Slider 1"
         value: 0
         min: 0
@@ -50,7 +67,7 @@ gui:
         max: 100
 
     buttons:
-      - id: 1
+      - id: 1 # unique within buttons
         label: "Button 1"
       - id: 2
         label: "Button 2"

@@ -50,7 +50,7 @@
       </modal>
       <!-- Custom Vue UI Components -->
       <!-- <MixerDat ref="mixerDat"/> -->
-      <MixerTweak ref="mixerTweak" :dataFromParent="dataForChild"/>
+      <MixerTweak ref="mixerTweak" :dataFromParent="dataForMonitoring"/>
       <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
       <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
         style="position:absolute; z-index:0; top:0px; left:0; background-color:transparent" />
@@ -377,7 +377,7 @@ export default {
         'loudness': 0,
         'inferenceTime': 0,
       },
-      dataForChild: null,
+      dataForMonitoring: {},
 
       // Score status
       scoreShown: false,
@@ -454,8 +454,8 @@ export default {
   },
 
   created() {
-
-    console.log("created start")
+    let vm = this;
+    console.log("created main start")
     this.loadConfigSync();
     console.log("load config sync done")
 
@@ -482,18 +482,35 @@ export default {
     // 
     this.monitorObserverInterval = 10;
     //
-    this.dataForChild = {
-        'rms': 0,
-        'loudness': 3,
-        'inferenceTime': 10,
-      },
+    // this.dataForMonitoring = {
+    //     'rms': 0,
+    //     'loudness': 3,
+    //     'inferenceTime': 10,
+    //   },
+    
+    this.config.gui.monitor.structure.forEach((tab) => {
+      tab.parameters.forEach((parameter) => {
+        vm.dataForMonitoring[parameter.id] = 0;
+      });
+    });
+    console.log(this.dataForMonitoring);
+    console.log("created main end")
+  },
 
-    console.log("created end")
+  // before mounted
+  beforeMount() {
+    console.log("beforeMount main start");
+    let vm = this;
+    console.log("beforeMount main end");
+
+
   },
 
   async mounted() {
-    console.log("mounted start")
+    console.log("mounted main start")
     var vm = this;
+    vm.$root.$refs.mixerTweak.loadMonitorConfig(vm.config.gui.monitor);
+
     /*
      * Loading Animation: set initial status of both div
      */
@@ -963,20 +980,22 @@ export default {
       
       let newParameterWorker = { index: null, value: null };
       if (this.paramReader.dequeue_change(newParameterWorker)) {
-        switch (newParameterWorker.index) {
-          case this.workerParameterType.INFERENCE_TIME:
-            this.modelInferenceTimes.push(newParameterWorker.value);
-            break;
-          case this.workerParameterType.RMS:
-            // console.log("inside rms observer")
-            this.dataForChild.rms = newParameterWorker.value;
-            break;
-          case this.workerParameterType.LOUDNESS:
-            break;
-          default:
-            console.log("Unknown parameter index: " + newParameterWorker.index +
-              " make sure you have registerd it in utils/types.js");
-        }
+        this.dataForMonitoring[newParameterWorker.index] = newParameterWorker.value;
+
+        // switch (newParameterWorker.index) {
+        //   case this.workerParameterType.INFERENCE_TIME:
+        //     this.modelInferenceTimes.push(newParameterWorker.value);
+        //     break;
+        //   case this.workerParameterType.RMS:
+        //     // console.log("inside rms observer")
+        //     this.dataForMonitoring.rms = newParameterWorker.value;
+        //     break;
+        //   case this.workerParameterType.LOUDNESS:
+        //     break;
+        //   default:
+        //     console.log("Unknown parameter index: " + newParameterWorker.index +
+        //       " make sure you have registerd it in utils/types.js");
+        // }
       }
     },
 
@@ -1565,7 +1584,7 @@ export default {
     },
     toggleMixer() {
       // this.$root.$refs.mixerDat.guiMixer.hide();
-      this.$root.$refs.mixerTweak.paneMixer.hidden = !this.$root.$refs.mixerTweak.paneMixer.hidden;
+      this.$root.$refs.mixerTweak.pane.hidden = !this.$root.$refs.mixerTweak.pane.hidden;
     },
 
     transposeOctUp() {

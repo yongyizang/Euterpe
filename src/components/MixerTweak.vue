@@ -32,65 +32,82 @@
         },
       },
     data() {
-      return {
-        paneMixer: null,
-        data: null,
-  
-      };
+        return {
+            pane: null,
+            data: null,
+            structure: null,
+            title: "",
+        };
+    },
+    beforeCreate(){
+        console.log("beforeCreate mixerTweak start")
+        // this.$root.$refs.mixerTweak = this;
+        console.log("beforeCreate mixerTweak end")
     },
     created() {
-      this.$root.$refs.mixerTweak = this;
-      // this.startAnalyser();
-      
-  
+        console.log("created mixerTweak start")
+        this.$root.$refs.mixerTweak = this;
+        // this.startAnalyser();
+        console.log(" created mixerTweak end")
     },
     mounted() {
-        let vm = this;
-        vm.paneMixer = new Pane({container: vm.$refs.mixerTweak})
-        // vm.data = data;
-        const f = vm.paneMixer.addFolder({
-            title: 'Title',
-            expanded: true,
-        });
-        // let data = {x: 0, y: 1, z: 2};
-        // f.addInput(vm.$props.dataFromParent, 'rms');
-        // f.addInput(vm.$props.dataFromParent, 'loudness');
-        // vm.paneMixer.addInput(
-        //     vm.$props.dataFromParent, 'infereceTime',
-        //     {min: 0, max: 100, step: 10}
-        // );
-        f.addMonitor(vm.$props.dataFromParent, 'rms', {
-            interval: 30,
-            view: 'graph',
-            min: 0,
-            max: 1,
-        });
+        console.log("mounted mixerTweak start")
 
-        // vm.paneMixer.on('change', (ev) => {
-        //     console.log('changed: ' + JSON.stringify(ev.value));
-        // });
+        
         
         
     },
   
     methods: {
-        loadData(data) {
+        loadMonitorConfig(monitorConfig) {
+            let vm = this;
+            vm.structure = monitorConfig.structure;
+            vm.title = monitorConfig.title;
+
+            vm.pane = new Pane({container: vm.$refs.mixerTweak})
             // vm.data = data;
-            // const f = vm.paneMixer.addFolder({
-            //     title: 'Title',
-            //     expanded: true,
-            // });
+            const f = vm.pane.addFolder({
+                title: vm.title,
+                expanded: true,
+            });
             // let data = {x: 0, y: 1, z: 2};
-            // f.addInput(data, 'x');
-            // f.addInput(data, 'y');
-            // vm.paneMixer.addInput(
-            //     data, 'z',
+            // f.addInput(vm.$props.dataFromParent, 'rms');
+            // f.addInput(vm.$props.dataFromParent, 'loudness');
+            // vm.pane.addInput(
+            //     vm.$props.dataFromParent, 'infereceTime',
             //     {min: 0, max: 100, step: 10}
             // );
+            // f.addMonitor(vm.$props.dataFromParent, 'rms', {
+            //     interval: 30,
+            //     view: 'graph',
+            //     min: 0,
+            //     max: 1,
+            // });
 
-            // vm.paneMixer.on('change', (ev) => {
+            // vm.pane.on('change', (ev) => {
             //     console.log('changed: ' + JSON.stringify(ev.value));
             // });
+
+            // Iterate over the structure in the config file
+            vm.structure.forEach((tab) => {
+            // Create a folder for each tab
+                const folder = vm.pane.addFolder({
+                    title: tab.label,
+                    expanded: true,
+                });
+
+                // Iterate over the parameters in each tab
+                tab.parameters.forEach((parameter) => {
+                    // Add a monitor for each parameter
+                    folder.addMonitor(vm.$props.dataFromParent, parameter.id, {
+                        label: parameter.label,
+                        interval: parameter.interval,
+                        view: parameter.graph ? 'graph' : 'text',
+                        min: parameter.min,
+                        max: parameter.max,
+                    });
+                });
+            });
         },
     },
   
