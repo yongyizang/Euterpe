@@ -388,7 +388,7 @@ async function processClockEvent(content) {
     
     // A dummy blocking operation to simulate the worker's inference step
     // This is where you would call your model's predict() function
-    simulateBlockingOperation(10);
+    // simulateBlockingOperation(10);
 
     
     // In case your model predicts note events

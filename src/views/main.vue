@@ -88,69 +88,6 @@
         <md-icon>arrow_back</md-icon>
       </md-button>
 
-      <!-- <div id="skata" ref="guiContainer" style="position: absolute; bottom: 430px; right: 20px">
-        <dat-gui closeText="Close controls" openText="Open controls" closePosition="bottom">
-          <dat-color v-model="background" label="Background"/>
-          <dat-number v-model="titleFontSize" label="Title font-size"/>
-          <dat-string v-model="title" label="Title"/>
-          <dat-button @click="triggerAlert" label="Trigger alert"/> -->
-          <!-- <dat-folder label="Picture"> -->
-            <!-- <dat-select v-model="pictureUrl" :items="pictures" label="Picture"/> -->
-            <!-- <dat-boolean v-model="showPicture" label="Show Picture"/> -->
-            <!-- <dat-folder label="Box shadow">
-              <dat-number v-model="boxShadow.offsetX" :min="-100" :max="100" :step="1" label="Offset X"/>
-              <dat-number v-model="boxShadow.offsetY" :min="-100" :max="100" :step="1" label="Offset Y"/>
-              <dat-number v-model="boxShadow.blurRadius" :min="0" :max="100" :step="1" label="Blur radius"/>
-              <dat-number v-model="boxShadow.spreadRadius" label="Spread radius"/>
-              <dat-color v-model="boxShadow.color" label="Color"/>
-            </dat-folder>
-          </dat-folder> -->
-        <!-- </dat-gui>
-      </div> -->
-      <!-- Mixer Modal Auto -->
-      <!-- <div id="guiMixerId" ref="guiMixerRef" style="position: absolute; bottom: 430px; left: 20px">
-      </div> -->
-      <!-- <modal name="mixerModalAuto" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
-        <div style="padding:0; margin: 0; ">
-          <div class="modalDiv">
-            <p class="modalTitle">
-              Mixer Auto
-            </p>
-            <button class="modalBtn" @click="$modal.hide('mixerModalAuto')">
-              <md-icon class="modalIcon">close</md-icon>
-            </button>
-          </div>
-          <div class="modalContent" style="overflow-y: scroll; height:600px">
-            <p class="settingsSubtitle">User</p>
-            <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
-
-            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
-                <p style="height:15px;margin:0;line-height:0;">User Bus</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanVolume * 10 }} %
-                </p>
-              </div>
-              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
-
-              <div style="display:block; min-width:60px; padding-top:17px">
-                <span style="padding:0; margin:0;">Mute</span>
-                <toggle-button color="#74601c" v-model="humanSamplerMuted" @change="toggleHumanSamplers"
-                  style="transform: scale(0.9);" />
-              </div>
-
-
-            </div>
-            
-
-          </div>
-
-
-
-
-        </div>
-        
-
-      </modal> -->
       <!-- Settings Modal -->
       <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
@@ -225,80 +162,6 @@
           </div>
         </div>
       </modal>
-      <!-- Mixer Modal -->
-      <!-- <modal name="mixerModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
-        <div style="padding:0; margin: 0; ">
-          <div class="modalDiv">
-            <p class="modalTitle">
-              Audio Mixer
-            </p>
-            <button class="modalBtn" @click="$modal.hide('mixerModal')"><md-icon
-                class="modalIcon">close</md-icon></button>
-          </div>
-          <div class="modalContent" style="overflow-y: scroll; height:600px">
-            <p class="settingsSubtitle">User</p>
-            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
-                <p style="height:15px;margin:0;line-height:0;">User Bus</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanVolume * 10 }} %
-                </p>
-              </div>
-              <HorizontalSlider v-model="humanVolume" :min="1" :max="10" />
-              <div style="display:block; min-width:60px; padding-top:17px">
-                <span style="padding:0; margin:0;">Mute</span>
-                <toggle-button color="#74601c" v-model="humanSamplerMuted" @change="toggleHumanSamplers"
-                  style="transform: scale(0.9);" />
-              </div>
-            </div>
-
-            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
-                <p style="height:15px;margin:0;line-height:0;">Upright Bass</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ humanUprightBassVolume
-                  *
-                  10 }} % </p>
-              </div>
-              <HorizontalSlider v-model="humanUprightBassVolume" :min="1" :max="10" />
-              <div style="display:block; min-width:60px; padding-top:17px">
-                <span style="padding:0; margin:0;">Mute</span>
-                <toggle-button color="#74601c" v-model="humanUprightBassMuted" @change="togglehumanUprightBass"
-                  style="transform: scale(0.9);" />
-              </div>
-            </div>
-
-            <p class="settingsSubtitle">Metronome</p>
-            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
-                <p style="height:15px;margin:0;line-height:0;">Metronome</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ metronomeVolume * 10 }}
-                  %
-                </p>
-              </div>
-              <HorizontalSlider v-model="metronomeVolume" :min="1" :max="10" />
-              <div style="display:block; min-width:60px; padding-top:17px">
-                <span style="padding:0; margin:0;">Mute</span>
-                <toggle-button color="#74601c" :value="false" @change="toggleMetronomeSampler"
-                  style="transform: scale(0.9);" />
-              </div>
-            </div>
-
-            <p class="settingsSubtitle">Worker</p>
-            <div class="md-layout md-gutter md-alignment-left" style="padding:20px">
-              <div style="height:60px;padding-left:12px; padding-top:10px; min-width:120px;">
-                <p style="height:15px;margin:0;line-height:0;">Worker Bus</p>
-                <p style="height:35px;margin:0;line-height:15px;font-size:20px;font-weight:800">{{ workerVolume * 10 }} %
-                </p>
-              </div>
-              <HorizontalSlider v-model="workerVolume" :min="1" :max="10" />
-              <div style="display:block; min-width:60px; padding-top:17px">
-                <span style="padding:0; margin:0;">Mute</span>
-                <toggle-button color="#74601c" :value="false" @change="toggleWorkerSamplers"
-                  style="transform: scale(0.9);" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </modal> -->
     </div>
   </div>
 </template>
@@ -851,43 +714,12 @@ export default {
         });
       }
     },
-
-    // humanVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     this.$store.commit("setHumanVolume", newValue);
-    //   },
-    // },
-    // humanUprightBassVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     let payload = {
-    //       instrument: "upright_bass",
-    //       volume: newValue,
-    //     };
-    //     this.$store.commit("setHumanSamplerVolume", payload);
-    //   },
-    // },
-    // workerVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     this.$store.commit("setWorkerVolume", newValue);
-    //   },
-    // },
-    // metronomeVolume: {
-    //   immediate: true,
-    //   handler(newValue) {
-    //     this.$store.commit("setMetronomeVolume", newValue);
-    //   },
-    // },
   },
 
   methods: {
-
     triggerAlert() {
           alert('Yeah, you pressed it!')
         },
-
 
     loadConfigSync() {
       // Read about sync and async requests here:
@@ -922,10 +754,6 @@ export default {
         throw new Error("Failed to fetch config file: empty");
       } else {
         this.config = yaml.load(config);
-        // this.$store.commit("setConfig", this.config);
-        // this.$store.commit("initQuantBuffers", this.config);
-        // this.$store.commit("setTicksPerMeasure", this.config);
-        // this.$store.commit("setInstrumentsConfig", this.config);
       }
     },
 
@@ -1262,7 +1090,7 @@ export default {
                   this.uiNoteOffWorker(noteEvent);
                 }, noteEvent.duration.seconds * 1000)
                 );
-                console.log("option2  ")
+                // console.log("option2  ")
               } else {
                 this.$store.dispatch("samplerOn", noteEvent);
                 console.log("option1 ")
@@ -1555,12 +1383,6 @@ export default {
     showSettingsModal() {
       this.$modal.show("settingsModal");
     },
-    // showMixerModal() {
-    //   this.$modal.show("mixerModal");
-    // },
-    // showMixerModalAuto() {
-    //   this.$modal.show("mixerModalAuto");
-    // },
 
     toggleMonitor() {
       // this.$root.$refs.mixerDat.guiMixer.hide();
@@ -1603,21 +1425,6 @@ export default {
       // console.log('in handler ', event);
       this.$store.commit("handleMixerUpdate", event);
     },
-
-    /*
-     * metronome status.
-     */
-    //  toggleMetronomeSampler() {
-    //   // This method would update the status of metronome in Vuex Store.
-    //   // this.$store.commit("muteMetronome");
-    //   this.$store.commit("flipMetronomeSamplerMuteStatus");
-    // },
-    // toggleHumanSamplers() {
-    //   this.$store.commit("flipHumanSamplersMuteStatus");
-    // },
-    // toggleWorkerSamplers() {
-    //   this.$store.commit("flipWorkerSamplersMuteStatus");
-    // },
 
     // example code for toggle a sampler.
     togglehumanUprightBass() {
