@@ -110,7 +110,7 @@
       <!-- Mixer Modal Auto -->
       <!-- <div id="guiMixerId" ref="guiMixerRef" style="position: absolute; bottom: 430px; left: 20px">
       </div> -->
-      <modal name="mixerModalAuto" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+      <!-- <modal name="mixerModalAuto" :minHeight="600" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="padding:0; margin: 0; ">
           <div class="modalDiv">
             <p class="modalTitle">
@@ -150,7 +150,7 @@
         </div>
         
 
-      </modal>
+      </modal> -->
       <!-- Settings Modal -->
       <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <!-- overflow-y: scroll; -->
@@ -226,7 +226,7 @@
         </div>
       </modal>
       <!-- Mixer Modal -->
-      <modal name="mixerModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+      <!-- <modal name="mixerModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
         <div style="padding:0; margin: 0; ">
           <div class="modalDiv">
             <p class="modalTitle">
@@ -298,7 +298,7 @@
             </div>
           </div>
         </div>
-      </modal>
+      </modal> -->
     </div>
   </div>
 </template>

@@ -54,42 +54,35 @@ let switch4 = null;
 
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize
-// and we do some basic analysis on each frame (RMS, loudness, chroma)
+// and we send them for processing in the processAudioBuffer() hook
 function _readFromQueue() {
     const samples_read = self._audio_reader.dequeue(self.staging);
     if (!samples_read) {
-      return 0;
+        return 0;
     }
     // samples_read can have less length than staging
     for (let i = 0; i < samples_read; i++) {
-      if (self.sampleCounter == self.windowSize - 1){
+        if (self.sampleCounter == self.windowSize - 1){
         
-        // Here you can do some analysis on the current audio frame
-        let channel1 = new Float32Array(self.currentFrame.length / self.channelCount);
-        let channel2 = new Float32Array(self.currentFrame.length / self.channelCount);
-        let channels = [channel1, channel2];
-        // console.log("in read from queue");
-        deinterleave_custom(self.currentFrame, channels, self.channelCount);
-        let features = Meyda.extract(['rms', 'loudness', 'chroma'], channels[0]);
-        // use the parameter ids for rms and loudness in config_widgets.yaml
-        self._param_writer.enqueue_change(0, features.rms);
-        self._param_writer.enqueue_change(1, features.loudness.total);
-        
+            // Here you can do some analysis on the current audio frame
+            let channel1 = new Float32Array(self.currentFrame.length / self.channelCount);
+            let channel2 = new Float32Array(self.currentFrame.length / self.channelCount);
+            let channels = [channel1, channel2];
+            // console.log("in read from queue");
+            deinterleave_custom(self.currentFrame, channels, self.channelCount);
+            let tempFrame = new Float32Array(self.windowSize);
+            // Copy the last windowSize - hopSize samples to the current frame
+            // to the beginning of the new frame
+            for (let j = 0; j < (self.windowSize - self.hopSize); j++){
+                tempFrame[j] = self.currentFrame[j + self.hopSize];
+            }
+            self.currentFrame = tempFrame;
+            self.sampleCounter = self.windowSize - self.hopSize;
 
-        self.audio_frames_queue.push(self.currentFrame);
-        self.audio_features_queue.push(features);
-        let tempFrame = new Float32Array(self.windowSize);
-        // Copy the last windowSize - hopSize samples to the current frame
-        // to the beginning of the new frame
-        for (let j = 0; j < (self.windowSize - self.hopSize); j++){
-            tempFrame[j] = self.currentFrame[j + self.hopSize];
+            self.processAudioBuffer(channels);
         }
-        self.currentFrame = tempFrame;
-        self.sampleCounter = self.windowSize - self.hopSize;
-      }
         self.currentFrame[self.sampleCounter] = self.staging[i];
         self.sampleCounter += 1;
-        
     }
     return samples_read;
 }
@@ -157,14 +150,14 @@ function uiParameterObserver(){
 async function initWorker(content) {
     console.log("inside initWorker");
     try {
-      loadConfig(content);
-      loadAlgorithm();
-      initAudio(content);
-      console.log("Initialization complete");
+        loadConfig(content);
+        loadAlgorithm();
+        initAudio(content);
+        console.log("Initialization complete");
     } catch (error) {
-      console.error("Error initializing worker:", error);
+        console.error("Error initializing worker:", error);
     }
-  }
+}
 
 async function loadConfig(content) {
     self.config = content.config;
@@ -330,7 +323,37 @@ async function initAudio(content){
     console.log("finished loading audio")
 }
 
+// This hook is called every time a new audio buffer is available
+// and it runs on the same thread as the rest of the worker,
+// so don't do any heavy processing here.
+function processAudioBuffer(buffer) {
+    // Buffer has 2 channels (stereo), buffer[0] and buffer[1]
 
+    // The buffers that processAudioBuffer receives are of size windowSize (config.yaml)
+    // And they are overlaped according to the hopSize (config.yaml)
+
+    // An example of how you can use Meyda to extract audio features from the left channel
+    let features = Meyda.extract(['rms', 'loudness', 'chroma'], buffer[0]);
+
+    // An example of how you can send those features to the UI
+    // Since these features are estimated many times per second,
+    // it's better to push them to the sharedArrayBuffer queue that 
+    // the worker shares with the UI, instead of sending them 
+    // using postMessage(). Note that you can only use this way to
+    // send single float values
+    // The values you send through the queue will be shown in the Monitor (GUI)
+    // Make sure you have first declared them in config_widgets.yaml
+    // The first arg for enqueue_change is the parameter id (see config_widgets.yaml)
+    // and the second arg is the float value you want to send. 
+    self._param_writer.enqueue_change(0, features.rms);
+    self._param_writer.enqueue_change(1, features.loudness.total);
+
+    // Here we push the overlapped audio frames and their features
+    // to the local queues. These queues can be used in the 
+    // processClockEvent() and processNoteEvent() hooks.
+    self.audio_frames_queue.push(buffer[0]);
+    self.audio_features_queue.push(features);
+}
 
 // Hook for processing note/MIDI events from the user.
 // This hook is called in sync with the clock, and provides
@@ -400,6 +423,88 @@ async function processClockEvent(content) {
     // noteList.push(note);
 
 
+    // Let's also generate some Drums
+    // if currentTick is divisible by 4, generate a kick drum
+    let dividedBy2 = currentTick % 2 == 0;
+    let dividedBy4 = currentTick % 4 == 0;
+    let dividedBy8 = currentTick % 8 == 0;
+
+    // Generate a hi-hat every 8th note
+    if (dividedBy2){
+        const drumNote = new NoteEvent();
+        drumNote.player = self.playerType.WORKER;
+        drumNote.instrument = self.instrumentType.DRUMS;
+        drumNote.type = self.noteType.NOTE_ON;
+        drumNote.midi = 14; // That's required for playback
+        drumNote.velocity = 110; // That's required for playback
+        drumNote.createdAt = {
+            tick: currentTick,
+            seconds: performance.now()
+        }
+        // play the note 1 tick and 0 seconds after it was generated
+        drumNote.playAfter = {
+            tick: 0,
+            seconds: 0
+        }
+        // The duration of the drumNote
+        drumNote.duration = {
+            tick: 0,
+            seconds: 1
+        }
+        // Push the drumNote to the list of notes to be sent to the UI
+        noteList.push(drumNote);
+    }
+    // Generate a snare every second quarter note (on the 2nd and 4th beat)
+    if (dividedBy4 & !dividedBy8){
+        const drumNote = new NoteEvent();
+        drumNote.player = self.playerType.WORKER;
+        drumNote.instrument = self.instrumentType.DRUMS;
+        drumNote.type = self.noteType.NOTE_ON;
+        drumNote.midi = 13; // That's required for playback
+        drumNote.velocity = 90; // That's required for playback
+        drumNote.createdAt = {
+            tick: currentTick,
+            seconds: performance.now()
+        }
+        // play the note 1 tick and 0 seconds after it was generated
+        drumNote.playAfter = {
+            tick: 0,
+            seconds: 0
+        }
+        // The duration of the drumNote
+        drumNote.duration = {
+            tick: 0,
+            seconds: 1
+        }
+        // Push the drumNote to the list of notes to be sent to the UI
+        noteList.push(drumNote);
+    }
+    // Generate a kick every second quarter note (on the 1st and 3rd beat)
+    if (dividedBy8){
+        const drumNote = new NoteEvent();
+        drumNote.player = self.playerType.WORKER;
+        drumNote.instrument = self.instrumentType.DRUMS;
+        drumNote.type = self.noteType.NOTE_ON;
+        drumNote.midi = 12; // That's required for playback
+        drumNote.velocity = 127; // That's required for playback
+        drumNote.createdAt = {
+            tick: currentTick,
+            seconds: performance.now()
+        }
+        // play the note 1 tick and 0 seconds after it was generated
+        drumNote.playAfter = {
+            tick: 0,
+            seconds: 0
+        }
+        // The duration of the drumNote
+        drumNote.duration = {
+            tick: 0,
+            seconds: 1
+        }
+        // Push the drumNote to the list of notes to be sent to the UI
+        noteList.push(drumNote);
+    }
+
     // estimate the inference time of your algorithm
     // the UI keeps track of this, and updates the 
     // maximum supported BPM (in settings)
@@ -448,8 +553,8 @@ async function processNoteEvent(noteEventPlain){
      * velocity of its previous note
      */
     let arpeggio = [];
-    if (self.switch1 == 1){
-        arpeggio = [3, 5, 8, 12];
+    if (self.switch1 == 0){
+        arpeggio = [3, 5, 8, 12, 15];
     } else{
         arpeggio = [4, 7, 9, 12, 9, 7, 4];
     }
@@ -462,18 +567,18 @@ async function processNoteEvent(noteEventPlain){
         for (let i = 0; i < arpeggio.length; i++) {
             let arp_note = new NoteEvent();
             arp_note.player = self.playerType.WORKER;
-            arp_note.instrument = self.instrumentType.PIANO;
+            arp_note.instrument = self.instrumentType.SYNTH;
             arp_note.type = noteEvent.type;
             arp_note.midi = noteEvent.midi + arpeggio[i];
             arp_note.velocity = noteEvent.velocity
             // arp_note.createdAt 
             arp_note.playAfter = {
-                tick: i + 1,
-                seconds: 0 ,//+ extraSecOffset
+                tick: 0,
+                seconds: (i+1)*0.05 ,//+ extraSecOffset
             },
             arp_note.duration = {
-                tick: 1,
-                seconds: 0,//+ extraSecOffset
+                tick: 0,
+                seconds: 0.1,//+ extraSecOffset
             },
 
             noteList.push(arp_note);
