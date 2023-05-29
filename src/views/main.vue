@@ -1054,7 +1054,7 @@ export default {
       };
       newNoteEvent.duration = null;
 
-      vm.processUserNoteEvent(noteEvent)
+      vm.processUserNoteEvent(newNoteEvent)
     });
 
     inputDevice.addListener("noteoff", (message) => {
@@ -1077,7 +1077,7 @@ export default {
       };
       newNoteEvent.duration = null;
       
-      vm.processUserNoteEvent(noteEvent)
+      vm.processUserNoteEvent(newNoteEvent)
       });
     },
 
