@@ -1326,12 +1326,18 @@ export default {
         // An infinite recursion that implements the clock. 
         // TODO: keep track of the past 'parent' setTimeout IDs and clear them every few ticks.
         // In theory, these infinite setTimeouts will keep piling up, but still haven't noticed any performance issues.
-        function sendOutTicks() {
-          tickBehavior();
-          vm.timeout_IDS_live.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));
-        }
-        sendOutTicks();
-        // setInterval(tickBehavior, vm.$store.getters.getClockPeriod);
+
+        // 1st Option - using setTimeout -- variable clock speed
+        // function sendOutTicks() {
+        //   tickBehavior();
+        //   vm.timeout_IDS_live.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));
+        // }
+        // sendOutTicks();
+
+        // 2nd OPTION - using setInterval -- constant clock speed
+        setInterval(tickBehavior, vm.$store.getters.getClockPeriod);
+
+        // 3rd OPTION - using requestAnimationFrame -- variable clock speed
       //   let lastTime = 0;
       //   function sendOutTicks(timestamp) {
       //     let interval = vm.$store.getters.getClockPeriod;

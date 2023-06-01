@@ -542,17 +542,17 @@ async function processClockEvent(content) {
     // you should always send a CLOCK_TIME message type, so that the UI
     // can check whether the worker is in sync with the clock.
     // console.log("sending clock event");
-    // postMessage({
-    //     hookType: self.workerHookType.CLOCK_EVENT,
-    //     message:{
-    //         [self.messageType.CHROMA_VECTOR]: 
-    //                 tickAverageChroma,
-    //         [self.messageType.NOTE_LIST]: 
-    //                 noteList,
-    //         [self.messageType.CLOCK_TIME]:
-    //                 currentTick
-    //     },
-    // })
+    postMessage({
+        hookType: self.workerHookType.CLOCK_EVENT,
+        message:{
+            [self.messageType.CHROMA_VECTOR]: 
+                    tickAverageChroma,
+            [self.messageType.NOTE_LIST]: 
+                    noteList,
+            [self.messageType.CLOCK_TIME]:
+                    currentTick
+        },
+    })
 }
 
 // Hook for processing single user note events.
@@ -612,15 +612,15 @@ async function processNoteEvent(noteEventPlain){
         // Similar to the processClockEvent() hook, we send the results
         // to the UI. In this example we send a list of the arpeggio notes
         // we estimated for the user's input.
-        // postMessage({
-        //     hookType: self.workerHookType.NOTE_EVENT,
-        //     message:{
-        //         [self.messageType.NOTE_LIST]: 
-        //                 noteList,
-        //         [self.messageType.LABEL]:
-        //                 label
-        //     }
-        // });
+        postMessage({
+            hookType: self.workerHookType.NOTE_EVENT,
+            message:{
+                [self.messageType.NOTE_LIST]: 
+                        noteList,
+                [self.messageType.LABEL]:
+                        label
+            }
+        });
     };
 }
 // }
