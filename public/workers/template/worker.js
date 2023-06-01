@@ -36,6 +36,8 @@ let _param_reader = null;
 let _param_writer = null;
 let newParameterUI = null;
 
+let prevTime = performance.now();
+
 // worker parameters that correspond to UI widgets
 // you should change their names to match your 
 // worker's parameters, e.g. slider3 --> randomness
@@ -312,14 +314,15 @@ async function initAudio(content){
     // that the ring buffer can hold, so it's 250ms, allowing to not make
     // deadlines:
     // staging buffer size = ring buffer byteLengthsize / sizeof(float32) /4 / 2?
-    self.staging = new Float32Array(content.sab.byteLength / 4 / 4 / 2);
+    // self.staging = new Float32Array(content.sab.byteLength / 4 / 4 / 2);
+    self.staging = new Float32Array(self.hopSize);
 
     Meyda.bufferSize = self.windowSize;
     
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
     //   interval = setInterval(_readFromQueue, 100);
-    self.interval = setInterval(_readFromQueue, 100);
+    self.interval = setInterval(_readFromQueue, 10);
     console.log("finished loading audio")
 }
 
@@ -363,6 +366,9 @@ function processAudioBuffer(buffer) {
 // two clock ticks. Besides the note/MIDI events, you can also process
 // the available audio_features and audio_frames.
 async function processClockEvent(content) {
+    let currentTime = performance.now();
+    let timeDiff = currentTime - prevTime;
+    prevTime = currentTime;
 
     let predictTime = performance.now(); 
     const currentTick = content.tick;   
@@ -381,11 +387,27 @@ async function processClockEvent(content) {
     let rms = features.map(f => f.rms);
     
     // Average all the chroma vectors since the last clock event (tick)
-    const tickAverageChroma = average2d(chromas);
-    // The chroma's we get from Meyda seem to be shifted by 1 left. 
-    // That's probably a bug in Meyda. We'll shift it back here.
-    shiftRight(tickAverageChroma)
-    
+    console.log("chromas: " + chromas.length);
+    self._param_writer.enqueue_change(5, chromas.length);
+    let tickAverageChroma = null
+    if (chromas.length == 0){
+        // float array of zeros
+        tickAverageChroma = new Float32Array(12);
+    }
+    else {
+        tickAverageChroma = average2d(chromas);
+        // The chroma's we get from Meyda seem to be shifted by 1 left. 
+        // That's probably a bug in Meyda. We'll shift it back here.
+        shiftRight(tickAverageChroma)
+    }
+    // Estimate the true BPM of the system
+    // let targetPeriod = (60 / self.config.clockBasedSettings.tempo / self.config.clockBasedSettings.ticksPerBeat) * 1000
+    let currentPeriod = timeDiff;
+    let currentBPM = 60 / (currentPeriod / 1000) / self.config.clockBasedSettings.ticksPerBeat;
+    let error = Math.abs(currentBPM - self.config.clockBasedSettings.tempo);
+    // let errorPercent = error / self.config.clockBasedSettings.tempo;
+    self._param_writer.enqueue_change(3, currentBPM);
+    self._param_writer.enqueue_change(4, error);
     // A dummy blocking operation to simulate the worker's inference step
     // This is where you would call your model's predict() function
     // simulateBlockingOperation(10);
@@ -520,17 +542,17 @@ async function processClockEvent(content) {
     // you should always send a CLOCK_TIME message type, so that the UI
     // can check whether the worker is in sync with the clock.
     // console.log("sending clock event");
-    postMessage({
-        hookType: self.workerHookType.CLOCK_EVENT,
-        message:{
-            [self.messageType.CHROMA_VECTOR]: 
-                    tickAverageChroma,
-            [self.messageType.NOTE_LIST]: 
-                    noteList,
-            [self.messageType.CLOCK_TIME]:
-                    currentTick
-        },
-    })
+    // postMessage({
+    //     hookType: self.workerHookType.CLOCK_EVENT,
+    //     message:{
+    //         [self.messageType.CHROMA_VECTOR]: 
+    //                 tickAverageChroma,
+    //         [self.messageType.NOTE_LIST]: 
+    //                 noteList,
+    //         [self.messageType.CLOCK_TIME]:
+    //                 currentTick
+    //     },
+    // })
 }
 
 // Hook for processing single user note events.
@@ -590,15 +612,15 @@ async function processNoteEvent(noteEventPlain){
         // Similar to the processClockEvent() hook, we send the results
         // to the UI. In this example we send a list of the arpeggio notes
         // we estimated for the user's input.
-        postMessage({
-            hookType: self.workerHookType.NOTE_EVENT,
-            message:{
-                [self.messageType.NOTE_LIST]: 
-                        noteList,
-                [self.messageType.LABEL]:
-                        label
-            }
-        });
+        // postMessage({
+        //     hookType: self.workerHookType.NOTE_EVENT,
+        //     message:{
+        //         [self.messageType.NOTE_LIST]: 
+        //                 noteList,
+        //         [self.messageType.LABEL]:
+        //                 label
+        //     }
+        // });
     };
 }
 // }

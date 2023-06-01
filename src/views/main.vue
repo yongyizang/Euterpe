@@ -788,7 +788,7 @@ export default {
       // 
       if (noteEvent.type == vm.noteType.NOTE_ON) {
 					vm.$root.$refs.pianoRoll.keyDown(noteEvent);
-        	vm.$store.dispatch("noteOn", noteEvent);
+          vm.$store.dispatch("noteOn", noteEvent);
 				} else {
 					vm.$root.$refs.pianoRoll.keyUp(noteEvent);
 					vm.$store.dispatch("noteOff", noteEvent);
@@ -1330,8 +1330,20 @@ export default {
           tickBehavior();
           vm.timeout_IDS_live.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));
         }
-
         sendOutTicks();
+        // setInterval(tickBehavior, vm.$store.getters.getClockPeriod);
+      //   let lastTime = 0;
+      //   function sendOutTicks(timestamp) {
+      //     let interval = vm.$store.getters.getClockPeriod;
+      //     if (timestamp - lastTime >= interval) {
+      //       tickBehavior();
+      //       lastTime = timestamp;
+      //     }
+
+      //     requestAnimationFrame(sendOutTicks);
+      //   }
+      //   sendOutTicks();
+
       }
     },
 

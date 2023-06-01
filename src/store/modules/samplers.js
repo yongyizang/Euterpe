@@ -116,7 +116,7 @@ const actions = {
             if (instrument_to_play_on == null){
                 throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
             } else {
-                instrument_to_play_on.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+                instrument_to_play_on.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 0.4);
             }
 
         } else if (noteEvent.player == playerType.WORKER){
@@ -204,9 +204,11 @@ const mutations = {
         }
         
         state.humanSamplers = {
-            synth: new Tone.PolySynth(Tone.FMSynth).connect(state.humanSamplersBus["synth"]),
+            synth: new Tone.PolySynth(Tone.FMSynth, {voices: 24}).connect(state.humanSamplersBus["synth"]),
             piano: new Instruments().createSampler("piano", (piano) => {
+                console.log("piano creation ", piano);
                 piano.connect(state.humanSamplersBus["piano"]);
+                piano.release = 1;
             }),
             drums: new Instruments().createSampler("drums", (drums) => {
                 drums.connect(state.humanSamplersBus["drums"]);
@@ -226,8 +228,9 @@ const mutations = {
         }
         
         state.workerSamplers = {
-            synth: new Tone.PolySynth(Tone.FMSynth).connect(state.workerSamplersBus["synth"]),
+            synth: new Tone.PolySynth(Tone.FMSynth, {voices: 24}).connect(state.workerSamplersBus["synth"]),
             piano: new Instruments().createSampler("piano", (piano) => {
+                piano.envelope.sustain = 1;
                 piano.connect(state.workerSamplersBus["piano"]);
             }),
             drums: new Instruments().createSampler("drums", (drums) => {
