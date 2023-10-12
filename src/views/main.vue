@@ -52,13 +52,17 @@
       </modal>
       <!-- Custom Vue UI Components -->
       <!-- <MixerDat ref="mixerDat"/> -->
+      <TestBar :width="100" :height="100" />
       <Mixer ref="mixer" @newEventSignal="handleMixerUpdate"/>
       <Monitor ref="monitor" :dataFromParent="dataForMonitoring"/>
       <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
       <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
-        style="position:absolute; z-index:0; top:0px; left:0; background-color:transparent" />
-      <ChromaChart ref="chromaChart" :width="300" :height="110"
-        :styles="{ position: 'absolute', zIndex: 0, top: '10px', right: '20px', backgroundColor: 'transparent' }" />
+        style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
+      <VectorBar ref="vectorBar" :width=300 :height="100" :num_bars="12" orientation="top"
+        style="position:absolute; z-index:0; top:0px; right:0px; background-color:transparent" />
+      <!-- <ChromaChart ref="chromaChart" :width="300" :height="110"
+        :styles="{ position: 'absolute', zIndex: 0, top: '10px', right: '20px', backgroundColor: 'transparent' }" /> -->
+        <!-- <ChromaChart /> -->
       <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
@@ -183,7 +187,11 @@ import Score from "@/components/Score.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
 import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "../components/AudioMeter.vue";
-import ChromaChart from "../components/ChromaChart.vue";
+import VectorBar from "../components/VectorBar.vue";
+// import ChromaChart from "../components/ChromaChart.vue";
+// import ChromaChart from "../components/ChromaChart2.vue";
+
+import TestBar from "../components/TestBar.vue"
 // import MixerDat from "../components/MixerDat.vue";
 import Monitor from "../components/Monitor.vue";
 import Mixer from "../components/Mixer.vue";
@@ -239,13 +247,6 @@ export default {
       // This is filled in the created() hook
       players: [],
 
-      // monitor variables from worker
-      // the values of this object will be read by the tweak pane
-      monitorWorkerVars: {
-        'rms': 0,
-        'loudness': 0,
-        'inferenceTime': 0,
-      },
       dataForMonitoring: {},
 
       // Score status
@@ -316,11 +317,11 @@ export default {
     HorizontalSlider,
     Dropdown,
     AudioMeter,
-    ChromaChart,
+    VectorBar,
     TextBox,
-    // MixerDat,
     Mixer,
     Monitor,
+    TestBar,
   },
 
   created() {
@@ -381,6 +382,8 @@ export default {
     var vm = this;
     vm.$root.$refs.monitor.loadMonitorConfig(vm.config.gui.monitor);
     vm.$root.$refs.mixer.loadMixerConfig(vm.config.players);
+
+
 
     /*
      * Loading Animation: set initial status of both div
@@ -460,6 +463,8 @@ export default {
     vm.mediaStreamSource.connect(vm.analyserNode);
     vm.$root.$refs.audioMeter.init(vm.analyserNode);
     vm.$root.$refs.audioMeter.updateAnalysis();
+    vm.$root.$refs.vectorBar.init();
+    vm.$root.$refs.vectorBar.updateAnalysis();
 
     const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
     await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
@@ -1008,8 +1013,9 @@ export default {
             };
             console.log("SUCESS IN SWITCH");
             break;
-          case vm.messageType.CHROMA_VECTOR:
-            this.$root.$refs.chromaChart.updateChromaData(messageValue);
+          case vm.messageType.VECTOR:
+            // this.$root.$refs.chromaChart.updateChromaData(messageValue);
+            this.$root.$refs.vectorBar.updateVectorData(messageValue);
             break;
           case vm.messageType.LABEL:
             this.textBoxText = messageValue;

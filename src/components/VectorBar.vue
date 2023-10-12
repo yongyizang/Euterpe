@@ -1,23 +1,23 @@
 <template>
-  <div ref="audioMeter" id="audioMeter" style="position: absolute; top: 5px; left: 20px">
-    <div v-touch:swipe.up="triggerCollapse" id="canvasWrapper">
+  <div ref="vectorBar" id="vectorBar" style="position: absolute; ">
+    <div v-touch:swipe.up="triggerCollapse" id="canvasWrapperVectorBar">
       <canvas 
-          ref="audioCanvas"
+          ref="vectorBarCanvas"
           :width="width" 
           :height="height">
       </canvas>
     </div>
-    <button type="button" @click="triggerCollapse" id="collapseBtnAudioMeter">
+    <button type="button" @click="triggerCollapse" id="collapseBtnVectorBar">
       <i ref="collapseBtnSymbol2" class="ri-arrow-up-s-line"></i>
     </button>
   </div>
 </template>
 
 <script>
-import "../css/audioMeter.css";
+import "../css/vectorBar.css";
 
 export default {
-  name: 'AudioMeter',
+  name: 'VectorBar',
   props: {
     width: {
       type: Number,
@@ -27,9 +27,9 @@ export default {
       type: Number,
       default: 100,
     },
-    fft_bins: {
+    num_bars: {
       type: Number,
-      default: 256,
+      default: 12,
     },
     orientation: {
       type: String,
@@ -39,62 +39,74 @@ export default {
   data() {
     return {
       // audioContext: null,
-      analyserNode: null,
-      dataArray: null,
-      bufferLength: null,
+      // analyserNode: null,
+      // dataArray: null,
+      // bufferLength: null,
+      chartData: null,
+      chartOptions: null,
     };
   },
   created() {
-    this.$root.$refs.audioMeter = this;
+    this.$root.$refs.vectorBar = this;
     // this.startAnalyser();
+    this.init();
   },
   methods: {
 
+    init() {
+      // this.analyserNode = analyser;
+      // this.analyserNode.fftSize = this.num_bars;
+      // this.bufferLength = this.analyserNode.frequencyBinCount; // half of FFT size
+      this.dataArray = new Uint8Array(this.num_bars);
+      console.log('VectorBar initialized');
+    },
+
     triggerCollapse() {
       const btnSymbol = this.$refs.collapseBtnSymbol2.classList;
-      const score = this.$refs.audioMeter;
+      const score = this.$refs.vectorBar;
       const scoreClass = score.classList;
       console.log("in colapse")
-      if (scoreClass.contains("slide-up-audiometer")) {
+      if (scoreClass.contains("slide-up-vectorbar")) {
         console.log("skata up")
-        scoreClass.replace("slide-up-audiometer", "slide-down-audiometer");
+        scoreClass.replace("slide-up-vectorbar", "slide-down-vectorbar");
         btnSymbol.replace("ri-arrow-down-s-line", "ri-arrow-up-s-line");
-      } else if (scoreClass.contains("slide-down-audiometer")) {
+      } else if (scoreClass.contains("slide-down-vectorbar")) {
         console.log("skata down")
-        scoreClass.replace("slide-down-audiometer", "slide-up-audiometer");
+        scoreClass.replace("slide-down-vectorbar", "slide-up-vectorbar");
         btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
       } else {
-        scoreClass.add("slide-up-audiometer");
+        scoreClass.add("slide-up-vectorbar");
         btnSymbol.replace("ri-arrow-up-s-line", "ri-arrow-down-s-line");
       }
     },
-
-    init(analyser) {
-      this.analyserNode = analyser;
-      this.analyserNode.fftSize = this.fft_bins;
-      this.bufferLength = this.analyserNode.frequencyBinCount; // half of FFT size
-      this.dataArray = new Uint8Array(this.bufferLength);
-      console.log('AudioMeter initialized');
-    },
+    
+    // updateVectorData(vectorData){
+    //   this.dataArray = vectorData;
+    //   this.drawFrequencyBins();
+    // },
     
     updateAnalysis() {
       requestAnimationFrame(this.updateAnalysis);
-      this.analyserNode.getByteFrequencyData(this.dataArray);
+      
+      // Generate some random data for dataArray for now
+      for (let i = 0; i < this.dataArray.length; i++) {
+        this.dataArray[i] = Math.random() * 100;
+      }
       this.drawFrequencyBins();
     },
 
     drawFrequencyBins() {
       const vm = this;
-      if (!this.$refs.audioCanvas) {
+      if (!this.$refs.vectorBarCanvas) {
         return;
       }
-      const canvas = this.$refs.audioCanvas;
+      const canvas = this.$refs.vectorBarCanvas;
       // const drawAlt = function () {
         const canvasCtx = canvas.getContext("2d");
         canvasCtx.clearRect(0, 0, vm.width, vm.height);
         // canvasCtx.beginPath();
         // let drawVisual = requestAnimationFrame(drawAlt);
-        const barWidth = (vm.width / vm.bufferLength);
+        const barWidth = (vm.width / vm.num_bars);
         let barHeight;
         let x = 0;
         for (let i = 0; i < vm.dataArray.length; i++) {

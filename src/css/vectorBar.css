@@ -1,6 +1,6 @@
 @import url('variables.css');
 
-#audioMeter {
+#vectorBar {
     overflow: hidden;
     z-index: 10;
     /* width: 100%; */
@@ -11,7 +11,7 @@
     top: 10px; */
   }
   
-  #canvasWrapper {
+  #canvasWrapperVectorBar {
     position: relative;
     /* height: 100px; */
     width: 100%;
@@ -22,12 +22,12 @@
     background-color: var(--score-background-color);
   }
   
-  #collapseBtnAudioMeter {
+  #collapseBtnVectorBar {
     z-index: 10;
     width: 60px;
     height: 20px;
     position: relative;
-    top: 1px;
+    top: 0 px;
     left: calc(50% - 30px);
     -webkit-box-shadow: -4px 6px 15px -9px #000000;
     box-shadow: -4px 6px 15px -9px #000000;
@@ -43,19 +43,19 @@
     border-style: hidden;
   }
   
-  .slide-up-audiometer {
-    -webkit-animation: slide-up-audiometer 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
-    animation: slide-up-audiometer 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+  .slide-up-vectorbar {
+    -webkit-animation: slide-up-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation: slide-up-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
     z-index: 2!important;
   }
   
-  .slide-down-audiometer {
-    -webkit-animation: slide-down-audiometer 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
-    animation: slide-down-audiometer 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+  .slide-down-vectorbar {
+    -webkit-animation: slide-down-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation: slide-down-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
     z-index: 9!important;
   }
   
-  @-webkit-keyframes slide-up-audiometer {
+  @-webkit-keyframes slide-up-vectorbar {
     0% {
       -webkit-transform: translateY(0);
       transform: translateY(0);
@@ -65,7 +65,7 @@
       transform: translateY(calc(-1 * 100% + 20px));
     }
   }
-  @keyframes slide-up-audiometer {
+  @keyframes slide-up-vectorbar {
     0% {
       -webkit-transform: translateY(0);
       transform: translateY(0);
@@ -76,7 +76,7 @@
     }
   }
   
-  @-webkit-keyframes slide-down-audiometer {
+  @-webkit-keyframes slide-down-vectorbar {
     0% {
       -webkit-transform: translateY(calc(-1 * 100% + 20px));
       transform: translateY(calc(-1 * 100% + 20px));
@@ -86,7 +86,7 @@
       transform: translateY(0);
     }
   }
-  @keyframes slide-down-audiometer {
+  @keyframes slide-down-vectorbar {
     0% {
       -webkit-transform: translateY(calc(-1 * 100% + 20px));
       transform: translateY(calc(-1 * 100% + 20px));

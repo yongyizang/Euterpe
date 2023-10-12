@@ -77,6 +77,9 @@
     },
     
     mounted() {
+      // this.width = 300;
+      // this.height = 300; 
+      console.log("mounted chromaChart start/end")
     },
 
     methods: {
