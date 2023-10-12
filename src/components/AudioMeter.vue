@@ -74,7 +74,7 @@ export default {
       this.analyserNode.fftSize = this.fft_bins;
       this.bufferLength = this.analyserNode.frequencyBinCount; // half of FFT size
       this.dataArray = new Uint8Array(this.bufferLength);
-      console.log('Got the node');
+      console.log('AudioMeter initialized');
     },
     
     updateAnalysis() {
@@ -86,7 +86,7 @@ export default {
     drawFrequencyBins() {
       const vm = this;
       const canvas = this.$refs.audioCanvas;
-      const drawAlt = function () {
+      // const drawAlt = function () {
         const canvasCtx = canvas.getContext("2d");
         canvasCtx.clearRect(0, 0, vm.width, vm.height);
         // canvasCtx.beginPath();
@@ -121,8 +121,8 @@ export default {
           x += barWidth + 1;
         }
         // canvasCtx.closePath();
-      };
-      drawAlt();
+      // };
+      // drawAlt();
     },
   },
 };

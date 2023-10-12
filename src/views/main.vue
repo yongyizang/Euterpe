@@ -1044,7 +1044,7 @@ export default {
     // TODO : refactor this one. choose which option
     // to use and remove the other one
     processWorkerNoteEvent(noteEvent) {
-      console.log("DEN THA EPREPE NA EIMAI EDW")
+      // console.log("DEN THA EPREPE NA EIMAI EDW")
       let vm = this;
       // The noteEvents that arrive here, have already waited for playAfter.tick ticks (if any)
       // so we can only care about playAfter.seconds here. 
@@ -1295,7 +1295,7 @@ export default {
 
         // Clock behavior function.
         async function tickBehavior() {
-          console.log("ROLOGAKI ROLOGAKI")
+          // console.log("ROLOGAKI ROLOGAKI")
           if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
 
@@ -1366,7 +1366,7 @@ export default {
             function tick(){
               setTimeout(tick, timeoutTime);
               self.postMessage('tick');
-              console.log("tick from worker")
+              // console.log("tick from worker")
             }
             // call tick initially
             tick();
