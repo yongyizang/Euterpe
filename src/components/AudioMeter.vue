@@ -85,6 +85,9 @@ export default {
 
     drawFrequencyBins() {
       const vm = this;
+      if (!this.$refs.audioCanvas) {
+        return;
+      }
       const canvas = this.$refs.audioCanvas;
       // const drawAlt = function () {
         const canvasCtx = canvas.getContext("2d");

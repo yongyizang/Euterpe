@@ -382,9 +382,6 @@ export default {
     vm.$root.$refs.monitor.loadMonitorConfig(vm.config.gui.monitor);
     vm.$root.$refs.mixer.loadMixerConfig(vm.config.players);
 
-    const canvasChart = document.getElementById("canvas");
-
-
     /*
      * Loading Animation: set initial status of both div
      */
