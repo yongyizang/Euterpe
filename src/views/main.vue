@@ -78,7 +78,8 @@
           <md-icon>tune</md-icon>
         </md-button>
         <md-button class="controlBtn" @click="toggleMonitor">
-          <md-icon>monitor</md-icon>
+          <!-- <md-icon>monitor</md-icon> -->
+          <i class="material-symbols-outlined">monitoring</i>
         </md-button>
       </div>
       <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
