@@ -10,9 +10,11 @@
         <p ref="workerStatus" class="loadingStatus">
           Loading the Worker...
         </p>
-        <button @click="entryProgram" ref="entryBtn" class="entryBtn">
-          Play
-        </button>
+        <div id="entryBtnContainer" style="width:100%;height:60px;">
+          <button @click="entryProgram" ref="entryBtn" class="entryBtn">
+            <span style="width:100%;text-align:center;">Play</span>
+          </button>
+        </div>
         <p v-if="isNotChrome">
           We highly recommend using Chrome for better user experience.
         </p>
