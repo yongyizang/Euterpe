@@ -375,22 +375,22 @@ async function processClockEvent(content) {
 
 
     
-    // let features = self.audio_features_queue.toArrayAndClear()
-    // let chromas = features.map(f => f.chroma);
-    // let rms = features.map(f => f.rms);
-    // self._param_writer.enqueue_change(5, chromas.length);
+    let features = self.audio_features_queue.toArrayAndClear()
+    let chromas = features.map(f => f.chroma);
+    let rms = features.map(f => f.rms);
+    self._param_writer.enqueue_change(5, chromas.length);
 
-    // let tickAverageChroma = null
-    // if (chromas.length == 0){
-    //     // float array of zeros
-    //     tickAverageChroma = new Float32Array(12);
-    // }
-    // else {
-    //     tickAverageChroma = average2d(chromas);
-    //     // The chroma's we get from Meyda seem to be shifted by 1 left. 
-    //     // That's probably a bug in Meyda. We'll shift it back here.
-    //     shiftRight(tickAverageChroma)
-    // }
+    let tickAverageChroma = null
+    if (chromas.length == 0){
+        // float array of zeros
+        tickAverageChroma = new Float32Array(12);
+    }
+    else {
+        tickAverageChroma = average2d(chromas);
+        // The chroma's we get from Meyda seem to be shifted by 1 left. 
+        // That's probably a bug in Meyda. We'll shift it back here.
+        shiftRight(tickAverageChroma)
+    }
 
     let currentPeriod = timeDiff;
     let currentBPM = 60 / (currentPeriod / 1000) / self.config.clockBasedSettings.ticksPerBeat;
@@ -495,8 +495,8 @@ async function processClockEvent(content) {
     postMessage({
         hookType: self.workerHookType.CLOCK_EVENT,
         message:{
-            // [self.messageType.CHROMA_VECTOR]: 
-            //         tickAverageChroma,
+            [self.messageType.CHROMA_VECTOR]: 
+                    tickAverageChroma,
             [self.messageType.NOTE_LIST]: 
                     noteList,
             [self.messageType.CLOCK_TIME]:

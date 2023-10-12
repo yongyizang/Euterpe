@@ -26,7 +26,7 @@ export const messageType = {
     STATUS: 0,
     NOTE_LIST: 4,
     AUDIO_BUFFER: 7,
-    // CHROMA_VECTOR: 11,
+    CHROMA_VECTOR: 10,
     VECTOR: 11,
     CHORD_LABEL: 12,
     LABEL: 14,
