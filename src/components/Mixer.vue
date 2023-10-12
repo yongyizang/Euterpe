@@ -2,7 +2,6 @@
     <div ref="mixer" id="mixerId" :width="width" :height="height" 
             style="position: absolute; top: 300px; left: 20px; z-index: 100"
             @mousedown="startDrag"
-            @mouseup="localStopDrag"
             >
     </div>
   </template>
@@ -84,14 +83,6 @@
                 this.$refs.mixer.style.top = event.clientY - this.offsetY + 'px';
             }
             
-        },
-        localStopDrag(event){
-            this.isDragging = false;
-            window.removeEventListener('mouseup', this.stopDrag);
-            window.removeEventListener('mousemove', this.handleDrag);
-            event.stopPropagation();
-            event.preventDefault();
-            event.cancelBubble = true;
         },
         stopDrag(event) {
             this.isDragging = false;
