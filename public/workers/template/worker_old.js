@@ -179,7 +179,7 @@ async function loadConfig(content) {
     //     }).then(data => {
     //         self.extraData = data;
     //     });
-    self.uiParameterInterval = setInterval(uiParameterObserver, 100);
+    self.uiParameterInterval = setInterval(uiParameterObserver, 10);
     console.log("finished loading config")
     
 }
@@ -321,7 +321,7 @@ async function initAudio(content){
     
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
-    // self.interval = setInterval(_readFromQueue, 100);
+    //   interval = setInterval(_readFromQueue, 100);
     self.interval = setInterval(_readFromQueue, 10);
     console.log("finished loading audio")
 }
@@ -373,36 +373,85 @@ async function processClockEvent(content) {
     let predictTime = performance.now(); 
     const currentTick = content.tick;   
 
+    // Here we have access to the quantized user 
+    // events for the current tick
+    const humanQUantizedInput = content.humanQuantizedInput;
 
+    // Here is an example of how you can access the latest 
+    // audio features since the last ClockEvent (tick)
+    // In the same way, you could access the raw audio frames
+    // stored in self.audio_frames_queue
+    let features = self.audio_features_queue.toArrayAndClear()
+    // get all the chroma features since the last clock event (tick)
+    let chromas = features.map(f => f.chroma);
+    let rms = features.map(f => f.rms);
     
-    // let features = self.audio_features_queue.toArrayAndClear()
-    // let chromas = features.map(f => f.chroma);
-    // let rms = features.map(f => f.rms);
-    // self._param_writer.enqueue_change(5, chromas.length);
-
-    // let tickAverageChroma = null
-    // if (chromas.length == 0){
-    //     // float array of zeros
-    //     tickAverageChroma = new Float32Array(12);
-    // }
-    // else {
-    //     tickAverageChroma = average2d(chromas);
-    //     // The chroma's we get from Meyda seem to be shifted by 1 left. 
-    //     // That's probably a bug in Meyda. We'll shift it back here.
-    //     shiftRight(tickAverageChroma)
-    // }
-
+    // Average all the chroma vectors since the last clock event (tick)
+    console.log("chromas: " + chromas.length);
+    self._param_writer.enqueue_change(5, chromas.length);
+    let tickAverageChroma = null
+    if (chromas.length == 0){
+        // float array of zeros
+        tickAverageChroma = new Float32Array(12);
+    }
+    else {
+        tickAverageChroma = average2d(chromas);
+        // The chroma's we get from Meyda seem to be shifted by 1 left. 
+        // That's probably a bug in Meyda. We'll shift it back here.
+        shiftRight(tickAverageChroma)
+    }
+    // Estimate the true BPM of the system
+    // let targetPeriod = (60 / self.config.clockBasedSettings.tempo / self.config.clockBasedSettings.ticksPerBeat) * 1000
     let currentPeriod = timeDiff;
     let currentBPM = 60 / (currentPeriod / 1000) / self.config.clockBasedSettings.ticksPerBeat;
-    let error = currentBPM - self.config.clockBasedSettings.tempo;
-
+    let error = Math.abs(currentBPM - self.config.clockBasedSettings.tempo);
+    // let errorPercent = error / self.config.clockBasedSettings.tempo;
     self._param_writer.enqueue_change(3, currentBPM);
     self._param_writer.enqueue_change(4, error);
+    // A dummy blocking operation to simulate the worker's inference step
+    // This is where you would call your model's predict() function
+    // simulateBlockingOperation(10);
 
-    noteList = [];
+    
+    // In case your model predicts note events
+    // This is the list of notes to be sent to the UI
+    let noteList = [];
+
+    // An example of the Note object the UI expects
+    const note = new NoteEvent();
+    note.player = self.playerType.WORKER;
+    note.instrument = self.instrumentType.SYNTH;
+    note.name = 'C4'; // That's not necessary for playback
+    note.type = self.noteType.NOTE_ON;
+    note.midi = 60; // That's required for playback
+    note.velocity = 127; // That's required for playback
+    note.createdAt = {
+        tick: currentTick,
+        seconds: performance.now()
+    }
+    // play the note 1 tick and 0 seconds after it was generated
+    note.playAfter = {
+        
+        tick: 1,
+        seconds: 0
+    }
+    // The duration of the note if known
+    // note.duration = {
+    //     tick: 4,
+    //     seconds: 0.5
+    // }
+
+    // Push the note to the list of notes to be sent to the UI
+    // noteList.push(note);
+
+
+    // Let's also generate some Drums
+    // if currentTick is divisible by 4, generate a kick drum
     let dividedBy2 = currentTick % 2 == 0;
     let dividedBy4 = currentTick % 4 == 0;
     let dividedBy8 = currentTick % 8 == 0;
+
+    // Generate a hi-hat every 8th note
     if (dividedBy2){
         const drumNote = new NoteEvent();
         drumNote.player = self.playerType.WORKER;
@@ -427,6 +476,7 @@ async function processClockEvent(content) {
         // Push the drumNote to the list of notes to be sent to the UI
         noteList.push(drumNote);
     }
+    // Generate a snare every second quarter note (on the 2nd and 4th beat)
     if (dividedBy4 & !dividedBy8){
         const drumNote = new NoteEvent();
         drumNote.player = self.playerType.WORKER;
@@ -495,8 +545,8 @@ async function processClockEvent(content) {
     postMessage({
         hookType: self.workerHookType.CLOCK_EVENT,
         message:{
-            // [self.messageType.CHROMA_VECTOR]: 
-            //         tickAverageChroma,
+            [self.messageType.CHROMA_VECTOR]: 
+                    tickAverageChroma,
             [self.messageType.NOTE_LIST]: 
                     noteList,
             [self.messageType.CLOCK_TIME]:

@@ -1044,6 +1044,7 @@ export default {
     // TODO : refactor this one. choose which option
     // to use and remove the other one
     processWorkerNoteEvent(noteEvent) {
+      console.log("DEN THA EPREPE NA EIMAI EDW")
       let vm = this;
       // The noteEvents that arrive here, have already waited for playAfter.tick ticks (if any)
       // so we can only care about playAfter.seconds here. 
@@ -1294,13 +1295,13 @@ export default {
 
         // Clock behavior function.
         async function tickBehavior() {
+          console.log("ROLOGAKI ROLOGAKI")
           if (vm.$store.getters.getClockStatus) {
             vm.$store.commit("incrementTick");
 
 
             vm.metronomeTrigger();
             // in grid-based mode, the worker's sampler is triggered in sync with the clock
-
             vm.triggerWorkerSamplerSync();
 
 
@@ -1335,7 +1336,7 @@ export default {
         // sendOutTicks();
 
         // 2nd OPTION - using setInterval -- constant clock speed
-        setInterval(tickBehavior, vm.$store.getters.getClockPeriod);
+        // setInterval(tickBehavior, vm.$store.getters.getClockPeriod);
 
         // 3rd OPTION - using requestAnimationFrame -- variable clock speed
       //   let lastTime = 0;
@@ -1349,6 +1350,34 @@ export default {
       //     requestAnimationFrame(sendOutTicks);
       //   }
       //   sendOutTicks();
+          /*
+          4th OPTION - webWorker and setTimeout -- variable clock speed
+          */
+          const blob = new Blob([
+            /* javascript */`
+            // the initial timeout time
+            let timeoutTime =  ${vm.$store.getters.getClockPeriod};
+            // onmessage callback
+            self.onmessage = function(msg){
+              timeoutTime = parseInt(msg.data);
+            };
+            // the tick function which posts a message
+            // and schedules a new tick
+            function tick(){
+              setTimeout(tick, timeoutTime);
+              self.postMessage('tick');
+              console.log("tick from worker")
+            }
+            // call tick initially
+            tick();
+            `
+          ], { type: "text/javascript" });
+          const blobUrl = URL.createObjectURL(blob);
+          const worker = new Worker(blobUrl);
+
+          worker.onmessage = tickBehavior;//.bind(this);
+
+          this._clock_worker = worker;
 
       }
     },

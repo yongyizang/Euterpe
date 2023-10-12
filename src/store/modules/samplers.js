@@ -116,7 +116,7 @@ const actions = {
             if (instrument_to_play_on == null){
                 throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
             } else {
-                instrument_to_play_on.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 0.4);
+                instrument_to_play_on.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 0.0);
             }
 
         } else if (noteEvent.player == playerType.WORKER){
