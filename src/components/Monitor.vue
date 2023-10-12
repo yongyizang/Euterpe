@@ -1,9 +1,8 @@
 <template>
     <div ref="monitor" id="monitorId" :width="width" :height="height" 
-            style="position: absolute; bottom: 430px; right: 20px"
+            style="position: absolute; top: 300px; right: 20px"
             @mousedown="startDrag"
-            @mousemove="handleDrag"
-            @mouseup="stopDrag">
+            >
     </div>
   </template>
   
@@ -44,45 +43,46 @@
     },
     beforeCreate(){
         console.log("beforeCreate monitor start")
-        // this.$root.$refs.monitor = this;
         console.log("beforeCreate monitor end")
     },
     created() {
         console.log("created monitor start")
         this.$root.$refs.monitor = this;
-        // this.startAnalyser();
         console.log(" created monitor end")
     },
     mounted() {
         console.log("mounted monitor start")
-
-        
-        
-        
     },
   
     methods: {
       startDrag(event) {
+            if (
+                event.target.classList.contains('sldv') ||
+                event.target.id.includes('sldv')
+            ) {
+                return; // Don't start dragging
+            }
             // Calculate the initial click position relative to the element's top-left corner
             this.isDragging = true;
             this.offsetX = this.$refs.monitor.getBoundingClientRect().right - event.clientX;
-            this.offsetY = this.$refs.monitor.getBoundingClientRect().bottom - event.clientY;
-            console.log("startDrag");
+            this.offsetY = event.clientY - this.$refs.monitor.getBoundingClientRect().top;
+            window.addEventListener('mousemove', this.handleDrag);
+            window.addEventListener('mouseup', this.stopDrag);
         },
         handleDrag(event) {
             if (this.isDragging) {
-                console.log("handleDrag");
-            // Update the element's position based on the mouse movement
-            // this.$refs.monitor.style.right = event.clientX + this.offsetX + 'px';
-            // this.$refs.monitor.style.bottom = event.clientY + this.offsetY + 'px';
-            this.$refs.monitor.style.right = window.innerWidth - event.clientX - this.offsetX + 'px';
-            this.$refs.monitor.style.bottom = window.innerHeight - event.clientY - this.offsetY + 'px';
+                // Update the element's position based on the mouse movement
+                // this.$refs.monitor.style.right = event.clientX + this.offsetX + 'px';
+                // this.$refs.monitor.style.bottom = event.clientY + this.offsetY + 'px';
+                this.$refs.monitor.style.right = window.innerWidth - event.clientX - this.offsetX + 'px';
+                this.$refs.monitor.style.top = event.clientY - this.offsetY + 'px';
             }
             
         },
         stopDrag(event) {
             this.isDragging = false;
-            console.log("stopDrag");
+            window.removeEventListener('mouseup', this.stopDrag);
+            window.removeEventListener('mousemove', this.handleDrag);
         },
         loadMonitorConfig(monitorConfig) {
             let vm = this;
@@ -98,8 +98,11 @@
             //     title: vm.title,
             //     expanded: true,
             // });
-            // vm.pane.on('change', (ev) => {
-            //     console.log('changed: ' + JSON.stringify(ev.value));
+            // vm.pane.on('fold', (ev) => {
+            //     console.log('changed: ', ev.value);
+            //     ev.stopPropagation();
+            //     ev.preventDefault();
+            //     ev.cancelBubble = true;
             // });
 
             // Iterate over the structure in the config file

@@ -1,6 +1,9 @@
 <template>
 
-  <div ref="testBar" id="testBar" style="position: absolute; top: 5px; left: 20px; height:300px; width:300px">
+  <div ref="testBar" id="testBar" 
+    style="position: absolute; top: 5px; left: 20px; 
+    height:300px; width:300px"
+  >
     <!-- <div v-touch:swipe.up="triggerCollapse" id="canvasWrapper"> -->
       <canvas 
           ref="testBarCanvas"

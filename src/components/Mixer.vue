@@ -2,8 +2,8 @@
     <div ref="mixer" id="mixerId" :width="width" :height="height" 
             style="position: absolute; top: 300px; left: 20px; z-index: 100"
             @mousedown="startDrag"
-            @mousemove="handleDrag"
-            @mouseup="stopDrag">
+            @mouseup="localStopDrag"
+            >
     </div>
   </template>
   
@@ -60,23 +60,46 @@
     methods: {
         startDrag(event) {
             // Calculate the initial click position relative to the element's top-left corner
-            this.isDragging = true;
-            this.offsetX = event.clientX - this.$refs.mixer.getBoundingClientRect().left;
-            this.offsetY = event.clientY - this.$refs.mixer.getBoundingClientRect().top;
-            console.log("startDrag");
+            // if (
+            //     event.target.classList.contains('sldv') ||
+            //     event.target.className.includes('sldv')
+            // ) {
+            //     return; // Don't start dragging
+            // }
+            if (event.target.className.includes('fldv') ||
+                event.target.className.includes('rotv')
+            ){
+                this.isDragging = true;
+                this.offsetX = event.clientX - this.$refs.mixer.getBoundingClientRect().left;
+                this.offsetY = event.clientY - this.$refs.mixer.getBoundingClientRect().top;
+                window.addEventListener('mousemove', this.handleDrag);
+                window.addEventListener('mouseup', this.stopDrag);
+                
+            }
         },
         handleDrag(event) {
             if (this.isDragging) {
-                console.log("handleDrag");
-            // Update the element's position based on the mouse movement
-            this.$refs.mixer.style.left = event.clientX - this.offsetX + 'px';
-            this.$refs.mixer.style.top = event.clientY - this.offsetY + 'px';
+                // Update the element's position based on the mouse movement
+                this.$refs.mixer.style.left = event.clientX - this.offsetX + 'px';
+                this.$refs.mixer.style.top = event.clientY - this.offsetY + 'px';
             }
             
         },
+        localStopDrag(event){
+            this.isDragging = false;
+            window.removeEventListener('mouseup', this.stopDrag);
+            window.removeEventListener('mousemove', this.handleDrag);
+            event.stopPropagation();
+            event.preventDefault();
+            event.cancelBubble = true;
+        },
         stopDrag(event) {
             this.isDragging = false;
-            console.log("stopDrag");
+            window.removeEventListener('mouseup', this.stopDrag);
+            window.removeEventListener('mousemove', this.handleDrag);
+            event.stopPropagation();
+            event.preventDefault();
+            event.cancelBubble = true;
         },
         loadMixerConfig(playersConfig) {
             let vm = this;
@@ -85,6 +108,12 @@
               container: vm.$refs.mixer,
               title: 'Mixer',
             })
+            // vm.pane.on('fold', (ev) => {
+            //     console.log('changed: ', ev.value);
+            //     // ev.stopPropagation();
+            //     // ev.preventDefault();
+            //     // ev.cancelBubble = true;
+            // });
             // vm.pane.on('change', (ev) => {
             //     console.log(ev);
             //     console.log('changed: ' + JSON.stringify(ev.value));
