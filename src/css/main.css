@@ -281,3 +281,14 @@
 #mainContent {
     display: flex;
 }
+
+#modalContent::-webkit-scrollbar {
+    display: none;
+}
+
+#modalContent {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
