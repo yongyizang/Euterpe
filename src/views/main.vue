@@ -12,7 +12,7 @@
         </p>
         <div id="entryBtnContainer" style="width:100%;height:60px;">
           <button @click="entryProgram" ref="entryBtn" class="entryBtn">
-            <span style="width:100%;text-align:center;">Play</span>
+              <span style="width:100%;text-align:center;">Play</span>
           </button>
         </div>
         <p v-if="isNotChrome">
@@ -380,6 +380,9 @@ export default {
     var vm = this;
     vm.$root.$refs.monitor.loadMonitorConfig(vm.config.gui.monitor);
     vm.$root.$refs.mixer.loadMixerConfig(vm.config.players);
+
+    const canvasChart = document.getElementById("canvas");
+
 
     /*
      * Loading Animation: set initial status of both div

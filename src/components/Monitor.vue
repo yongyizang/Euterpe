@@ -1,6 +1,9 @@
 <template>
     <div ref="monitor" id="monitorId" :width="width" :height="height" 
-            style="position: absolute; bottom: 430px; right: 20px">
+            style="position: absolute; bottom: 430px; right: 20px"
+            @mousedown="startDrag"
+            @mousemove="handleDrag"
+            @mouseup="stopDrag">
     </div>
   </template>
   
@@ -59,6 +62,28 @@
     },
   
     methods: {
+      startDrag(event) {
+            // Calculate the initial click position relative to the element's top-left corner
+            this.isDragging = true;
+            this.offsetX = this.$refs.monitor.getBoundingClientRect().right - event.clientX;
+            this.offsetY = this.$refs.monitor.getBoundingClientRect().bottom - event.clientY;
+            console.log("startDrag");
+        },
+        handleDrag(event) {
+            if (this.isDragging) {
+                console.log("handleDrag");
+            // Update the element's position based on the mouse movement
+            // this.$refs.monitor.style.right = event.clientX + this.offsetX + 'px';
+            // this.$refs.monitor.style.bottom = event.clientY + this.offsetY + 'px';
+            this.$refs.monitor.style.right = window.innerWidth - event.clientX - this.offsetX + 'px';
+            this.$refs.monitor.style.bottom = window.innerHeight - event.clientY - this.offsetY + 'px';
+            }
+            
+        },
+        stopDrag(event) {
+            this.isDragging = false;
+            console.log("stopDrag");
+        },
         loadMonitorConfig(monitorConfig) {
             let vm = this;
             vm.structure = monitorConfig.structure;

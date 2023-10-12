@@ -1,6 +1,9 @@
 <template>
     <div ref="mixer" id="mixerId" :width="width" :height="height" 
-            style="position: absolute; top: 150px; left: 20px; z-index: 100">
+            style="position: absolute; top: 300px; left: 20px; z-index: 100"
+            @mousedown="startDrag"
+            @mousemove="handleDrag"
+            @mouseup="stopDrag">
     </div>
   </template>
   
@@ -55,6 +58,26 @@
     },
   
     methods: {
+        startDrag(event) {
+            // Calculate the initial click position relative to the element's top-left corner
+            this.isDragging = true;
+            this.offsetX = event.clientX - this.$refs.mixer.getBoundingClientRect().left;
+            this.offsetY = event.clientY - this.$refs.mixer.getBoundingClientRect().top;
+            console.log("startDrag");
+        },
+        handleDrag(event) {
+            if (this.isDragging) {
+                console.log("handleDrag");
+            // Update the element's position based on the mouse movement
+            this.$refs.mixer.style.left = event.clientX - this.offsetX + 'px';
+            this.$refs.mixer.style.top = event.clientY - this.offsetY + 'px';
+            }
+            
+        },
+        stopDrag(event) {
+            this.isDragging = false;
+            console.log("stopDrag");
+        },
         loadMixerConfig(playersConfig) {
             let vm = this;
             vm.playersConfig = playersConfig;
