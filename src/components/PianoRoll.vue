@@ -151,7 +151,7 @@ export default {
             this.scene.add(plane);
 
             // Register this noteblock to the currentNotes data.
-            // const selector = (noteEvent.player == playerType.WORKER) ? playerType.WORKER + noteInput : playerType.HUMAN + noteInput;
+            // const selector = (noteEvent.player == playerType.AGENT) ? playerType.AGENT + noteInput : playerType.HUMAN + noteInput;
             // if (!this.currentNotes.hasOwnProperty(selector)) {
             //     this.currentNotes[selector] = [];
             // }

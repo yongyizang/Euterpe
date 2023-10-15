@@ -49,23 +49,41 @@
                 </p>
                 </div>
             </modal>
-            <PianoRoll id="pianoRoll" style="position:absolute; z-index:0; top:0; left:0;" /> 
-            <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
+
+            <div v-if="config.gui.pianoRoll.status">
+                <PianoRoll id="pianoRoll" style="position:absolute; z-index:0; top:0; left:0;" />
+            </div>
+
+            <div v-if="config.gui.keyboard.status">
+                <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
                 :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
+            </div>
+            
             <Mixer @newEventSignal="handleMixerUpdate"/>
+
+            <!-- <div v-if="config.gui.monitor.status"> -->
             <Monitor :dataFromParent="dataForMonitoring"/>
-            <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
-            <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
+            <!-- </div> -->
+
+            <div v-if="config.gui.score.status">
+                <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
+            </div>
+
+            <div v-if="config.gui.audioMeter.status">
+                <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
                 style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
+            </div>
+            
             <!-- <VectorBar ref="vectorBar" :width=300 :height="100" :num_bars="12" orientation="top"
                 style="position:absolute; z-index:0; top:0px; right:0px; background-color:transparent" /> -->
-            <!-- <ChromaChart ref="chromaChart" :width="300" :height="110"
-                :styles="{ position: 'absolute', zIndex: 0, top: '10px', 
-                        right: '20px', backgroundColor: 'transparent',
-                        height: '110px', width:'300px'}" /> -->
-            <ChromaChart  />
-            <TextBox :height=100 :width=180 :title="textBoxTitle" :text="textBoxText" 
+            <div v-if="config.gui.chromaChart.status">
+                <ChromaChart  />
+            </div>
+            <div v-if="textBoxStatus">
+                <TextBox :height=100 :width=180 :title="textBoxTitle" :text="textBoxText" 
                     style="position: absolute; bottom: 300px; right: 20px; z-index:8" />
+            </div>
+            
 
             <!-- On-screen buttons -->
             <div style="position: absolute; bottom: 230px; right: 11px">
@@ -176,19 +194,15 @@ Import custom components
 */
 import Keyboard from "@/components/Keyboard.vue";
 import PianoRoll from "@/components/PianoRollLegacy.vue";
-// import PianoRoll from "@/components/PianoRoll.vue";
-
 import Score from "@/components/Score.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
 import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "@/components/AudioMeter.vue";
 // import VectorBar from "../components/VectorBar.vue";
 import ChromaChart from "@/components/ChromaChart.vue";
-
 import Monitor from "@/components/Monitor.vue";
 import Mixer from "@/components/Mixer.vue";
 import TextBox from "@/components/TextBox.vue";
-
 
 import "../css/main.css";
 import * as Tone from "tone";
@@ -202,14 +216,16 @@ import * as rb from "ringbuf.js";
 import {
 	playerType, instrumentType, eventSourceType,
   messageType, statusType, noteType,
-  uiParameterType, workerParameterType,
+  uiParameterType,
   workerHookType
 } from '@/utils/types.js'
+
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
 import { NoteEvent } from '@/utils/NoteEvent.js'
 
 
 export default {
+
     name: "mainScreen",
 
     components: {
@@ -227,12 +243,13 @@ export default {
         // VectorBar,
 
     },
+
     data() {
         return {
         // Choose the worker. 
         // This string should be one of
         // dir names inside public/workers/
-        workerName: "template",
+        workerName: "template", 
         // Provide all the config files that should be loaded
         // These should be in public/workers/{workerName}/
         configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
@@ -246,7 +263,6 @@ export default {
         statusType,
         noteType,
         uiParameterType,
-        workerParameterType,
         workerHookType,
 
                 
@@ -266,9 +282,11 @@ export default {
         // Score status
         scoreShown: false,
         scrollStatus: false,
+        scoreStatus: false,
         // Textbox status
         textBoxTitle: null,
         textBoxText: null,
+        textBoxStatus: false,
 
         localBPM: null,
         localSyncClockStatus: false, // used to trigger local UI change
@@ -299,12 +317,12 @@ export default {
         activeDevices: [],
         selectedMIDIDevice: "",
 
-        humanVolume: 1,
-        humanSamplerMuted: false,
-        humanUprightBassVolume: 1,
-        humanUprightBassMuted: false,
-        workerVolume: 1,
-        metronomeVolume: 1,
+        // humanVolume: 1,
+        // humanSamplerMuted: false,
+        // humanUprightBassVolume: 1,
+        // humanUprightBassMuted: false,
+        // workerVolume: 1,
+        // metronomeVolume: 1,
 
         // used to calculate the average worker inference time (clockBased mode) 
         // and estimate maxBPM
@@ -325,6 +343,7 @@ export default {
 
     created() {
         let vm = this;
+
         console.log("created main start")
         this.loadConfigSync();
         console.log("load config sync done")
@@ -332,29 +351,27 @@ export default {
         this.$store.commit("setConfig", this.config);
         this.$store.commit("initQuantBuffers", this.config);
         this.$store.commit("setTicksPerMeasure", this.config);
-        // this.$store.commit("setInstrumentsConfig", this.config);
-
         this.$store.commit("createInstruments", this.config);
+        
+        // Activate/Deactivate GUI widgets based on config
+        this.scoreStatus = this.config.gui.score.status
+        this.textBoxStatus = this.config.gui.textBox.status
 
         // Update the score properties
-        this.scoreShown = this.config.gui.score;
-        this.scrollEnabled = this.config.gui.score;
+        this.scoreShown = this.config.gui.score; //TODO: unclear use in Score.vue
+        // this.scrollEnabled = this.config.gui.score;
         // Set the textBox title
         this.textBoxTitle = this.config.gui.textBox.title;
 
         // Widgets configurations are stored and can be modified
         // in utils/widgets_config.js
-        this.switches = this.config.gui.settings.switches;
-        this.sliders = this.config.gui.settings.sliders;
-        this.buttons = this.config.gui.settings.buttons;
+        this.switches = this.config.gui.settingsModal.switches;
+        this.sliders = this.config.gui.settingsModal.sliders;
+        this.buttons = this.config.gui.settingsModal.buttons;
         this.players = this.config.players;
 
         this.monitorObserverInterval = 10;
-        this.dataForMonitoring = {
-            'rms': 0,
-            'loudness': 3,
-            'inferenceTime': 10,
-        },
+        this.dataForMonitoring = {},
         this.config.gui.monitor.structure.forEach((tab) => {
             tab.parameters.forEach((parameter) => {
                 vm.dataForMonitoring[parameter.id] = 0;
@@ -426,7 +443,6 @@ export default {
                 statusType: vm.statusType,
                 noteType: vm.noteType,
                 uiParameterType: vm.uiParameterType,
-                workerParameterType: vm.workerParameterType,
                 workerHookType: vm.workerHookType,
 
                 sab: vm.sab,
@@ -460,8 +476,12 @@ export default {
         vm.analyserNode = vm.audioContext.createAnalyser();
 
         vm.mediaStreamSource.connect(vm.analyserNode);
-        vm.$root.$refs.audioMeter.init(vm.analyserNode);
-        vm.$root.$refs.audioMeter.updateAnalysis();
+
+        if (vm.config.gui.audioMeter.status){
+            vm.$root.$refs.audioMeter.init(vm.analyserNode);
+            vm.$root.$refs.audioMeter.updateAnalysis();
+        }
+        
         // vm.$root.$refs.vectorBar.init();
         // vm.$root.$refs.vectorBar.updateAnalysis();
 
@@ -505,62 +525,59 @@ export default {
         * AudioKeys maps the computer keyboard to midi values
         */
         var keyboard = new AudioKeys({
-        // set polyphony it to a very high number. 
-        // we will handle the polyphony ourselves.
-        polyphony: 100,
-        rows: 2,
-        priority: "last",
-        rootNote: 60,
+            // set polyphony it to a very high number. 
+            // we will handle the polyphony ourselves.
+            polyphony: 100,
+            rows: 2,
+            priority: "last",
+            rootNote: 60,
         });
 
         // callback for when a laptop keyboard key is pressed
         keyboard.down(function (note) {
-        let noteName = Midi.midiToNoteName(note.note, { sharps: true });
-
-        const newNoteEvent = new NoteEvent();
-        newNoteEvent.player = vm.playerType.HUMAN;
-        newNoteEvent.instrument = vm.instrumentType.PIANO;
-        newNoteEvent.source = vm.eventSourceType.KEYBOARD;
-        newNoteEvent.name = noteName;
-        newNoteEvent.type = vm.noteType.NOTE_ON;
-        newNoteEvent.channel = 140; // this is channel midi channel 0
-        newNoteEvent.midi = note.note;
-        newNoteEvent.velocity = 127;
-        newNoteEvent.createdAt = {
-            seconds: performance.now(),
-            tick: vm.$store.getters.getGlobalTickDelayed,
-        };
-        newNoteEvent.playAfter = {
-            seconds: 0,
-            tick: 0
-        };
-        newNoteEvent.duration = null;
-
-                vm.processUserNoteEvent(newNoteEvent);
-
+            let noteName = Midi.midiToNoteName(note.note, { sharps: true });
+            const newNoteEvent = new NoteEvent();
+            newNoteEvent.player = vm.playerType.HUMAN;
+            newNoteEvent.instrument = vm.instrumentType.PIANO;
+            newNoteEvent.source = vm.eventSourceType.KEYBOARD;
+            newNoteEvent.name = noteName;
+            newNoteEvent.type = vm.noteType.NOTE_ON;
+            newNoteEvent.channel = 140; // this is channel midi channel 0
+            newNoteEvent.midi = note.note;
+            newNoteEvent.velocity = 127;
+            newNoteEvent.createdAt = {
+                seconds: performance.now(),
+                tick: vm.$store.getters.getGlobalTickDelayed,
+            };
+            newNoteEvent.playAfter = {
+                seconds: 0,
+                tick: 0
+            };
+            newNoteEvent.duration = null;
+            vm.processUserNoteEvent(newNoteEvent);
         });
 
         // callback for when a laptop keyboard key is released
         keyboard.up(function (note) {
-        let noteName = Midi.midiToNoteName(note.note, { sharps: true });
-        const newNoteEvent = new NoteEvent();
-        newNoteEvent.player = vm.playerType.HUMAN;
-        newNoteEvent.instrument = vm.instrumentType.PIANO;
-        newNoteEvent.source = vm.eventSourceType.KEYBOARD;
-        newNoteEvent.name = noteName;
-        newNoteEvent.type = vm.noteType.NOTE_OFF;
-        newNoteEvent.channel = 140; // this is channel midi channel 0
-        newNoteEvent.midi = note.note;
-        newNoteEvent.velocity = 127;
-        newNoteEvent.createdAt = {
-            seconds: performance.now(),
-            tick: vm.$store.getters.getGlobalTickDelayed,
-        };
-        newNoteEvent.playAfter = {
-            seconds: 0,
-            tick: 0
-        };
-        newNoteEvent.duration = null;
+            let noteName = Midi.midiToNoteName(note.note, { sharps: true });
+            const newNoteEvent = new NoteEvent();
+            newNoteEvent.player = vm.playerType.HUMAN;
+            newNoteEvent.instrument = vm.instrumentType.PIANO;
+            newNoteEvent.source = vm.eventSourceType.KEYBOARD;
+            newNoteEvent.name = noteName;
+            newNoteEvent.type = vm.noteType.NOTE_OFF;
+            newNoteEvent.channel = 140; // this is channel midi channel 0
+            newNoteEvent.midi = note.note;
+            newNoteEvent.velocity = 127;
+            newNoteEvent.createdAt = {
+                seconds: performance.now(),
+                tick: vm.$store.getters.getGlobalTickDelayed,
+            };
+            newNoteEvent.playAfter = {
+                seconds: 0,
+                tick: 0
+            };
+            newNoteEvent.duration = null;
 
             vm.processUserNoteEvent(newNoteEvent)
         });
@@ -743,7 +760,9 @@ export default {
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
             if (noteEvent.type == vm.noteType.NOTE_ON) {
                     // console.log("note on");
-                vm.$root.$refs.pianoRoll.keyDown(noteEvent);
+                if (this.config.gui.pianoRoll.status) {
+                    vm.$root.$refs.pianoRoll.keyDown(noteEvent);
+                }
                 vm.$store.dispatch("samplerOn", noteEvent);
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey){
@@ -753,7 +772,9 @@ export default {
                     }
                 }
             } else if (noteEvent.type == vm.noteType.NOTE_OFF) {
-                vm.$root.$refs.pianoRoll.keyUp(noteEvent);
+                if (this.config.gui.pianoRoll.status) {
+                    vm.$root.$refs.pianoRoll.keyUp(noteEvent);
+                }
                 vm.$store.dispatch("samplerOff", noteEvent);
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey){
@@ -891,8 +912,11 @@ export default {
                         break;
                     }
                     case vm.messageType.CHROMA_VECTOR:
-                        this.$root.$refs.chromaChart.updateChromaData(messageValue);
-                        // this.$root.$refs.vectorBar.updateVectorData(messageValue);
+                        if (this.config.gui.chromaChart.status)
+                            this.$root.$refs.chromaChart.updateChromaData(messageValue);
+                            // this.$root.$refs.vectorBar.updateVectorData(messageValue);
+                        else
+                            console.warn("The Agent generates chroma vectors but the Chroma Chart is not enabled in the config file");
                         break;
                     case vm.messageType.LABEL:
                         this.textBoxText = messageValue;
@@ -925,7 +949,8 @@ export default {
             // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
             vm.timeout_IDS_kill.push(setTimeout(() => {
-                this.$root.$refs.pianoRoll.keyDown(noteEvent);
+                if (this.config.gui.pianoRoll.status)
+                    this.$root.$refs.pianoRoll.keyDown(noteEvent);
                 if (keyOnScreenRange){
                     if (whiteKey){
                         this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
@@ -1045,8 +1070,8 @@ export default {
                     this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
                     }
                 }
-                this.$root.$refs.pianoRoll.keyUp(noteEvent);
-                console.log("released pianoRoll key ", noteName)
+                if (this.config.gui.pianoRoll.status)
+                    this.$root.$refs.pianoRoll.keyUp(noteEvent);
             }, noteEvent.playAfter.seconds * 1000)
             );
         },

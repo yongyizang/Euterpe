@@ -169,7 +169,6 @@ async function loadConfig(content) {
     self.statusType = content.statusType;
     self.messageType = content.messageType;
     self.uiParameterType = content.uiParameterType;
-    self.workerParameterType = content.workerParameterType;
     self.workerHookType = content.workerHookType;
     self.ticksPerMeasure = self.config.clockSettings.ticksPerBeat * 
                             self.config.clockSettings.timeSignature.numerator;
@@ -406,7 +405,7 @@ async function processClockEvent(content) {
     let dividedBy8 = currentTick % 8 == 0;
     if (dividedBy2){
         const drumNote = new NoteEvent();
-        drumNote.player = self.playerType.WORKER;
+        drumNote.player = self.playerType.AGENT;
         drumNote.instrument = self.instrumentType.DRUMS;
         drumNote.type = self.noteType.NOTE_ON;
         drumNote.midi = 14; // That's required for playback
@@ -430,7 +429,7 @@ async function processClockEvent(content) {
     }
     if (dividedBy4 & !dividedBy8){
         const drumNote = new NoteEvent();
-        drumNote.player = self.playerType.WORKER;
+        drumNote.player = self.playerType.AGENT;
         drumNote.instrument = self.instrumentType.DRUMS;
         drumNote.type = self.noteType.NOTE_ON;
         drumNote.midi = 13; // That's required for playback
@@ -455,7 +454,7 @@ async function processClockEvent(content) {
     // Generate a kick every second quarter note (on the 1st and 3rd beat)
     if (dividedBy8){
         const drumNote = new NoteEvent();
-        drumNote.player = self.playerType.WORKER;
+        drumNote.player = self.playerType.AGENT;
         drumNote.instrument = self.instrumentType.DRUMS;
         drumNote.type = self.noteType.NOTE_ON;
         drumNote.midi = 12; // That's required for playback
@@ -543,7 +542,7 @@ async function processNoteEvent(noteEventPlain){
     // if (noteEvent.type == self.noteType.NOTE_ON){
         for (let i = 0; i < arpeggio.length; i++) {
             let arp_note = new NoteEvent();
-            arp_note.player = self.playerType.WORKER;
+            arp_note.player = self.playerType.AGENT;
             arp_note.instrument = self.instrumentType.SYNTH;
             arp_note.type = noteEvent.type;
             arp_note.midi = noteEvent.midi + arpeggio[i];
@@ -609,7 +608,7 @@ async function processNoteEventV2(noteEventPlain){
     if (noteEvent.type == self.noteType.NOTE_ON){
         for (let i = 0; i < arpeggio.length; i++) {
             let arp_note = new NoteEvent();
-            arp_note.player = self.playerType.WORKER;
+            arp_note.player = self.playerType.AGENT;
             arp_note.instrument = self.instrumentType.PIANO;
             arp_note.type = noteEvent.type;
             arp_note.midi = noteEvent.midi + arpeggio[i];

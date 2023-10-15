@@ -122,7 +122,7 @@ export default {
     //     }
     //   }
     // },
-    scrollEnabled: {
+    scrollEnabled: { // TODO should scrollEnabled be in data() ?
       immediate: true,
       handler(newValue, oldValue) {
         if (newValue == true) {

@@ -3,7 +3,7 @@ import { Sampler } from "tone"
 // import {
 // 	  playerType, instrumentType, eventSourceType,
 //     messageType, statusType, noteType,
-//     uiParameterType, workerParameterType,
+//     uiParameterType,
 //     workerHookType
 //     } from '@/utils/types.js'
 

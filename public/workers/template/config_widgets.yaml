@@ -1,8 +1,19 @@
 gui:
-  score: false
+  score: 
+    status: false
   textBox:
+    status: false
     title: "Last Note"
+  pianoRoll:
+    status: false
+  keyboard:
+    status: true # not used (always true)
+  chromaChart:
+    status: true
+  audioMeter: 
+    status: false
   monitor:
+    status: true # not used (always true)
     title: "Monitor"
     structure:
       - label: "Audio levels"
@@ -47,7 +58,7 @@ gui:
           #   max: 20
 
       
-  settings:
+  settingsModal:
     switches:
       - id: 1 # unique within switches
         label: "Switch 1"

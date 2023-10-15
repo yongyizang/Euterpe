@@ -15,8 +15,8 @@ players:
         label: "Synth"
         mute: false
         volume: 5
-  worker:
-    label: 'Worker'
+  agent:
+    label: 'Agent'
     mute: false
     volume: 5
     instruments:
@@ -33,10 +33,10 @@ players:
         label: "Drums"
         mute: false
         volume: 5
-      - id: "upright_bass"
-        label: "Bass"
-        mute: false
-        volume: 10
+      # - id: "upright_bass"
+      #   label: "Bass"
+      #   mute: false
+      #   volume: 10
   metronome:
     label: 'Metronome'
     mute: true
@@ -44,5 +44,5 @@ players:
     instruments:
       - id: "click"
         label: "Click"
-        mute: true
+        mute: false
         volume: 5

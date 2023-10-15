@@ -1,6 +1,6 @@
 export const playerType = {
     HUMAN: 0,
-    WORKER: 1,
+    AGENT: 1,
     METRONOME: 2,
 }
 export const instrumentType = {
@@ -9,7 +9,7 @@ export const instrumentType = {
     BASS: 2,
     SYNTH: 3,
 }
-export const instNamesTemp = {
+export const instNamesMap = {
     0: "piano",
     1: "drums",
     2: "upright_bass",
@@ -62,11 +62,6 @@ export const uiParameterType = {
     SWITCH_2: 9,
     SWITCH_3: 10,
     SWITCH_4: 11,  
-}
-export const workerParameterType = {
-    RMS : 0,
-    LOUDNESS : 1,
-    INFERENCE_TIME : 2,
 }
 
 export const workerHookType = {

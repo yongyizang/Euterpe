@@ -41,9 +41,8 @@ import { clamp } from "@/utils/math";
 import {Note} from "@tonaljs/tonal";
 import {
     playerType, instrumentType, eventSourceType,
-    messageType, statusType, noteType,
-    uiParameterType, workerParameterType,
-    workerHookType
+    noteType,
+   
 } from '@/utils/types.js'
 import { NoteEvent } from '@/utils/NoteEvent.js'
 
