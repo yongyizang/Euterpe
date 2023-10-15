@@ -32,20 +32,20 @@ const getters = {
   },
   getTSNom(state){
     // if (state.config.event-based) return null;
-    return state.config.clockBasedSettings.timeSignature.numerator;
+    return state.config.clockSettings.timeSignature.numerator;
   },
   getTSDenom(state){
-    return state.config.clockBasedSettings.timeSignature.denominator;
+    return state.config.clockSettings.timeSignature.denominator;
   },
   getTicksPerBeat(state){
-    return state.config.clockBasedSettings.ticksPerBeat;
+    return state.config.clockSettings.ticksPerBeat;
   },
   getTicksPerMeasure(state){
-    return state.config.clockBasedSettings.timeSignature.numerator * state.config.clockBasedSettings.ticksPerBeat;
+    return state.config.clockSettings.timeSignature.numerator * state.config.clockSettings.ticksPerBeat;
   },
   getSecondsPerTick(state){
-    // console.log("state.bpm: " + state.bpm, "state.config.clockBasedSettings.ticksPerBeat: " + state.config.clockBasedSettings.ticksPerBeat);
-    return 60 / state.currentBPM / state.config.clockBasedSettings.ticksPerBeat;
+    // console.log("state.bpm: " + state.bpm, "state.config.clockSettings.ticksPerBeat: " + state.config.clockSettings.ticksPerBeat);
+    return 60 / state.currentBPM / state.config.clockSettings.ticksPerBeat;
   },
   // example getter. This will get BPM from global-settings module, then calculate the new clock period.
   getClockPeriod (state, getters, rootState, rootGetters) {
@@ -59,7 +59,7 @@ const actions = {};
 const mutations = {
   setConfig (state, config){
     state.config = config;
-    state.currentBPM = config.clockBasedSettings.defaultBPM;
+    state.currentBPM = config.clockSettings.defaultBPM;
   },
   writeSessionID(state, id){
     state.sessionID = id;

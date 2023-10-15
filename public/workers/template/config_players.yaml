@@ -14,7 +14,7 @@ players:
       - id: "synth"
         label: "Synth"
         mute: false
-        volume: 6
+        volume: 5
   worker:
     label: 'Worker'
     mute: false
@@ -23,16 +23,16 @@ players:
       - id: "piano"
         label: "Piano"
         mute: false
-        volume: 7
+        volume: 5
         default: true
       - id: "synth"
         label: "Synth"
         mute: false
-        volume: 8
+        volume: 5
       - id: "drums"
         label: "Drums"
         mute: false
-        volume: 9
+        volume: 5
       - id: "upright_bass"
         label: "Bass"
         mute: false

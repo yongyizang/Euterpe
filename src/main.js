@@ -6,7 +6,6 @@ import Vue2TouchEvents from "vue2-touch-events";
 import ToggleButton from 'vue-js-toggle-button'
 import VModal from 'vue-js-modal'
 import Toasted from 'vue-toasted';
-// import 'vue-slider-component/theme/default.css'
 import { MdButton, MdIcon, MdField} from 'vue-material/dist/components'
 import 'vue-material/dist/vue-material.min.css'
 import 'vue-material/dist/theme/default.css'
@@ -17,7 +16,6 @@ Vue.use(MdButton);
 Vue.use(MdIcon);
 Vue.use(MdField);
 Vue.use(Dropdown);
-// Vue.component('VueSlider', VueSlider);
 Vue.use(VModal);
 Vue.use(Toasted, {
   duration: 1000

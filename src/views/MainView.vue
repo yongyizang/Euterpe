@@ -360,8 +360,8 @@ export default {
                 vm.dataForMonitoring[parameter.id] = 0;
             });
         });
-        console.log("created localBPM set to defaultBPM from config ", this.config.clockBasedSettings.defaultBPM);
-        this.localBPM = this.config.clockBasedSettings.defaultBPM;
+        console.log("created localBPM set to defaultBPM from config ", this.config.clockSettings.defaultBPM);
+        this.localBPM = this.config.clockSettings.defaultBPM;
         console.log(this.dataForMonitoring);
         console.log("created main end")
     },
@@ -768,7 +768,7 @@ export default {
             if (vm.$store.getters.getClockStatus) {
               // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
               // this packet will be sent to the processUserNoteEvent hook.
-              if (vm.config.noteBasedMode.eventBased) {
+              if (vm.config.noteModeSettings.eventBased) {
                 vm.worker.postMessage({
                   hookType: vm.workerHookType.NOTE_EVENT,
                   content: noteEvent,

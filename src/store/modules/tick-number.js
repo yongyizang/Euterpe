@@ -54,7 +54,7 @@ AddTick is the func. for changing the value of the three Tick number.
  */
 const mutations = {
     setTicksPerMeasure (state, config){
-        state.ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
+        state.ticksPerMeasure = config.clockSettings.ticksPerBeat * config.clockSettings.timeSignature.numerator;
     },
     incrementTick (state) {
         state.globalTick += 1;

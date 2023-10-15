@@ -171,8 +171,8 @@ async function loadConfig(content) {
     self.uiParameterType = content.uiParameterType;
     self.workerParameterType = content.workerParameterType;
     self.workerHookType = content.workerHookType;
-    self.ticksPerMeasure = self.config.clockBasedSettings.ticksPerBeat * 
-                            self.config.clockBasedSettings.timeSignature.numerator;
+    self.ticksPerMeasure = self.config.clockSettings.ticksPerBeat * 
+                            self.config.clockSettings.timeSignature.numerator;
     // If you have any external JSON files, you can load them here
     //     await fetch('extraData.json').then(response => {
     //         return response.json();
@@ -276,16 +276,16 @@ async function initAudio(content){
     self.sampleRate = content.sampleRate;
 
     // The frame/window size
-    self.windowSize = self.config.audio.windowSize * self.channelCount;
+    self.windowSize = self.config.audioModeSettings.windowSize * self.channelCount;
 
     // The hop size
-    self.hopSize = self.config.audio.hopSize * self.channelCount;
+    self.hopSize = self.config.audioModeSettings.hopSize * self.channelCount;
 
     // Audio Frames per clock tick
     self.framesPerTick = self.sampleRate * self.channelCount * 60 / 
-                         60 / // self.config.clockBasedSettings.tempo
+                         60 / // self.config.clockSettings.tempo
                         self.hopSize / 
-                        self.config.clockBasedSettings.ticksPerBeat;
+                        self.config.clockSettings.ticksPerBeat;
 
     // Store the audio data, as an array of frames
     // each frame is as array of float32 samples.
@@ -394,8 +394,8 @@ async function processClockEvent(content) {
     }
 
     let actualPeriod = timeDiff;
-    let actualBPM = 60 / (actualPeriod / 1000) / self.config.clockBasedSettings.ticksPerBeat;
-    let error = actualBPM - 100;//self.config.clockBasedSettings.tempo;
+    let actualBPM = 60 / (actualPeriod / 1000) / self.config.clockSettings.ticksPerBeat;
+    let error = actualBPM - 100;//self.config.clockSettings.tempo;
     self._param_writer.enqueue_change(3, actualBPM);
     self._param_writer.enqueue_change(4, error);
     // console.log("agentWorker: " + Math.round(currentBPM) + " error: " + error);

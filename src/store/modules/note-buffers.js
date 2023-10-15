@@ -346,7 +346,7 @@ const mutations = {
             name : "R",
             type : state.noteType.REST,
         };
-        let ticksPerMeasure = config.clockBasedSettings.ticksPerBeat * config.clockBasedSettings.timeSignature.numerator;
+        let ticksPerMeasure = config.clockSettings.ticksPerBeat * config.clockSettings.timeSignature.numerator;
         // initialize quantizedBufferWorker and quantizedBufferHuman with 16 restNotes
         state.quantizedBufferWorker =new Array(ticksPerMeasure).fill(restNote);
         state.quantizedBufferHuman =new Array(ticksPerMeasure).fill(restNote);

@@ -171,8 +171,8 @@ async function loadConfig(content) {
     self.uiParameterType = content.uiParameterType;
     self.workerParameterType = content.workerParameterType;
     self.workerHookType = content.workerHookType;
-    self.ticksPerMeasure = self.config.clockBasedSettings.ticksPerBeat * 
-                            self.config.clockBasedSettings.timeSignature.numerator;
+    self.ticksPerMeasure = self.config.clockSettings.ticksPerBeat * 
+                            self.config.clockSettings.timeSignature.numerator;
     // If you have any external JSON files, you can load them here
     //     await fetch('extraData.json').then(response => {
     //         return response.json();
@@ -276,16 +276,16 @@ async function initAudio(content){
     self.sampleRate = content.sampleRate;
 
     // The frame/window size
-    self.windowSize = self.config.audio.windowSize * self.channelCount;
+    self.windowSize = self.config.audioModeSettings.windowSize * self.channelCount;
 
     // The hop size
-    self.hopSize = self.config.audio.hopSize * self.channelCount;
+    self.hopSize = self.config.audioModeSettings.hopSize * self.channelCount;
 
     // Audio Frames per clock tick
     self.framesPerTick = self.sampleRate * self.channelCount * 60 / 
-                         60 / // self.config.clockBasedSettings.tempo
+                         60 / // self.config.clockSettings.tempo
                         self.hopSize / 
-                        self.config.clockBasedSettings.ticksPerBeat;
+                        self.config.clockSettings.ticksPerBeat;
 
     // Store the audio data, as an array of frames
     // each frame is as array of float32 samples.
@@ -401,11 +401,11 @@ async function processClockEvent(content) {
         shiftRight(tickAverageChroma)
     }
     // Estimate the true BPM of the system
-    // let targetPeriod = (60 / self.config.clockBasedSettings.tempo / self.config.clockBasedSettings.ticksPerBeat) * 1000
+    // let targetPeriod = (60 / self.config.clockSettings.tempo / self.config.clockSettings.ticksPerBeat) * 1000
     let currentPeriod = timeDiff;
-    let currentBPM = 60 / (currentPeriod / 1000) / self.config.clockBasedSettings.ticksPerBeat;
-    let error = Math.abs(currentBPM - self.config.clockBasedSettings.tempo);
-    // let errorPercent = error / self.config.clockBasedSettings.tempo;
+    let currentBPM = 60 / (currentPeriod / 1000) / self.config.clockSettings.ticksPerBeat;
+    let error = Math.abs(currentBPM - self.config.clockSettings.tempo);
+    // let errorPercent = error / self.config.clockSettings.tempo;
     self._param_writer.enqueue_change(3, currentBPM);
     self._param_writer.enqueue_change(4, error);
     // A dummy blocking operation to simulate the worker's inference step
