@@ -5,7 +5,7 @@ const state = {
   sessionID: null,
   clockStatus: false,
   clockInitialized: false,
-  bpm: null,
+  currentBPM: null,
   frequency: null,
   // randomness: null,
   modalStatus: false,
@@ -22,7 +22,7 @@ const getters = {
     return state.clockInitialized;
   },
   getBPM(state){
-    return state.bpm;
+    return state.currentBPM;
   },
   // getRandomness(state){
   //   return state.randomness;
@@ -44,12 +44,13 @@ const getters = {
     return state.config.clockBasedSettings.timeSignature.numerator * state.config.clockBasedSettings.ticksPerBeat;
   },
   getSecondsPerTick(state){
-    return 60 / state.bpm / state.config.clockBasedSettings.ticksPerBeat;
+    // console.log("state.bpm: " + state.bpm, "state.config.clockBasedSettings.ticksPerBeat: " + state.config.clockBasedSettings.ticksPerBeat);
+    return 60 / state.currentBPM / state.config.clockBasedSettings.ticksPerBeat;
   },
   // example getter. This will get BPM from global-settings module, then calculate the new clock period.
   getClockPeriod (state, getters, rootState, rootGetters) {
     // return (60 / rootGetters['global-settings/getBPM'] / rootGetters['global-settings/getTicksPerMeasure']) * 1000;
-    return (60 / state.bpm / getters.getTicksPerBeat) * 1000;
+    return (60 / state.currentBPM / getters.getTicksPerBeat) * 1000;
 },
 };
 
@@ -58,6 +59,7 @@ const actions = {};
 const mutations = {
   setConfig (state, config){
     state.config = config;
+    state.currentBPM = config.clockBasedSettings.defaultBPM;
   },
   writeSessionID(state, id){
     state.sessionID = id;
@@ -73,7 +75,8 @@ const mutations = {
     state.clockInitialized = true;
   },
   setBPM(state, bpm){
-    state.bpm = bpm;
+    console.log("setBPM: " + bpm);
+    state.currentBPM = bpm;
   },
   changeModalStatus(state){
     state.modalStatus = !state.modalStatus;

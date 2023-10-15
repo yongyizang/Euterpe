@@ -1,7 +1,7 @@
 ---
 # The name of your system
 title: "Euterpe"
-subtitle: "An AI music interaction system framework"
+subtitle: "A music interaction system framework"
 
 # Set the correct flags based on the type of your music interaction algorithm
 # Any combination is valid
@@ -25,7 +25,7 @@ clockBasedSettings:
   # BPM. tempo + ticksPerBeat are used to determine the clockPeriod
   # This is just the default value. The user can later change it
   # from the settings menu (effectively changing the clock's period)
-  tempo: 120
+  defaultBPM: 100
   # Set the clockPeriod explicitly (milliseconds)
   # if used, the ticksPerBeat, timeSignature and tempo are ignored
   # Use only if your music interaction algorithm
@@ -53,7 +53,7 @@ audio:
   hopSize: 1024
 
 # Choose the text to be displayed in the splash screen animation
-introModal: true
+introModal: false
 introModalContent:
   - "Hi! This is Euterpe."
   - "I am a web-framework for music interaction systems."

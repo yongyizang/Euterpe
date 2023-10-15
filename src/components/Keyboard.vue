@@ -40,10 +40,10 @@ import * as Tone from "tone";
 import { clamp } from "@/utils/math";
 import {Note} from "@tonaljs/tonal";
 import {
-	playerType, instrumentType, eventSourceType,
-  messageType, statusType, noteType,
-  uiParameterType, workerParameterType,
-  workerHookType
+    playerType, instrumentType, eventSourceType,
+    messageType, statusType, noteType,
+    uiParameterType, workerParameterType,
+    workerHookType
 } from '@/utils/types.js'
 import { NoteEvent } from '@/utils/NoteEvent.js'
 
@@ -64,7 +64,7 @@ const MAX_NOTE = 6;
 // Initialize the pianoSampler.
 
 export default {
-  name: "Keyboard",
+  name: "KeyboardComponent",
 
   props: {
     octaveStart: {
@@ -153,6 +153,7 @@ export default {
         noteStart: 0,
         noteEnd: 0,
       },
+      lastNote: null,
       audioKeysMap: {
         C4: "Z",
         "C#4": "S",
@@ -192,64 +193,82 @@ export default {
 
   methods: {
     noteActive(note) {
-      // If the note is active, the state of that note is true.
-      let midi = Note.midi(note);
-      return this.$store.getters.getPianoState[midi].status === true;
+        // If the note is active, the state of that note is true.
+        let midi = Note.midi(note);
+        return this.$store.getters.getPianoState[midi].status === true;
     },
 
     toggleAttack(currentNote) {
+        
+        this.lastNote = currentNote;
+        window.addEventListener('mouseup', this.toggleReleaseOffKeyboard);
+        let noteName = currentNote;
+        // get midi number from noteName
+        let midi = Note.midi(noteName);
 
-      let noteName = currentNote;
-      // get midi number from noteName
-      let midi = Note.midi(noteName);
-
-      const newNoteEvent = new NoteEvent();
-      newNoteEvent.player = playerType.HUMAN;
-      newNoteEvent.instrument = instrumentType.PIANO;
-      newNoteEvent.source = eventSourceType.MOUSE;
-      newNoteEvent.name = noteName;
-      newNoteEvent.type = noteType.NOTE_ON;
-      newNoteEvent.channel = 140; // this is channel midi channel 0
-      newNoteEvent.midi = midi;
-      newNoteEvent.velocity = 127;
-      newNoteEvent.createdAt = {
-        seconds: performance.now(),
-        tick: this.$store.getters.getGlobalTickDelayed,
-      };
-      newNoteEvent.playAfter = {
-        seconds: 0,
-        tick: 0
-      };
-      newNoteEvent.duration = null;
-      // TODO : a better way to do this is to emit the event to the parent
-			this.$parent.processUserNoteEvent(newNoteEvent);
+        const newNoteEvent = new NoteEvent();
+        newNoteEvent.player = playerType.HUMAN;
+        newNoteEvent.instrument = instrumentType.PIANO;
+        newNoteEvent.source = eventSourceType.MOUSE;
+        newNoteEvent.name = noteName;
+        newNoteEvent.type = noteType.NOTE_ON;
+        newNoteEvent.channel = 140; // this is channel midi channel 0
+        newNoteEvent.midi = midi;
+        newNoteEvent.velocity = 127;
+        newNoteEvent.createdAt = {
+            seconds: performance.now(),
+            tick: this.$store.getters.getGlobalTickDelayed,
+        };
+        newNoteEvent.playAfter = {
+            seconds: 0,
+            tick: 0
+        };
+        newNoteEvent.duration = null;
+        // TODO : a better way to do this is to emit the event to the parent
+        this.$parent.processUserNoteEvent(newNoteEvent, true);
+        
 
     },
 
-    toggleRelease(currentNote) {
-      let noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
-      // get midi number from noteName
-      let midi = Note.midi(noteName);
+    toggleReleaseOffKeyboard() {
+        if (this.lastNote){
+            this.toggleRelease(this.lastNote);
+        }
+        window.removeEventListener('mouseup', this.toggleReleaseOffKeyboard);
+    },
 
-      const newNoteEvent = new NoteEvent();
-      newNoteEvent.player = playerType.HUMAN;
-      newNoteEvent.instrument = instrumentType.PIANO;
-      newNoteEvent.source = eventSourceType.MOUSE;
-      newNoteEvent.name = noteName;
-      newNoteEvent.type = noteType.NOTE_OFF;
-      newNoteEvent.channel = 140; // this is channel midi channel 0
-      newNoteEvent.midi = midi;
-      newNoteEvent.velocity = 127;
-      newNoteEvent.createdAt = {
-        seconds: performance.now(),
-        tick: this.$store.getters.getGlobalTickDelayed,
-      };
-      newNoteEvent.playAfter = {
-        seconds: 0,
-        tick: 0
-      };
-      newNoteEvent.duration = null;
-			this.$parent.processUserNoteEvent(newNoteEvent);
+    toggleRelease(currentNote) {
+        if (this.lastNote != currentNote) {
+            if (this.lastNote){
+                this.toggleRelease(this.lastNote);
+            }
+            return;
+        }
+        console.log("releasing note ", currentNote);
+        this.lastNote = null;
+        let noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
+        // get midi number from noteName
+        let midi = Note.midi(noteName);
+
+        const newNoteEvent = new NoteEvent();
+        newNoteEvent.player = playerType.HUMAN;
+        newNoteEvent.instrument = instrumentType.PIANO;
+        newNoteEvent.source = eventSourceType.MOUSE;
+        newNoteEvent.name = noteName;
+        newNoteEvent.type = noteType.NOTE_OFF;
+        newNoteEvent.channel = 140; // this is channel midi channel 0
+        newNoteEvent.midi = midi;
+        newNoteEvent.velocity = 127;
+        newNoteEvent.createdAt = {
+            seconds: performance.now(),
+            tick: this.$store.getters.getGlobalTickDelayed,
+        };
+        newNoteEvent.playAfter = {
+            seconds: 0,
+            tick: 0
+        };
+        newNoteEvent.duration = null;
+        this.$parent.processUserNoteEvent(newNoteEvent, true);
 
     },
 

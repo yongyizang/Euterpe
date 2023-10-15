@@ -1,38 +1,67 @@
 <template>
-    <div ref="monitor" id="monitorId" :width="width" :height="height" 
-            style="position: absolute; top: 300px; right: 20px"
-            @mousedown="startDrag"
-            >
-    </div>
-  </template>
+    <div
+        :ref="ref_c"
+        :id="id_c"
+        :style="{
+        position: `${position}`,
+        top: `${top}px`,
+        right: `${right}px`,
+        zIndex: 100,
+        width: `${width}px`, 
+        height: `${height}px`,
+        // ...styles,
+        }"
+        @mousedown="startDrag"
+    ></div>
+</template>
   
-  <script>
-  import {Pane} from 'tweakpane';
+<script>
+import {Pane} from 'tweakpane';
 
-  export default {
-    name: 'Monitor',
+export default {
+    name: 'MonitorComponent',
     props: {
         dataFromParent: {
             type: Object,
             default: () => {}
         },
+        ref_c: {
+            type: String,
+            default: 'monitor'
+        },
+        id_c: {
+            type: String,
+            default: 'monitorId'
+        },
+        position: {
+            type: String,
+            default: 'absolute'
+        },
+        top: {
+            type: Number,
+            default: 135
+        },
+        right: {
+            type: Number,
+            default: 20
+        },
         width: {
-          type: Number,
-          default: 400
+            type: Number,
+            default: 300
         },
         height: {
-          type: Number,
-          default: 400
+            type: Number,
+            default: 400
         },
-        cssClasses: {
-          default: '',
-          type: String
-        },
-        styles: {
-          type: Object,
-          default: () => {}
-        },
-      },
+        // cssClasses: {
+        //   default: '',
+        //   type: String
+        // },
+        // styles: {
+        //   type: Object,
+        //   default: () => {}
+        // },
+    },
     data() {
         return {
             pane: null,
@@ -53,9 +82,10 @@
     mounted() {
         console.log("mounted monitor start")
     },
-  
+
     methods: {
-      startDrag(event) {
+        startDrag(event) {
+            if (typeof event.target.className !== 'string') return;
             if (
                 event.target.classList.contains('sldv') ||
                 event.target.id.includes('sldv')
@@ -90,8 +120,8 @@
             vm.title = monitorConfig.title;
 
             vm.pane = new Pane({
-              container: vm.$refs.monitor,
-              title: vm.title,
+                container: vm.$refs.monitor,
+                title: vm.title,
             })
             // vm.data = data;
             // const f = vm.pane.addFolder({
@@ -127,11 +157,11 @@
             });
         },
     },
-  
-  };
-  </script>
-  <!-- <style>
-  :root {
+
+};
+</script>
+<!-- <style>
+    :root {
     --tp-base-background-color: hsla(0, 0%, 10%, 0.8);
     --tp-base-shadow-color: hsla(0, 0%, 0%, 0.2);
     --tp-button-background-color: hsla(0, 0%, 80%, 1);
@@ -153,5 +183,5 @@
     --tp-label-foreground-color: hsla(0, 0%, 100%, 0.5);
     --tp-monitor-background-color: hsla(0, 0%, 0%, 0.3);
     --tp-monitor-foreground-color: hsla(0, 0%, 100%, 0.3);
-  }
-  </style> -->
+    }
+</style> -->

@@ -67,12 +67,13 @@ const actions = {
             if (name == null){
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
             }
-            // console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
             let instrument_to_play_on = context.state.workerSamplers[instrument_label];
             if (instrument_to_play_on == null){
                 throw new Error("Instrument " + instrument_label + " not found in workerSamplers");
             } else {
                 instrument_to_play_on.triggerAttackRelease(name, durationInSeconds, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+                // console.log("seconds", noteEvent.duration.seconds, "ticks", noteEvent.duration.tick, "secPerTick", context.getters.getSecondsPerTick);
+                // instrument_to_play_on.triggerAttackRelease("C#0", durationInSeconds, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
             }
         }
 
@@ -85,7 +86,7 @@ const actions = {
             if (instrument_to_play_on == null){
                 throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
             } else {
-                console.log("samplerON before play ", Tone.now());
+                // console.log("samplerON before play ", Tone.now());
                 instrument_to_play_on.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
             }
         } else if (noteEvent.player == playerType.WORKER){

@@ -8,7 +8,7 @@ import { Sampler } from "tone"
 //     } from '@/utils/types.js'
 
 // Define the set of notes.
-const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+// const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 // Define the instrument samples' base URL. this should be where all samples are stored.
 export const INSTRUMENT_BASE_URL = "/audio/samples/"
@@ -52,10 +52,10 @@ export default class Instruments {
   }
 
   getSamplerForInstrument(instrument, callback) {
-    const sampler = this.samplers[instrument]
+    let sampler = this.samplers[instrument]
 
     if (!sampler) {
-      sampler = createSampler(instrument, callback)
+      sampler = this.createSampler(instrument, callback)
     }
 
     return sampler
@@ -64,7 +64,6 @@ export default class Instruments {
   createSampler(instrument, callback) {
     if (!INSTRUMENT_NAMES.includes(instrument)) {
       throw new Error(`Invalid instrument - ${instrument}. We don't currently support this instrument.`)
-      return
     }
 
     // If the callback paramenter is not a function, see it as an empty function.

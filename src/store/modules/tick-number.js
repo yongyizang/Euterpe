@@ -63,7 +63,7 @@ const mutations = {
         state.localTick = state.localTick % state.ticksPerMeasure;
         if (state.localTick == 0){
             state.barNumber += 1;
-        };
+        }
         state.barTick = Math.floor(state.globalTick / state.ticksPerMeasure); 
         // console.log('incrementTick to ', state.globalTick);
     },

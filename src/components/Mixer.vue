@@ -1,38 +1,70 @@
-<template>
+<!-- <template>
     <div ref="mixer" id="mixerId" :width="width" :height="height" 
-            style="position: absolute; top: 300px; left: 20px; z-index: 100"
+            style="position: absolute; top: 300px; left: 20px; z-index: 100; width: 400px; height: 400px;"
             @mousedown="startDrag"
             >
     </div>
-  </template>
+  </template> -->
+<template>
+    <div
+        :ref="ref_c"
+        :id="id_c"
+        :style="{
+        position: `${position}`,
+        top: `${top}px`,
+        left: `${left}px`,
+        zIndex: 100,
+        width: `${width}px`, 
+        height: `${height}px`,
+        // ...styles,
+        }"
+        @mousedown="startDrag"
+    ></div>
+</template>
   
-  <script>
-  import {Pane} from 'tweakpane';
+<script>
+import {Pane} from 'tweakpane';
 
-  export default {
-    name: 'Mixer',
+export default {
+    name: 'MixerComponent',
     props: {
-        // dataFromParent: {
-        //     type: Object,
-        //     default: () => {}
-        // },
+        ref_c: {
+            type: String,
+            default: 'mixer'
+        },
+        id_c: {
+            type: String,
+            default: 'mixerId'
+        },
+        position: {
+            type: String,
+            default: 'absolute'
+        },
+        top: {
+            type: Number,
+            default: 250
+        },
+        left: {
+            type: Number,
+            default: 10
+        },
         width: {
-          type: Number,
-          default: 400
+            type: Number,
+            default: 200
         },
         height: {
-          type: Number,
-          default: 400
+            type: Number,
+            default: 400
         },
-        cssClasses: {
-          default: '',
-          type: String
-        },
-        styles: {
-          type: Object,
-          default: () => {}
-        },
-      },
+        // cssClasses: {
+        //   default: '',
+        //   type: String
+        // },
+        // styles: {
+        //   type: Object,
+        //   default: () => {}
+        // },
+    },
     data() {
         return {
             pane: null,
@@ -58,13 +90,9 @@
   
     methods: {
         startDrag(event) {
-            // Calculate the initial click position relative to the element's top-left corner
-            // if (
-            //     event.target.classList.contains('sldv') ||
-            //     event.target.className.includes('sldv')
-            // ) {
-            //     return; // Don't start dragging
-            // }
+            // If event.target.className is not a string return
+            if (typeof event.target.className !== 'string') return;
+            // if that string contains 'fldv' or 'rotv'
             if (event.target.className.includes('fldv') ||
                 event.target.className.includes('rotv')
             ){

@@ -29,6 +29,39 @@ The communication protocol that both UI and the Worker need to adhere to in orde
 - MIDI, Audio and data transfering
 ---
 ## Getting Started
+
+## Recommended IDE Setup
+
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+
+## Customize configuration
+
+See [Vite Configuration Reference](https://vitejs.dev/config/).
+
+## Project Setup
+
+```sh
+npm install
+```
+
+### Compile and Hot-Reload for Development
+
+```sh
+npm run dev
+```
+
+### Compile and Minify for Production
+
+```sh
+npm run build
+```
+
+### Lint with [ESLint](https://eslint.org/)
+
+```sh
+npm run lint
+```
+
 ### Installation
 Euterpe is built on top of Vue.js, therefore need Node.js to be installed on your system. You can download Node.js from [here](https://nodejs.org/en/download/).
 
@@ -69,3 +102,6 @@ This will by default generate a `dist` folder in the root directory of the proje
 - [vexflow]()
 - [three.js](https://threejs.org/)
 - [vue-chartjs](https://vue-chartjs.org/)
+
+
+

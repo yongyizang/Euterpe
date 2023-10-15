@@ -99,6 +99,7 @@
     line-height: 10px;
     padding-top: 30px;
     width: 100%;
+    color:var(--keyboard-white-color);
 }
 
 .loadingSubtitle {
@@ -106,6 +107,7 @@
     font-size: 20px;
     line-height: 20px;
     font-weight: 500;
+    color:var(--keyboard-white-color);
 }
 
 .loadingStatus {
@@ -114,6 +116,7 @@
     margin-top: 40px;
     line-height: 20px;
     font-weight: 500;
+    color: var(--keyboard-white-color);
 }
 
 .center {

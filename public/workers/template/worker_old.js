@@ -621,7 +621,7 @@ async function processNoteEvent(noteEventPlain){
                         label
             }
         });
-    };
+    }
 }
 // }
 

@@ -61,8 +61,8 @@
       transform: translateY(0);
     }
     100% {
-      -webkit-transform: translateY(calc(-1 * 100% + 20px));
-      transform: translateY(calc(-1 * 100% + 20px));
+      -webkit-transform: translateY(calc(-1 * 100% ));
+      transform: translateY(calc(-1 * 100%));
     }
   }
   @keyframes slide-up-vectorbar {
@@ -71,8 +71,8 @@
       transform: translateY(0);
     }
     100% {
-      -webkit-transform: translateY(calc(-1 * 100% + 20px));
-      transform: translateY(calc(-1 * 100% + 20px));
+      -webkit-transform: translateY(calc(-1 * 100% ));
+      transform: translateY(calc(-1 * 100% ));
     }
   }
   
