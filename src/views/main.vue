@@ -65,7 +65,7 @@
                   right: '20px', backgroundColor: 'transparent',
                   height: '110px', width:'300px'}" />
         <!-- <ChromaChart /> -->
-      <PianoRoll style="position:absolute; z-index:-1; top:0; left:0" />
+      <PianoRoll id="pianoRoll" style="position:absolute; z-index:-1; top:0; left:0; width:1400px; height:1000px;" />
       <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
         :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
       <div style="position: absolute; bottom: 300px; right: 20px; z-index:8" background-color: red>
@@ -356,11 +356,11 @@ export default {
     // 
     this.monitorObserverInterval = 10;
     //
-    // this.dataForMonitoring = {
-    //     'rms': 0,
-    //     'loudness': 3,
-    //     'inferenceTime': 10,
-    //   },
+    this.dataForMonitoring = {
+        'rms': 0,
+        'loudness': 3,
+        'inferenceTime': 10,
+      },
     
     this.config.gui.monitor.structure.forEach((tab) => {
       tab.parameters.forEach((parameter) => {
@@ -768,7 +768,8 @@ export default {
       }
     },
 
-		processUserNoteEvent(noteEvent) {
+		processUserNoteEvent(noteEvent, onScreenKeyboard=false) {
+      // return 0;
 			var vm = this;
 			// We always send the user's input directly to the sampler
       // for immediate playback
@@ -778,8 +779,8 @@ export default {
       let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
 			if (noteEvent.type == vm.noteType.NOTE_ON) {
 				console.log("note on");
-				vm.$store.dispatch("samplerOn", noteEvent);
-        if (keyOnScreenRange){
+				// vm.$store.dispatch("samplerOn", noteEvent);
+        if (keyOnScreenRange && !onScreenKeyboard){
           if (whiteKey){
             this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
           } else {
@@ -787,8 +788,8 @@ export default {
           }
         }
 			} else if (noteEvent.type == vm.noteType.NOTE_OFF) {
-				vm.$store.dispatch("samplerOff", noteEvent);
-        if (keyOnScreenRange) {
+				// vm.$store.dispatch("samplerOff", noteEvent);
+        if (keyOnScreenRange && !onScreenKeyboard) {
           if (whiteKey){
             this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
           } else {
@@ -799,23 +800,23 @@ export default {
       // 
       if (noteEvent.type == vm.noteType.NOTE_ON) {
 					vm.$root.$refs.pianoRoll.keyDown(noteEvent);
-          vm.$store.dispatch("noteOn", noteEvent);
+          // vm.$store.dispatch("noteOn", noteEvent);
 				} else {
 					vm.$root.$refs.pianoRoll.keyUp(noteEvent);
-					vm.$store.dispatch("noteOff", noteEvent);
+					// vm.$store.dispatch("noteOff", noteEvent);
 				}
 
       // If the clock is running, send the note to the piano roll
-      if (vm.$store.getters.getClockStatus) {
-        // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-        // this packet will be sent to the processUserNoteEvent hook.
-        if (vm.config.noteBasedMode.eventBased) {
-          vm.worker.postMessage({
-            hookType: vm.workerHookType.NOTE_EVENT,
-            content: noteEvent,
-          });
-        };
-			}
+      // if (vm.$store.getters.getClockStatus) {
+      //   // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+      //   // this packet will be sent to the processUserNoteEvent hook.
+      //   if (vm.config.noteBasedMode.eventBased) {
+      //     vm.worker.postMessage({
+      //       hookType: vm.workerHookType.NOTE_EVENT,
+      //       content: noteEvent,
+      //     });
+      //   };
+			// }
 		},
 				
     //   }
@@ -935,31 +936,41 @@ export default {
      * neural network web worker's callback and worker call methods.
      * Called every tick, and processes the AI's output.
      */
-
-    runTheWorker() {
+     runTheWorker() {
       const vm = this;
-      // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
-      // it's up to the worker to use it if it wants to.
-      this.estimateHumanQuantizedNote();
-
-      // remember, runTheWorker happens with a small delay of tick/4 after the tick
-      // here I just keep track of the 'delayed' tick
       this.$store.commit("incrementTickDelayed");
-
-      // MAJOR TODO : draw should probably go before the delayedTickIncrement
-      if (vm.config.gui.score === true) {
-        this.$root.$refs.score.draw();
-      }
-
       this.worker.postMessage({
         hookType: vm.workerHookType.CLOCK_EVENT,
         content: {
           tick: this.$store.getters.getLocalTick,
           globalTick: this.$store.getters.getGlobalTick,
-          humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
-          humanContinuousBuffer: this.$store.getters.getMidiEventBuffer,
         }
       })
+
+    // runTheWorker() {
+    //   const vm = this;
+    //   // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
+    //   // it's up to the worker to use it if it wants to.
+    //   this.estimateHumanQuantizedNote();
+
+    //   // remember, runTheWorker happens with a small delay of tick/4 after the tick
+    //   // here I just keep track of the 'delayed' tick
+    //   this.$store.commit("incrementTickDelayed");
+
+    //   // MAJOR TODO : draw should probably go before the delayedTickIncrement
+    //   if (vm.config.gui.score === true) {
+    //     this.$root.$refs.score.draw();
+    //   }
+
+    //   this.worker.postMessage({
+    //     hookType: vm.workerHookType.CLOCK_EVENT,
+    //     content: {
+    //       tick: this.$store.getters.getLocalTick,
+    //       globalTick: this.$store.getters.getGlobalTick,
+    //       humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
+    //       humanContinuousBuffer: this.$store.getters.getMidiEventBuffer,
+    //     }
+    //   })
     },
 
     async workerCallback(e) {
@@ -1368,7 +1379,9 @@ export default {
           const blob = new Blob([
             /* javascript */`
             // the initial timeout time
+            console.log("inside worker");
             let timeoutTime =  ${vm.$store.getters.getClockPeriod};
+            let aa = 0;
             // onmessage callback
             self.onmessage = function(msg){
               timeoutTime = parseInt(msg.data);
@@ -1376,16 +1389,59 @@ export default {
             // the tick function which posts a message
             // and schedules a new tick
             function tick(){
-              setTimeout(tick, timeoutTime);
+              
               self.postMessage('tick');
-              // console.log("tick from worker")
+              per = performance.now() - aa;
+              console.log("tick from worker ", per, " bpm ", 60000/per/4);
+              aa = performance.now()
+              setTimeout(tick, timeoutTime);
             }
             // call tick initially
+            aa = performance.now()
             tick();
+            // setInterval(tick, timeoutTime);
             `
           ], { type: "text/javascript" });
+
+          /*
+          5th OPTION - webWorker and requestAnimationFrame -- variable clock speed
+          */
+          // const blob = new Blob([
+          //   /* javascript */`
+          //   // the initial timeout time
+          //   console.log("inside worker");
+          //   let timeoutTime =  ${vm.$store.getters.getClockPeriod};
+          //   let aa = 0;
+          //   // onmessage callback
+          //   self.onmessage = function(msg){
+          //     timeoutTime = parseInt(msg.data);
+          //   };
+          //   // the tick function which posts a message
+          //   // and schedules a new tick
+          //   function tick(){
+          //     console.log('running tick');
+          //     if (performance.now() - aa >= timeoutTime) {
+          //       self.postMessage('tick');
+          //       per = performance.now() - aa;
+          //       console.log("tick from worker ", per, " bpm ", 60000/per/4);
+          //       aa = performance.now()
+                
+          //     }
+          //     requestAnimationFrame(tick);
+          //   }
+          //   aa = performance.now()
+            
+          //   // call tick initially
+          //   // tick();
+          //   requestAnimationFrame(tick);
+          //   `
+          // ], { type: "text/javascript" });
+
+
           const blobUrl = URL.createObjectURL(blob);
+          console.log("creating worker");
           const worker = new Worker(blobUrl);
+          console.log("worker created");
 
           worker.onmessage = tickBehavior;//.bind(this);
 

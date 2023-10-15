@@ -95,10 +95,14 @@ export default {
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
       this.renderer = new THREE.WebGLRenderer({ alpha: true });
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+      
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setClearColor(0xffffff, 0);
       this.renderer.sortObjects = false;
       this.$refs.canvas.appendChild(this.renderer.domElement);
+      console.log("size of canvas is ", this.$refs.canvas.clientWidth, this.$refs.canvas.clientHeight);
+      console.log("size of window is ", window.innerWidth, window.innerHeight);
+      // console.log("size of renderer is ", this.renderer.getSize);
     },
 
     resize() {
@@ -112,7 +116,12 @@ export default {
       this.renderer.setSize(
         this.$refs.canvas.clientWidth,
         this.$refs.canvas.clientHeight - keyboardHeight
+        // 1341, 950
       );
+      console.log("after resizing")
+      console.log("size of canvas is ", this.$refs.canvas.clientWidth, this.$refs.canvas.clientHeight);
+      console.log("size of window is ", window.innerWidth, window.innerHeight);
+      // console.log("size of renderer is ", this.renderer.getSize);
     },
 
     animate() {
