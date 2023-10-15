@@ -11,7 +11,7 @@ gui:
   chromaChart:
     status: true
   audioMeter: 
-    status: false
+    status: true
   monitor:
     status: true # not used (always true)
     title: "Monitor"
@@ -24,20 +24,20 @@ gui:
             graph: true
             min: 0
             max: 0.2
-          - id: 1
-            label: "Loudness"
-            interval: 50 # in ms
-            graph: true
-            min: 0
-            max: 100
-      - label: "Worker"
+        #   - id: 1
+        #     label: "Loudness"
+        #     interval: 50 # in ms
+        #     graph: true
+        #     min: 0
+        #     max: 100
+      - label: "Agent"
         parameters:
-          - id: 2
-            label: "Inference Time"
-            interval: 100 # in ms
-            graph: false
-            min: 0
-            max: 30
+        #   - id: 2
+        #     label: "Inference Time"
+        #     interval: 100 # in ms
+        #     graph: false
+        #     min: 0
+        #     max: 30
           - id: 3
             label: "True BPM"
             interval: 100 # in ms

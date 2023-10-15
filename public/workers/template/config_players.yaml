@@ -20,11 +20,11 @@ players:
     mute: false
     volume: 5
     instruments:
-      - id: "piano"
-        label: "Piano"
-        mute: false
-        volume: 5
-        default: true
+      # - id: "piano"
+      #   label: "Piano"
+      #   mute: false
+      #   volume: 5
+      #   default: true
       - id: "synth"
         label: "Synth"
         mute: false
@@ -37,12 +37,12 @@ players:
       #   label: "Bass"
       #   mute: false
       #   volume: 10
-  metronome:
-    label: 'Metronome'
-    mute: true
-    volume: 5
-    instruments:
-      - id: "click"
-        label: "Click"
-        mute: false
-        volume: 5
+  # metronome:
+  #   label: 'Metronome'
+  #   mute: true
+  #   volume: 5
+  #   instruments:
+  #     - id: "click"
+  #       label: "Click"
+  #       mute: false
+  #       volume: 5

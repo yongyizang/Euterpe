@@ -41,7 +41,7 @@ function stopClock() {
 
 function tick() {
   postMessage('tick');
-  console.log("tick");
+  // console.log("tick");
 }
 
 self.onmessage = function (msg) {

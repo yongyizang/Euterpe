@@ -6,7 +6,7 @@ subtitle: "A music interaction system framework"
 # Set the correct flags based on the type of your music interaction algorithm
 interactionMode: 
   noteMode: true
-  audioMode: true
+  audioMode: false
 
 noteModeSettings:
   eventBased:
@@ -25,6 +25,10 @@ noteModeSettings:
     # so that you don't have to do it. Currently, it only applies to the quantizedEvents (gridBased mode)
     polyphony:
       input: 1
+    # Optional feature to better align the user's input with the metronome
+    # For details, check our paper (section 3.4.1)
+    # Use only when necessary, as it might introduce clock/tempo instabilities
+    delayedExecution: false
 
 audioModeSettings:
   windowSize: 1024

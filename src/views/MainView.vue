@@ -69,14 +69,14 @@
                 <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
             </div>
 
-            <div v-if="config.gui.audioMeter.status">
+            <div v-if="audioAndMeter">
                 <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
                 style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
             </div>
             
             <!-- <VectorBar ref="vectorBar" :width=300 :height="100" :num_bars="12" orientation="top"
                 style="position:absolute; z-index:0; top:0px; right:0px; background-color:transparent" /> -->
-            <div v-if="config.gui.chromaChart.status">
+            <div v-if="audioAndChroma">
                 <ChromaChart  />
             </div>
             <div v-if="textBoxStatus">
@@ -358,7 +358,7 @@ export default {
         this.textBoxStatus = this.config.gui.textBox.status
 
         // Update the score properties
-        this.scoreShown = this.config.gui.score; //TODO: unclear use in Score.vue
+        this.scoreShown = this.config.gui.score.status; //TODO: unclear use in Score.vue
         // this.scrollEnabled = this.config.gui.score;
         // Set the textBox title
         this.textBoxTitle = this.config.gui.textBox.title;
@@ -411,6 +411,7 @@ export default {
         // length in time is 1 second of stereo audio
         // Float32Array is 4 bytes per sample
         vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
+        
 
         // get a memory region for the parameter ring buffer
         // This one is to send parameters from the UI to the worker
@@ -460,52 +461,55 @@ export default {
         vm.clockWorker.onmessage = vm.tickBehavior;
         vm.clockWorker.postMessage({ action: 'setBpm', bpm: vm.localBPM });
         vm.$store.commit("initializeClock");
-        /*
-        * Initialize Audio Recorder (for audio recording).
-        */
-        const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: false,
-        });
 
-        vm.mediaStreamSource = vm.audioContext.createMediaStreamSource(
-            stream
-        );
+        if (vm.config.interactionMode.audioMode){
+            /*
+            * Initialize Audio Recorder (for audio recording).
+            */
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false,
+            });
+
+            vm.mediaStreamSource = vm.audioContext.createMediaStreamSource(
+                stream
+            );
 
 
-        vm.analyserNode = vm.audioContext.createAnalyser();
+            vm.analyserNode = vm.audioContext.createAnalyser();
 
-        vm.mediaStreamSource.connect(vm.analyserNode);
+            vm.mediaStreamSource.connect(vm.analyserNode);
 
-        if (vm.config.gui.audioMeter.status){
-            vm.$root.$refs.audioMeter.init(vm.analyserNode);
-            vm.$root.$refs.audioMeter.updateAnalysis();
-        }
+            if (vm.config.gui.audioMeter.status){
+                vm.$root.$refs.audioMeter.init(vm.analyserNode);
+                vm.$root.$refs.audioMeter.updateAnalysis();
+            }
         
-        // vm.$root.$refs.vectorBar.init();
-        // vm.$root.$refs.vectorBar.updateAnalysis();
+            // vm.$root.$refs.vectorBar.init();
+            // vm.$root.$refs.vectorBar.updateAnalysis();
 
-        const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
-        await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
+            const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
+            await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
+        
+        
 
+            vm.recorderWorkletNode = new AudioWorkletNode(
+                vm.audioContext,
+                "recorder-worklet",
+                { processorOptions: vm.sab }
+            );
+
+            vm.recorderWorkletNode.port.postMessage("ping")
+
+            vm.recorderWorkletNode.port.addEventListener("message", (event) => {
+                console.log("Received from Worklet" + event.data);
+            });
+            // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
+            // send the mic to the recorderNode --> recorderWorklet
+            vm.mediaStreamSource.connect(vm.recorderWorkletNode);
+            // vm.workerPlayer = new Tone.Player().toDestination();
+        }
         vm.audioContext.resume(); // ?
-
-        vm.recorderWorkletNode = new AudioWorkletNode(
-            vm.audioContext,
-            "recorder-worklet",
-            { processorOptions: vm.sab }
-        );
-
-        vm.recorderWorkletNode.port.postMessage("ping")
-
-        vm.recorderWorkletNode.port.addEventListener("message", (event) => {
-            console.log("Received from Worklet" + event.data);
-        });
-        // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
-        // send the mic to the recorderNode --> recorderWorklet
-        vm.mediaStreamSource.connect(vm.recorderWorkletNode);
-        // vm.workerPlayer = new Tone.Player().toDestination();
-
         /*
         * Web MIDI logic
         */
@@ -614,12 +618,13 @@ export default {
         // Clock behavior function.
         async tickBehavior() {
             var vm = this;
-            // console.log("ROLOGAKI ROLOGAKI")
             if (vm.$store.getters.getClockStatus) {
                 vm.$store.commit("incrementTick");
+                
+                // Trigger the metronome only if there is a "metronome" entry in config_players.yaml
+                if (vm.config.players.metronome)
+                    vm.metronomeTrigger(); 
 
-
-                vm.metronomeTrigger(); //UNCOMMENT
                 // in grid-based mode, the worker's sampler is triggered in sync with the clock
                 vm.triggerWorkerSamplerSync(); // UNCOMMENT
 
@@ -629,18 +634,22 @@ export default {
                 // this makes the grid a bit more flexible, and the human input is correctly parsed
                 // In terms of playability, the human finds it much more easy to play along the metronome on the grid
                 // TUTOR: have a flag for that in config named delayedExecution
-                // if (vm.config.noteBasedMode.clockBased) {
-                //     vm.timeout_IDS_live.push(setTimeout(function () {
-                //             vm.runTheWorker();
-                //         }, parseInt(vm.$store.getters.getClockPeriod / 4))
-                //     );
-                // } else {
-                //     // inside runTheWorker we increment the "delayed" tick number.
-                //     // If we don't run the worker, we still want to increment the "delayed" tick number
-                //     // because other parts of the code depend on it. In this case tick === delayedTick
-                //     vm.$store.commit("incrementTickDelayed");
-                // }
-                vm.runTheWorker();
+                if (vm.config.noteModeSettings.gridBased.status) {
+                    if (vm.config.noteModeSettings.gridBased.delayedExecution) {
+                        console.log("delayedExecution");
+                        vm.timeout_IDS_live.push(setTimeout(function () {
+                                vm.runTheWorker();
+                            }, parseInt(vm.$store.getters.getClockPeriod / 4))
+                        );
+                    }  else {
+                        vm.runTheWorker();
+                    }                  
+                } else {
+                    // inside runTheWorker we increment the "delayed" tick number.
+                    // If we don't run the worker, we still want to increment the "delayed" tick number
+                    // because other parts of the code depend on it. In this case tick === delayedTick
+                    vm.$store.commit("incrementTickDelayed");
+                }
             }
         },
 
@@ -802,52 +811,140 @@ export default {
         * neural network web worker's callback and worker call methods.
         * Called every tick, and processes the AI's output.
         */
-        // runTheWorker() {
-        //     const vm = this;
-        //     this.$store.commit("incrementTickDelayed");
-        //     this.worker.postMessage({
-        //         hookType: vm.workerHookType.CLOCK_EVENT,
-        //         content: {
-        //         tick: this.$store.getters.getLocalTick,
-        //         globalTick: this.$store.getters.getGlobalTick,
-        //         }
-        //     });
-        // },
-
+        // TODO : change the name : agent, clock event, tick etc
         runTheWorker() {
             const vm = this;
             // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
             // it's up to the worker to use it if it wants to.
-            // this.estimateHumanQuantizedNote();
+            this.estimateHumanQuantizedNote();
 
             // remember, runTheWorker happens with a small delay of tick/4 after the tick
             // here I just keep track of the 'delayed' tick
             this.$store.commit("incrementTickDelayed");
 
             // MAJOR TODO : draw should probably go before the delayedTickIncrement
-            if (vm.config.gui.score === true) {
+            if (vm.config.gui.score.status) {
                 this.$root.$refs.score.draw();
             }
-
-            this.worker.postMessage({
-                hookType: vm.workerHookType.CLOCK_EVENT,
-                content: {
+            let messageContent = {
                 tick: this.$store.getters.getLocalTick,
                 globalTick: this.$store.getters.getGlobalTick,
-                humanQuantizedInput: this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick),
-                humanContinuousBuffer: this.$store.getters.getMidiEventBuffer,
-                }
+            }
+            if (vm.config.noteModeSettings.gridBased.eventBuffer)
+                messageContent['humanContinuousBuffer'] = this.$store.getters.getMidiEventBuffer;
+            if (vm.config.noteModeSettings.gridBased.quantizedEvents)
+                messageContent['humanQuantizedInput'] = this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick);
+            this.worker.postMessage({
+                hookType: vm.workerHookType.CLOCK_EVENT,
+                content: messageContent,
             })
         },
 
+        estimateHumanQuantizedNote() {
+            var vm = this;
+            /* 
+            1) Get the raw continuous buffers for the current tick (bufferOn, bufferOff, bufferEvent)
+            2) preprocess them before quantization
+                a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
+            */
+
+            const bufferEvent = this.$store.getters.getMidiEventBuffer;
+            // activePianoNotes are sorted by their "on" timestamp (newest to oldest)
+            const activePianoNotes = this.$store.getters.getActivePianoNotes;
+            let currentQuantizedEvents = [];
+
+            // 2) preprocess them before quantization
+            //     a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
+            // TODO : move this to utilities or smth
+            let indexesToRemove = []; // the indexes of the events to be removed
+            for (let i = bufferEvent.length - 1; i >= 0; i--) {
+                let elem = bufferEvent[i];
+                if (elem.type === vm.noteType.NOTE_OFF) {
+                const matchingIndexes = bufferEvent
+                    .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
+                    .filter(index => index !== -1);
+                if (matchingIndexes.length > 0) {
+                    indexesToRemove.push(i);
+                    indexesToRemove.push(Math.max(...matchingIndexes));
+                }
+                }
+            }
+            indexesToRemove = Array.from(new Set([...indexesToRemove]));
+            const cleanedEventBuffer = bufferEvent.filter((el, index) => !indexesToRemove.includes(index));
+            // console.log(`bufferEvent ${bufferEvent.length} cleanedEventBuffer ${cleanedEventBuffer.length} activePianoNotes ${activePianoNotes.length}`);
+            // iterate over the active notes. If the note exists in the bufferEvent as an "on" event, then we have a note on
+            // if the note does not exist in the bufferEvent, then we have a continuation of the note (we assume it was activated in a previous tick)
+            for (let i = 0; i < activePianoNotes.length; i++) {
+                const midi = activePianoNotes[i].midi;
+                const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === vm.noteType.NOTE_ON && elem.midi === midi);
+                if (noteOnEvent) {
+                // currentQuantizedEvents.push({
+                //   type: "on",
+                //   midi: midi,
+                // })
+                currentQuantizedEvents.push(noteOnEvent)
+                }
+                else {
+                            const noteHoldEvent = new NoteEvent();
+                            noteHoldEvent.type = vm.noteType.NOTE_HOLD;
+                            noteHoldEvent.player = vm.playerType.HUMAN;
+                            noteHoldEvent.midi = midi;
+
+                currentQuantizedEvents.push(noteHoldEvent);
+                }
+            }
+            // TODO : it seems I ignore rests. If no active notes, then currentQuantizedEvents will be empty
+
+            // now iterate over the bufferEvent and find all the noteOff notes and push them to currentQuantizedEvents as off events
+            // for (let i = 0; i < cleanedEventBuffer.length; i++) {
+            //   const elem = cleanedEventBuffer[i];
+            //   if (elem.type === "noteOff") {
+            //     currentQuantizedEvents.push({
+            //       type: "off",
+            //       midi: elem.midi,
+            //     })
+            //   }
+            // }
+
+            // Due to the order we were pushing the events, the first elements of currentQuantizedEvents are the "on", 
+            // then the "hold" and finally the "off". Also because activeNotes are already sorted by their "noteOn" timestamp
+            // the events in currentQuantizedEvents are also sorted by their original "noteOn" timestamp
+
+            // Now if we want we can constraint the polyphony. If polyphony = 3, then we can only have 3 notes on at the same time
+            // the way to do that is to keep at most the first 3 "on" or "hold" events in currentQuantizedEvents and remove the rest "on" and "hold"
+
+            // TODO : FOR NOW WE DON"T INCLUDE NOTE_OFF EVENTS IN THE QUANTIZED DATA.
+            let constrainedCurrentQuantizedEvents = [];
+            let onHoldEvents = currentQuantizedEvents.filter(elem => elem.type === vm.noteType.NOTE_ON || elem.type === vm.noteType.NOTE_HOLD);
+            // let offEvents = currentQuantizedEvents.filter(elem => elem.type === "off");
+            if (onHoldEvents.length > vm.config.noteModeSettings.gridBased.polyphony.input) {
+                // let onHoldEventsToRemove = onHoldEvents.slice(polyphony);
+                let onHoldEventsToKeep = onHoldEvents.slice(0, vm.config.polyphony.input);
+                // let offEventsToAdd = onHoldEventsToRemove.map(elem => {
+                //   return {
+                //     type: "off",
+                //     midi: elem.midi,
+                //   }
+                // })
+                constrainedCurrentQuantizedEvents = [...onHoldEventsToKeep];//, ...offEventsToAdd, ...offEvents];
+            }
+            else {
+                constrainedCurrentQuantizedEvents = [...currentQuantizedEvents];
+            }
+
+            this.$store.dispatch("storeHumanQuantizedInput", constrainedCurrentQuantizedEvents);
+
+            this.$store.commit("clearContinuousBuffers");
+            // TODO : for the future, keep a reference to the active notes of the previous tick
+            // TODO : for more accuracy keep also a reference to the previous tick's quantized notes and constrained quantized notes
+            // TODO : and modify the logic accordingly.
+            },
+
         workerParameterObserver() {
             let newParameterWorker = { index: null, value: null };
-            
             if (this.paramReader.dequeue_change(newParameterWorker)) {
-                // console.log("observer ", newParameterWorker);
                 this.dataForMonitoring[newParameterWorker.index] = newParameterWorker.value;
                 if (newParameterWorker.index == 4) {
-                    // console.log("newParameterWorker.value", newParameterWorker.value);
                 }
             }
         },
@@ -912,7 +1009,7 @@ export default {
                         break;
                     }
                     case vm.messageType.CHROMA_VECTOR:
-                        if (this.config.gui.chromaChart.status)
+                        if (this.audioAndChroma)
                             this.$root.$refs.chromaChart.updateChromaData(messageValue);
                             // this.$root.$refs.vectorBar.updateVectorData(messageValue);
                         else
@@ -968,7 +1065,6 @@ export default {
             let vm = this;
             // The noteEvents that arrive here, have already waited for playAfter.tick ticks (if any)
             // so we can only care about playAfter.seconds here. 
-            console.log("in processWorkerNoteEvent Arrived ", noteEvent.midi);
             if (noteEvent.type === vm.noteType.NOTE_ON) {
 
                 // Here we check if this note has a defined duration. 
@@ -1044,7 +1140,7 @@ export default {
                 if (!noteEvent.hasOwnProperty('custom')){
                     this.$store.dispatch("samplerOff", noteEvent);
                 }
-                console.log("about to call uiNoteOffWorker");
+                // console.log("about to call uiNoteOffWorker");
                 this.uiNoteOffWorker(noteEvent);
             }
         },
@@ -1063,10 +1159,10 @@ export default {
             vm.timeout_IDS_live.push(setTimeout(() => {
                 if (keyOnScreenRange){
                     if (whiteKey){
-                        console.log("released white key ", noteName)
+                        // console.log("released white key ", noteName)
                     this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
                     } else {
-                        console.log("released black key ", noteName)
+                        // console.log("released black key ", noteName)
                     this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
                     }
                 }
@@ -1279,6 +1375,12 @@ export default {
 
         computedSliders: function () {
             return this.sliders.map(a => { return { ...a } })
+        },
+        audioAndMeter: function () {
+            return this.config.gui.audioMeter.status && this.config.interactionMode.audioMode;
+        },
+        audioAndChroma: function () {
+            return this.config.gui.chromaChart.status && this.config.interactionMode.audioMode;
         }
     },
 
