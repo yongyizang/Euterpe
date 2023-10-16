@@ -4,7 +4,7 @@ import { Sampler } from "tone"
 // 	  playerType, instrumentType, eventSourceType,
 //     messageType, statusType, noteType,
 //     uiParameterType,
-//     workerHookType
+//     agentHookType
 //     } from '@/utils/types.js'
 
 // Define the set of notes.

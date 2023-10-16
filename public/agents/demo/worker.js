@@ -14,7 +14,7 @@ let messageType = null;
 let statusType = null;
 let noteType = null;
 let parameterType = null;
-let workerHookType = null;
+let agentHookType = null;
 
 // Audio related variables
 let channelCount = null;
@@ -169,7 +169,7 @@ async function loadConfig(content) {
     self.statusType = content.statusType;
     self.messageType = content.messageType;
     self.uiParameterType = content.uiParameterType;
-    self.workerHookType = content.workerHookType;
+    self.agentHookType = content.agentHookType;
     self.ticksPerMeasure = self.config.clockSettings.ticksPerBeat * 
                             self.config.clockSettings.timeSignature.numerator;
     // If you have any external JSON files, you can load them here
@@ -178,7 +178,7 @@ async function loadConfig(content) {
     //     }).then(data => {
     //         self.extraData = data;
     //     });
-    self.uiParameterInterval = setInterval(uiParameterObserver, 10);
+    self.uiParameterInterval = setInterval(uiParameterObserver, 100);
     console.log("finished loading config")
     
 }
@@ -197,7 +197,7 @@ async function loadAlgorithm() {
     // }
 
     postMessage({
-        hookType: self.workerHookType.INIT_WORKER,
+        hookType: self.agentHookType.INIT_AGENT,
         message:{
             [self.messageType.STATUS]: 
                     self.statusType.LOADED,
@@ -222,7 +222,7 @@ async function loadAlgorithm() {
         // you can sent WARMUP status messages to the UI if you want.
         // these will appear in the intro screen
         postMessage({
-            hookType: self.workerHookType.INIT_WORKER,
+            hookType: self.agentHookType.INIT_AGENT,
             message:{
                 [self.messageType.STATUS]: 
                         self.statusType.WARMUP,
@@ -237,7 +237,7 @@ async function loadAlgorithm() {
     // Once your model/worker is ready to play, 
     // UI expects a success message
     postMessage({
-        hookType: self.workerHookType.INIT_WORKER,
+        hookType: self.agentHookType.INIT_AGENT,
         message:{
             [self.messageType.STATUS]: 
                     self.statusType.SUCCESS,
@@ -266,7 +266,7 @@ async function initAudio(content){
     // Writes parameters to the UI (e.g., rms, loudness)
     // The parameters need to be single float values
     self._param_writer = new ParameterWriter(
-        new RingBuffer(content.sab_par_worker, Uint8Array)
+        new RingBuffer(content.sab_par_agent, Uint8Array)
     );
 
     // The number of channels of the audio stream read from the queue.
@@ -320,7 +320,7 @@ async function initAudio(content){
     
     // Attempt to dequeue every 100ms. Making this deadline isn't critical:
     // there's 1 second worth of space in the queue, and we'll be dequeing
-    //   interval = setInterval(_readFromQueue, 100);
+    // self.interval = setInterval(_readFromQueue, 100);
     self.interval = setInterval(_readFromQueue, 10);
     console.log("finished loading audio")
 }
@@ -347,8 +347,8 @@ function processAudioBuffer(buffer) {
     // Make sure you have first declared them in config_widgets.yaml
     // The first arg for enqueue_change is the parameter id (see config_widgets.yaml)
     // and the second arg is the float value you want to send. 
-    self._param_writer.enqueue_change(0, features.rms);
-    self._param_writer.enqueue_change(1, features.loudness.total);
+    // self._param_writer.enqueue_change(0, features.rms);
+    // self._param_writer.enqueue_change(1, features.loudness.total);
 
     // Here we push the overlapped audio frames and their features
     // to the local queues. These queues can be used in the 
@@ -365,6 +365,7 @@ function processAudioBuffer(buffer) {
 // two clock ticks. Besides the note/MIDI events, you can also process
 // the available audio_features and audio_frames.
 async function processClockEvent(content) {
+    
     let currentTime = performance.now();
     let timeDiff = currentTime - prevTime;
     prevTime = currentTime;
@@ -372,22 +373,13 @@ async function processClockEvent(content) {
     let predictTime = performance.now(); 
     const currentTick = content.tick;   
 
-    // Here we have access to the quantized user 
-    // events for the current tick
-    const humanQUantizedInput = content.humanQuantizedInput;
 
-    // Here is an example of how you can access the latest 
-    // audio features since the last ClockEvent (tick)
-    // In the same way, you could access the raw audio frames
-    // stored in self.audio_frames_queue
+    
     let features = self.audio_features_queue.toArrayAndClear()
-    // get all the chroma features since the last clock event (tick)
     let chromas = features.map(f => f.chroma);
     let rms = features.map(f => f.rms);
-    
-    // Average all the chroma vectors since the last clock event (tick)
-    console.log("chromas: " + chromas.length);
     self._param_writer.enqueue_change(5, chromas.length);
+
     let tickAverageChroma = null
     if (chromas.length == 0){
         // float array of zeros
@@ -399,58 +391,18 @@ async function processClockEvent(content) {
         // That's probably a bug in Meyda. We'll shift it back here.
         shiftRight(tickAverageChroma)
     }
-    // Estimate the true BPM of the system
-    // let targetPeriod = (60 / self.config.clockSettings.tempo / self.config.clockSettings.ticksPerBeat) * 1000
-    let currentPeriod = timeDiff;
-    let currentBPM = 60 / (currentPeriod / 1000) / self.config.clockSettings.ticksPerBeat;
-    let error = Math.abs(currentBPM - self.config.clockSettings.tempo);
-    // let errorPercent = error / self.config.clockSettings.tempo;
-    self._param_writer.enqueue_change(3, currentBPM);
+
+    let actualPeriod = timeDiff;
+    let actualBPM = 60 / (actualPeriod / 1000) / self.config.clockSettings.ticksPerBeat;
+    let error = actualBPM - 100;//self.config.clockSettings.tempo;
+    self._param_writer.enqueue_change(3, actualBPM);
     self._param_writer.enqueue_change(4, error);
-    // A dummy blocking operation to simulate the worker's inference step
-    // This is where you would call your model's predict() function
-    // simulateBlockingOperation(10);
+    // console.log("agentWorker: " + Math.round(currentBPM) + " error: " + error);
 
-    
-    // In case your model predicts note events
-    // This is the list of notes to be sent to the UI
     let noteList = [];
-
-    // An example of the Note object the UI expects
-    const note = new NoteEvent();
-    note.player = self.playerType.AGENT;
-    note.instrument = self.instrumentType.SYNTH;
-    note.name = 'C4'; // That's not necessary for playback
-    note.type = self.noteType.NOTE_ON;
-    note.midi = 60; // That's required for playback
-    note.velocity = 127; // That's required for playback
-    note.createdAt = {
-        tick: currentTick,
-        seconds: performance.now()
-    }
-    // play the note 1 tick and 0 seconds after it was generated
-    note.playAfter = {
-        
-        tick: 1,
-        seconds: 0
-    }
-    // The duration of the note if known
-    // note.duration = {
-    //     tick: 4,
-    //     seconds: 0.5
-    // }
-
-    // Push the note to the list of notes to be sent to the UI
-    // noteList.push(note);
-
-
-    // Let's also generate some Drums
-    // if currentTick is divisible by 4, generate a kick drum
     let dividedBy2 = currentTick % 2 == 0;
     let dividedBy4 = currentTick % 4 == 0;
     let dividedBy8 = currentTick % 8 == 0;
-
-    // Generate a hi-hat every 8th note
     if (dividedBy2){
         const drumNote = new NoteEvent();
         drumNote.player = self.playerType.AGENT;
@@ -475,7 +427,6 @@ async function processClockEvent(content) {
         // Push the drumNote to the list of notes to be sent to the UI
         noteList.push(drumNote);
     }
-    // Generate a snare every second quarter note (on the 2nd and 4th beat)
     if (dividedBy4 & !dividedBy8){
         const drumNote = new NoteEvent();
         drumNote.player = self.playerType.AGENT;
@@ -541,13 +492,16 @@ async function processClockEvent(content) {
     // you should always send a CLOCK_TIME message type, so that the UI
     // can check whether the worker is in sync with the clock.
     // console.log("sending clock event");
+    
+    // Print to the console the .midi field for every element in the noteList
+    // noteList.forEach(element => console.log(element.midi));
     postMessage({
-        hookType: self.workerHookType.CLOCK_EVENT,
+        hookType: self.agentHookType.CLOCK_EVENT,
         message:{
             [self.messageType.CHROMA_VECTOR]: 
                     tickAverageChroma,
-            [self.messageType.NOTE_LIST]: 
-                    noteList,
+            // [self.messageType.NOTE_LIST]: 
+            //         noteList,
             [self.messageType.CLOCK_TIME]:
                     currentTick
         },
@@ -573,18 +527,19 @@ async function processNoteEvent(noteEventPlain){
      * of 0.1 seconds from the previous note and 1/3 of the 
      * velocity of its previous note
      */
-    let arpeggio = [];
-    if (self.switch1 == 0){
-        arpeggio = [3, 5, 8, 12, 15];
-    } else{
-        arpeggio = [4, 7, 9, 12, 9, 7, 4];
-    }
+    // let arpeggio = [];
+    // if (self.switch1 == 0){
+    //     arpeggio = [3, 5, 8, 12, 15];
+    // } else{
+    //     arpeggio = [4, 7, 9, 12, 9, 7, 4];
+    // }
+    let arpeggio = [3];
 
     // if this a not off event, add an extra 0.1 sec offset.
     // This is a temp fix for the pianoSampler bug
     // let extraSecOffset = noteEvent.type == self.noteType.NOTE_OFF ? 0.1 : 0.0;
 
-    if (noteEvent.type == self.noteType.NOTE_ON){
+    // if (noteEvent.type == self.noteType.NOTE_ON){
         for (let i = 0; i < arpeggio.length; i++) {
             let arp_note = new NoteEvent();
             arp_note.player = self.playerType.AGENT;
@@ -595,12 +550,12 @@ async function processNoteEvent(noteEventPlain){
             // arp_note.createdAt 
             arp_note.playAfter = {
                 tick: 0,
-                seconds: (i+1)*0.05 ,//+ extraSecOffset
+                seconds: 0,//(i+1)*0.05 ,//+ extraSecOffset
             },
-            arp_note.duration = {
-                tick: 0,
-                seconds: 0.1,//+ extraSecOffset
-            },
+            // arp_note.duration = {
+            //     tick: 0,
+            //     seconds: 1,//+ extraSecOffset
+            // },
 
             noteList.push(arp_note);
         }
@@ -612,7 +567,7 @@ async function processNoteEvent(noteEventPlain){
         // to the UI. In this example we send a list of the arpeggio notes
         // we estimated for the user's input.
         postMessage({
-            hookType: self.workerHookType.NOTE_EVENT,
+            hookType: self.agentHookType.NOTE_EVENT,
             message:{
                 [self.messageType.NOTE_LIST]: 
                         noteList,
@@ -620,7 +575,7 @@ async function processNoteEvent(noteEventPlain){
                         label
             }
         });
-    }
+    // }
 }
 // }
 
@@ -679,7 +634,7 @@ async function processNoteEventV2(noteEventPlain){
         // to the UI. In this example we send a list of the arpeggio notes
         // we estimated for the user's input.
         postMessage({
-            hookType: self.workerHookType.NOTE_EVENT,
+            hookType: self.agentHookType.NOTE_EVENT,
             message:{
                 [self.messageType.NOTE_LIST]: 
                         noteList,
@@ -693,15 +648,21 @@ async function processNoteEventV2(noteEventPlain){
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
     if (self.config == null) {
+        
         await self.initWorker(obj.data.content);
         // make sure that the config is loaded
         if (self.config == null) {
+            console.error("Worker not initialized correctly. Failed to load config")
             return;
         }
+        else {
+        console.log("Worker is not initialized");
+        return;
+        }
     } else {
-        if (obj.data.hookType == self.workerHookType.CLOCK_EVENT) {
+        if (obj.data.hookType == self.agentHookType.CLOCK_EVENT) {
             await self.processClockEvent(obj.data.content);
-        } else if (obj.data.hookType == self.workerHookType.NOTE_EVENT){
+        } else if (obj.data.hookType == self.agentHookType.NOTE_EVENT){
             await self.processNoteEvent(obj.data.content);
         }
     }

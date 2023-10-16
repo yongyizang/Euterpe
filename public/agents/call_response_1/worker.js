@@ -14,7 +14,7 @@ let messageType = null;
 let statusType = null;
 let noteType = null;
 let parameterType = null;
-let workerHookType = null;
+let agentHookType = null;
 
 // Audio related variables
 let channelCount = null;
@@ -169,7 +169,7 @@ async function loadConfig(content) {
     self.statusType = content.statusType;
     self.messageType = content.messageType;
     self.uiParameterType = content.uiParameterType;
-    self.workerHookType = content.workerHookType;
+    self.agentHookType = content.agentHookType;
     self.ticksPerMeasure = self.config.clockSettings.ticksPerBeat * 
                             self.config.clockSettings.timeSignature.numerator;
     // If you have any external JSON files, you can load them here
@@ -197,7 +197,7 @@ async function loadAlgorithm() {
     // }
 
     postMessage({
-        hookType: self.workerHookType.INIT_WORKER,
+        hookType: self.agentHookType.INIT_AGENT,
         message:{
             [self.messageType.STATUS]: 
                     self.statusType.LOADED,
@@ -222,7 +222,7 @@ async function loadAlgorithm() {
         // you can sent WARMUP status messages to the UI if you want.
         // these will appear in the intro screen
         postMessage({
-            hookType: self.workerHookType.INIT_WORKER,
+            hookType: self.agentHookType.INIT_AGENT,
             message:{
                 [self.messageType.STATUS]: 
                         self.statusType.WARMUP,
@@ -237,7 +237,7 @@ async function loadAlgorithm() {
     // Once your model/worker is ready to play, 
     // UI expects a success message
     postMessage({
-        hookType: self.workerHookType.INIT_WORKER,
+        hookType: self.agentHookType.INIT_AGENT,
         message:{
             [self.messageType.STATUS]: 
                     self.statusType.SUCCESS,
@@ -266,7 +266,7 @@ async function initAudio(content){
     // Writes parameters to the UI (e.g., rms, loudness)
     // The parameters need to be single float values
     self._param_writer = new ParameterWriter(
-        new RingBuffer(content.sab_par_worker, Uint8Array)
+        new RingBuffer(content.sab_par_agent, Uint8Array)
     );
 
     // The number of channels of the audio stream read from the queue.
@@ -496,7 +496,7 @@ async function processClockEvent(content) {
     // Print to the console the .midi field for every element in the noteList
     // noteList.forEach(element => console.log(element.midi));
     postMessage({
-        hookType: self.workerHookType.CLOCK_EVENT,
+        hookType: self.agentHookType.CLOCK_EVENT,
         message:{
             [self.messageType.CHROMA_VECTOR]: 
                     tickAverageChroma,
@@ -567,7 +567,7 @@ async function processNoteEvent(noteEventPlain){
         // to the UI. In this example we send a list of the arpeggio notes
         // we estimated for the user's input.
         postMessage({
-            hookType: self.workerHookType.NOTE_EVENT,
+            hookType: self.agentHookType.NOTE_EVENT,
             message:{
                 [self.messageType.NOTE_LIST]: 
                         noteList,
@@ -634,7 +634,7 @@ async function processNoteEventV2(noteEventPlain){
         // to the UI. In this example we send a list of the arpeggio notes
         // we estimated for the user's input.
         postMessage({
-            hookType: self.workerHookType.NOTE_EVENT,
+            hookType: self.agentHookType.NOTE_EVENT,
             message:{
                 [self.messageType.NOTE_LIST]: 
                         noteList,
@@ -660,9 +660,9 @@ async function onMessageFunction (obj) {
         return;
         }
     } else {
-        if (obj.data.hookType == self.workerHookType.CLOCK_EVENT) {
+        if (obj.data.hookType == self.agentHookType.CLOCK_EVENT) {
             await self.processClockEvent(obj.data.content);
-        } else if (obj.data.hookType == self.workerHookType.NOTE_EVENT){
+        } else if (obj.data.hookType == self.agentHookType.NOTE_EVENT){
             await self.processNoteEvent(obj.data.content);
         }
     }

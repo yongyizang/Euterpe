@@ -7,8 +7,8 @@
                 {{ config.title }}
                 </h1>
                 <h3 class="loadingSubtitle"> {{ config.subtitle }}</h3>
-                <p ref="workerStatus" class="loadingStatus">
-                Loading the Worker...
+                <p ref="agentStatus" class="loadingStatus">
+                Loading the Agent...
                 </p>
                 <div id="entryBtnContainer" style="width:100%;height:60px;">
                     <button @click="entryProgram" ref="entryBtn" class="entryBtn" style="visibility: hidden;">
@@ -145,11 +145,11 @@
                         Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
                         one of those browsers if you want to use Web MIDI
                         functionalities.</span>
-                    <p class="settingsSubtitle">Worker Parameters</p>
+                    <p class="settingsSubtitle">Agent Parameters</p>
                     <div class="md-layout md-gutter md-alignment-center">
                     <div class="md-layout-item md-large-size-50 md-small-size-100">
                         <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Sliders for worker parameters -->
+                        <!-- Sliders for agent parameters -->
                         <div v-for="sliderItem in sliders" :key="sliderItem.id"
                             class="md-layout-item md-large-size-25 md-alignment-center">
                             <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
@@ -159,7 +159,7 @@
                     </div>
                     <div class="md-layout-item md-large-size-50 md-small-size-100">
                         <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Buttons for worker parameters -->
+                        <!-- Buttons for agent parameters -->
                         <div v-for="buttonItem in buttons" :key="buttonItem.id" class="md-layout-item md-large-size-100">
                             <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
                             <span class="forceTextColor">{{ buttonItem.label }}</span>
@@ -171,7 +171,7 @@
                     <div class="md-layout md-gutter md-alignment-center">
                     <div class="md-layout-item md-large-size-100">
                         <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Switches for worker parameters -->
+                        <!-- Switches for agent parameters -->
                         <div v-for="swi in switches" :key="swi.id" class="md-layout-item md-large-size-25 md-medium-size-50">
                             <div style="display:block; min-width:60px; padding-top:17px">
                             <span style="padding:0; margin:0;">{{ swi.label }}</span>
@@ -217,7 +217,7 @@ import {
 	playerType, instrumentType, eventSourceType,
   messageType, statusType, noteType,
   uiParameterType,
-  workerHookType
+  agentHookType
 } from '@/utils/types.js'
 
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
@@ -241,17 +241,16 @@ export default {
         Monitor,
         ChromaChart
         // VectorBar,
-
     },
 
     data() {
         return {
-        // Choose the worker. 
+        // Choose the agent. 
         // This string should be one of
-        // dir names inside public/workers/
-        workerName: "template", 
+        // dir names inside public/agents/
+        agentName: "template", 
         // Provide all the config files that should be loaded
-        // These should be in public/workers/{workerName}/
+        // These should be in public/agents/{agentName}/
         configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
 
         config: null,
@@ -263,8 +262,7 @@ export default {
         statusType,
         noteType,
         uiParameterType,
-        workerHookType,
-
+        agentHookType,
                 
         // These need to be initialized here as empty arrays (computed properties)
         // They'll be filled in the created() hook
@@ -306,8 +304,8 @@ export default {
         sab_par_ui: null,
         rb_par_ui: null,
         paramWriter: null,
-        sab_par_worker: null,
-        rb_par_worker: null,
+        sab_par_agent: null,
+        rb_par_agent: null,
 
         monitorObserverInterval: null,
 
@@ -317,19 +315,12 @@ export default {
         activeDevices: [],
         selectedMIDIDevice: "",
 
-        // humanVolume: 1,
-        // humanSamplerMuted: false,
-        // humanUprightBassVolume: 1,
-        // humanUprightBassMuted: false,
-        // workerVolume: 1,
-        // metronomeVolume: 1,
-
-        // used to calculate the average worker inference time (clockBased mode) 
+        // used to calculate the average agent inference time (gridBased mode) 
         // and estimate maxBPM
         modelInferenceTimes: [],
         // maxBPM (or min clock period) supported by the current device
         maxBPM: 0,
-        // counter for the number of times the worker inference time exceeds the clock period
+        // counter for the number of times the agent inference time exceeds the clock period
         misalignErrCount: 0,
 
         isNotChrome,
@@ -415,28 +406,28 @@ export default {
         
 
         // get a memory region for the parameter ring buffer
-        // This one is to send parameters from the UI to the worker
+        // This one is to send parameters from the UI to the agent
         vm.sab_par_ui = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
         vm.rb_par_ui = new rb.RingBuffer(vm.sab_par_ui, Uint8Array);
         vm.paramWriter = new rb.ParameterWriter(vm.rb_par_ui);
 
         // get a memory region for the parameter ring buffer
-        // This one is to send parameters from the worker to the UI
-        vm.sab_par_worker = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
-        vm.rb_par_worker = new rb.RingBuffer(vm.sab_par_worker, Uint8Array);
-        vm.paramReader = new rb.ParameterReader(vm.rb_par_worker);
+        // This one is to send parameters from the agent to the UI
+        vm.sab_par_agent = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
+        vm.rb_par_agent = new rb.RingBuffer(vm.sab_par_agent, Uint8Array);
+        vm.paramReader = new rb.ParameterReader(vm.rb_par_agent);
 
 
         // Initialize agent worker
         // experiment with , { type : 'module' }
-        vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
-        vm.worker.onmessage = vm.workerCallback;
+        vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
+        vm.agent.onmessage = vm.agentCallback;
 
-        // Send a message to worker with some necessary 
-        // configurations and constants to store inside the worker
+        // Send a message to agent with some necessary 
+        // configurations and constants to store inside the agent
         // TODO : i removed await
-        vm.worker.postMessage({
-            hookType: vm.workerHookType.INIT_WORKER,
+        vm.agent.postMessage({
+            hookType: vm.agentHookType.INIT_AGENT,
             content: {
                 config: vm.config,
                 playerType: vm.playerType,
@@ -445,20 +436,20 @@ export default {
                 statusType: vm.statusType,
                 noteType: vm.noteType,
                 uiParameterType: vm.uiParameterType,
-                workerHookType: vm.workerHookType,
+                agentHookType: vm.agentHookType,
 
                 sab: vm.sab,
                 sab_par_ui: vm.sab_par_ui,
-                sab_par_worker: vm.sab_par_worker,
+                sab_par_agent: vm.sab_par_agent,
                 channelCount: 2,
                 sampleRate: vm.audioContext.sampleRate
             }
         });
-        vm.timeout_IDS_live.push(setInterval(vm.workerParameterObserver, vm.monitorObserverInterval));
+        vm.timeout_IDS_live.push(setInterval(vm.agentParameterObserver, vm.monitorObserverInterval));
         
 
         // Initialize Clock Worker (module)
-        vm.clockWorker = new Worker("/workers/clock.js", { type: "module" });
+        vm.clockWorker = new Worker("/clock.js", { type: "module" });
         vm.clockWorker.onmessage = vm.tickBehavior;
         vm.clockWorker.postMessage({ action: 'setBpm', bpm: vm.localBPM });
         vm.$store.commit("initializeClock");
@@ -508,7 +499,7 @@ export default {
             // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
             // send the mic to the recorderNode --> recorderWorklet
             vm.mediaStreamSource.connect(vm.recorderWorkletNode);
-            // vm.workerPlayer = new Tone.Player().toDestination();
+            // vm.agentPlayer = new Tone.Player().toDestination();
         }
         vm.audioContext.resume(); // ?
         /*
@@ -626,11 +617,11 @@ export default {
                 if (vm.config.players.metronome)
                     vm.metronomeTrigger(); 
 
-                // in grid-based mode, the worker's sampler is triggered in sync with the clock
-                vm.triggerWorkerSamplerSync(); // UNCOMMENT
+                // in grid-based mode, the agent's sampler is triggered in sync with the clock
+                vm.triggerAgentSamplerSync(); // UNCOMMENT
 
 
-                // run the worker with a small delay of tick/4 in order to include 
+                // run the agent with a small delay of tick/4 in order to include 
                 // any notes that the user played very close to the tick change.
                 // this makes the grid a bit more flexible, and the human input is correctly parsed
                 // In terms of playability, the human finds it much more easy to play along the metronome on the grid
@@ -639,15 +630,15 @@ export default {
                     if (vm.config.noteModeSettings.gridBased.delayedExecution) {
                         console.log("delayedExecution");
                         vm.timeout_IDS_live.push(setTimeout(function () {
-                                vm.runTheWorker();
+                                vm.runTheAgent();
                             }, parseInt(vm.$store.getters.getClockPeriod / 4))
                         );
                     }  else {
-                        vm.runTheWorker();
+                        vm.runTheAgent();
                     }                  
                 } else {
-                    // inside runTheWorker we increment the "delayed" tick number.
-                    // If we don't run the worker, we still want to increment the "delayed" tick number
+                    // inside runTheAgent we increment the "delayed" tick number.
+                    // If we don't run the agent, we still want to increment the "delayed" tick number
                     // because other parts of the code depend on it. In this case tick === delayedTick
                     vm.$store.commit("incrementTickDelayed");
                 }
@@ -801,29 +792,26 @@ export default {
 
             // If the clock is running, send the note to the piano roll
             if (vm.$store.getters.getClockStatus) {
-              // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+              // If eventBased mode, send an NOTE_EVENT MICP packet to the agent
               // this packet will be sent to the processUserNoteEvent hook.
               if (vm.config.noteModeSettings.eventBased) {
-                vm.worker.postMessage({
-                  hookType: vm.workerHookType.NOTE_EVENT,
+                vm.agent.postMessage({
+                  hookType: vm.agentHookType.NOTE_EVENT,
                   content: noteEvent,
                 });
               }
 			}
 		},
         
-        /*
-        * neural network web worker's callback and worker call methods.
-        * Called every tick, and processes the AI's output.
-        */
+        
         // TODO : change the name : agent, clock event, tick etc
-        runTheWorker() {
+        runTheAgent() {
             const vm = this;
             // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
-            // it's up to the worker to use it if it wants to.
+            // it's up to the agent to use it if it wants to.
             this.estimateHumanQuantizedNote();
 
-            // remember, runTheWorker happens with a small delay of tick/4 after the tick
+            // remember, runTheAgent happens with a small delay of tick/4 after the tick
             // here I just keep track of the 'delayed' tick
             this.$store.commit("incrementTickDelayed");
 
@@ -841,8 +829,8 @@ export default {
                 messageContent['humanContinuousBuffer'] = this.$store.getters.getMidiEventBuffer;
             if (vm.config.noteModeSettings.gridBased.quantizedEvents)
                 messageContent['humanQuantizedInput'] = this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick);
-            this.worker.postMessage({
-                hookType: vm.workerHookType.CLOCK_EVENT,
+            this.agent.postMessage({
+                hookType: vm.agentHookType.CLOCK_EVENT,
                 content: messageContent,
             })
         },
@@ -950,42 +938,42 @@ export default {
             // TODO : and modify the logic accordingly.
             },
 
-        workerParameterObserver() {
-            let newParameterWorker = { index: null, value: null };
-            if (this.paramReader.dequeue_change(newParameterWorker)) {
-                this.dataForMonitoring[newParameterWorker.index] = newParameterWorker.value;
-                if (newParameterWorker.index == 4) {
+        agentParameterObserver() {
+            let newParameterAgent = { index: null, value: null };
+            if (this.paramReader.dequeue_change(newParameterAgent)) {
+                this.dataForMonitoring[newParameterAgent.index] = newParameterAgent.value;
+                if (newParameterAgent.index == 4) {
                 }
             }
         },
 
-        triggerWorkerSamplerSync() {
+        triggerAgentSamplerSync() {
             var vm = this;
-            const workerNotesToBePlayed = this.$store.getters.popWorkerNotesToBePlayedAt(
+            const agentNotesToBePlayed = this.$store.getters.popAgentNotesToBePlayedAt(
                 this.$store.getters.getGlobalTickDelayed
             );
-            if (workerNotesToBePlayed.length > 0) {
-                workerNotesToBePlayed.forEach((noteEvent) => {
-                vm.processWorkerNoteEvent(noteEvent);
+            if (agentNotesToBePlayed.length > 0) {
+                agentNotesToBePlayed.forEach((noteEvent) => {
+                vm.processAgentNoteEvent(noteEvent);
                 });
             }
         },
 
-        async workerCallback(e) {
+        async agentCallback(e) {
             const vm = this;
             let hookType = parseInt(e.data.hookType);
             let message = e.data.message;
-            if (hookType == vm.workerHookType.CLOCK_EVENT) {
+            if (hookType == vm.agentHookType.CLOCK_EVENT) {
                 // Look for the CLOCK_TIME message
-                // The worker should always include a message of type CLOCK_TIME
+                // The agent should always include a message of type CLOCK_TIME
                 // when posting from the CLOCK_EVENT hook
-                let workerPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
-                if ((workerPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
+                let agentPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
+                if ((agentPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
                 this.$toasted.show(
                     "Network tick misalignment: expecting " +
                     this.$store.getters.getLocalTickDelayed +
                     ", got " +
-                    workerPredictionTick
+                    agentPredictionTick
                 );
                 this.misalignErrCount += 1;
                 }
@@ -1007,13 +995,13 @@ export default {
                     case vm.messageType.NOTE_LIST: {
                         const noteEventsList = messageValue;
                         noteEventsList.forEach((noteEventPlain) => {
-                            // The noteEvents received from the worker are serialized
+                            // The noteEvents received from the agent are serialized
                             // we need to deserialize them before using them
                             let noteEvent = NoteEvent.fromPlain(noteEventPlain);
                             if (noteEvent.playAfter.tick > 0) {
-                                this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
+                                this.$store.dispatch("storeAgentQuantizedOutput", noteEvent);
                             } else {
-                                vm.processWorkerNoteEvent(noteEvent);
+                                vm.processAgentNoteEvent(noteEvent);
                             }
                         });
                         break;
@@ -1029,9 +1017,9 @@ export default {
                         this.textBoxText = messageValue;
                         break;
                     case vm.messageType.TEXT:
-                        if (hookType == vm.workerHookType.INIT_WORKER) {
-                            const workerStatus = vm.$refs.workerStatus;
-                            workerStatus.innerHTML = messageValue;
+                        if (hookType == vm.agentHookType.INIT_AGENT) {
+                            const agentStatus = vm.$refs.agentStatus;
+                            agentStatus.innerHTML = messageValue;
                         }
                         else {
                             this.textBoxText = messageValue;
@@ -1046,10 +1034,10 @@ export default {
             }
         },
 
-        uiNoteOnWorker(noteEvent) {
+        uiNoteOnAgent(noteEvent) {
             let vm = this;
             // set a timeout to call keyDown based on noteEvent.timestamp.seconds
-            // TODO : the worker should do that
+            // TODO : the agent should do that
             let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
             let whiteKey = noteName.includes('#') ? false : true;
             // Check if the current on-screen key is within the current screen view
@@ -1060,9 +1048,9 @@ export default {
                     this.$root.$refs.pianoRoll.keyDown(noteEvent);
                 if (keyOnScreenRange){
                     if (whiteKey){
-                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-agent');
                     } else {
-                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-agent');
                     }
                 }
             }, noteEvent.playAfter.seconds * 1000)
@@ -1071,7 +1059,7 @@ export default {
 
         // TODO : refactor this one. choose which option
         // to use and remove the other one
-        processWorkerNoteEvent(noteEvent) {
+        processAgentNoteEvent(noteEvent) {
             let vm = this;
             // The noteEvents that arrive here, have already waited for playAfter.tick ticks (if any)
             // so we can only care about playAfter.seconds here. 
@@ -1107,7 +1095,7 @@ export default {
                         if (vm.config.custom.useTriggerRelease){
                             noteEventOff.custom = true;
                         }
-                        this.$store.dispatch("storeWorkerQuantizedOutput", noteEventOff);
+                        this.$store.dispatch("storeAgentQuantizedOutput", noteEventOff);
                         // }
                     
                     } else if (noteEvent.duration.tick == 0){
@@ -1116,7 +1104,7 @@ export default {
                                 // console.log("about to send samplerOnOff ", noteEvent.midi);
                                 this.$store.dispatch("samplerOnOff", noteEvent);
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                    this.uiNoteOffWorker(noteEvent);
+                                    this.uiNoteOffAgent(noteEvent);
                                 }, noteEvent.duration.seconds * 1000)
                                 );
                             
@@ -1126,17 +1114,17 @@ export default {
                                 console.log("option1 ")
                                 // if I want option1 when duration is 0ticks and >0seconds
                                 // I need to create a new noteOff event, and send it after >0seconds
-                                // to a new method  that will call samplerOff and uiNoteOffWorker. TODO
+                                // to a new method  that will call samplerOff and uiNoteOffAgent. TODO
                                 // For now, I just use option2
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                        this.uiNoteOffWorker(noteEvent);
+                                        this.uiNoteOffAgent(noteEvent);
                                         this.$store.dispatch("samplerOff", noteEvent)
                                     }, noteEvent.duration.seconds * 1000)
                                 );
                             }
                         } else {
-                            // throw error, worker generated note with duration 0ticks and 0seconds
-                            console.error("Worker generated note with duration 0 ticks and 0 seconds")
+                            // throw error, agent generated note with duration 0ticks and 0seconds
+                            console.error("Agent generated note with duration 0 ticks and 0 seconds")
                         }
                     }
 
@@ -1145,20 +1133,20 @@ export default {
                     this.$store.dispatch("samplerOn", noteEvent);
                 }
                 // this.$store.dispatch("samplerOn", noteEvent);
-                this.uiNoteOnWorker(noteEvent);
+                this.uiNoteOnAgent(noteEvent);
             } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
                 if (!noteEvent.hasOwnProperty('custom')){
                     this.$store.dispatch("samplerOff", noteEvent);
                 }
-                // console.log("about to call uiNoteOffWorker");
-                this.uiNoteOffWorker(noteEvent);
+                // console.log("about to call uiNoteOffAgent");
+                this.uiNoteOffAgent(noteEvent);
             }
         },
 
-        uiNoteOffWorker(noteEvent){
+        uiNoteOffAgent(noteEvent){
             let vm = this;
-            // console.log("uiNoteOffWorker")
-            // TODO : the worker should do that
+            // console.log("uiNoteOffAgent")
+            // TODO : the agent should do that
             let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
             // If '#' in noteName then whiteKey is false else true
             let whiteKey = noteName.includes('#') ? false : true;
@@ -1170,10 +1158,10 @@ export default {
                 if (keyOnScreenRange){
                     if (whiteKey){
                         // console.log("released white key ", noteName)
-                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
+                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-agent');
                     } else {
                         // console.log("released black key ", noteName)
-                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
+                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-agent');
                     }
                 }
                 if (this.config.gui.pianoRoll.status)
@@ -1324,7 +1312,7 @@ export default {
         },
 
         buttonAction(buttonId) {
-            // use paramWriter to write a parameter to the worker
+            // use paramWriter to write a parameter to the agent
             const buttonPropertyName = `BUTTON_${buttonId}`;
             if (this.paramWriter != null &&
                 !this.paramWriter.enqueue_change(this.uiParameterType[buttonPropertyName], 1.0)) {
@@ -1346,7 +1334,7 @@ export default {
 
             // First, load all the configs files and merge them into one
             let configFilesURL = this.configFiles.map((file) => {
-                return `/workers/${this.workerName}/${file}`;
+                return `/agents/${this.agentName}/${file}`;
             });
             // get all files using xhr
             let xhrs = configFilesURL.map((url) => {

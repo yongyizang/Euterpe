@@ -64,8 +64,8 @@ export const uiParameterType = {
     SWITCH_4: 11,  
 }
 
-export const workerHookType = {
+export const agentHookType = {
     CLOCK_EVENT : 0,
     NOTE_EVENT : 1,
-    INIT_WORKER: 2,
+    INIT_AGENT: 2,
 }

@@ -2,7 +2,7 @@
   <div id="app">
     <div ref="LoadingScreen" id="LoadingScreen">
       <div class="center">
-        <p ref="workerStatus" class="loadingStatus">
+        <p ref="agentStatus" class="loadingStatus">
           Loading Static Files, Please wait...
         </p>
         <div class="loader">

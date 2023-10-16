@@ -8,13 +8,13 @@
   
     --keyboard-white-color: #f7f0d2;
     --keyboard-white-active-color-human: #32ddcfb4;
-    --keyboard-white-active-color-worker: #d15833cb;
+    --keyboard-white-active-color-agent: #d15833cb;
 
     --keyboard-white-text-color: #180202;
 
     --keyboard-black-color: #3d3636;
     --keyboard-black-text-color: #f7f0d2;
-    --keyboard-black-active-color-worker: #812104ee;
+    --keyboard-black-active-color-agent: #812104ee;
     --keyboard-black-active-color-human: #0f9186b4;
 
     --keyboard-border-radius: 5px;
@@ -26,6 +26,6 @@
     --score-background-color: #3d3c3ce7;
   
     --pianoRoll-human-color: #32ddcf;
-    --pianoRoll-worker-color: #d15833;
+    --pianoRoll-agent-color: #d15833;
   }
   

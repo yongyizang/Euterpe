@@ -1,0 +1,110 @@
+gui:
+  score: 
+    status: true
+  textBox:
+    status: true
+    title: "Last Note"
+  pianoRoll:
+    status: true
+  keyboard:
+    status: true # not used (always true)
+  chromaChart:
+    status: true
+  audioMeter: 
+    status: true
+  monitor:
+    status: true # not used (always true)
+    title: "Monitor"
+    structure:
+      - label: "Audio levels"
+        parameters:
+          - id: 0 # id's must be unique
+            label: "rms" # choose any name
+            interval: 50 # in ms
+            graph: true
+            min: 0
+            max: 0.2
+        #   - id: 1
+        #     label: "Loudness"
+        #     interval: 50 # in ms
+        #     graph: true
+        #     min: 0
+        #     max: 100
+      - label: "Agent"
+        parameters:
+        #   - id: 2
+        #     label: "Inference Time"
+        #     interval: 100 # in ms
+        #     graph: false
+        #     min: 0
+        #     max: 30
+          - id: 3
+            label: "True BPM"
+            interval: 100 # in ms
+            graph: true
+            min: 80
+            max: 130
+          - id: 4
+            label: "Error BPM"
+            interval: 100 # in ms
+            graph: false
+            min: -10
+            max: +10
+          # - id: 5
+          #   label: "Audio Frames Per Tick"
+          #   interval: 100 # in ms
+          #   graph: true
+          #   min: 0
+          #   max: 20
+
+      
+  settingsModal:
+    switches:
+      - id: 1 # unique within switches
+        label: "Switch 1"
+        status: false
+      - id: 2
+        label: "Switch 2"
+        status: false
+      - id: 3
+        label: "Switch 3"
+        status: false
+      - id: 4
+        label: "Switch 4"
+        status: false
+
+    sliders:
+      - id: 1 # unique within sliders
+        label: "Slider 1"
+        value: 0
+        min: 0
+        max: 100
+      - id: 2
+        label: "Slider 2"
+        value: 0
+        min: 0
+        max: 100
+      - id: 3
+        label: "Slider 3"
+        value: 0
+        min: 0
+        max: 100
+      - id: 4
+        label: "Slider 4"
+        value: 0
+        min: 0
+        max: 100
+
+    buttons:
+      - id: 1 # unique within buttons
+        label: "Button 1"
+      - id: 2
+        label: "Button 2"
+      - id: 3
+        label: "Button 3"
+      - id: 4
+        label: "Button 4"
+
+
+
+
