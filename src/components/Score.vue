@@ -147,17 +147,17 @@ export default {
     var grandStaff = document.getElementById("grandStaff");
     var grandStaffChildren = grandStaff.children;
     for (var i = 0; i < grandStaffChildren.length; i++) {
-      var grandStaffChildrenChildren = grandStaffChildren[i].children;
-      for (var j = 0; j < grandStaffChildrenChildren.length; j++) {
-        grandStaffChildrenChildren[j].style.fill = this.lineColor;
-        grandStaffChildrenChildren[j].style.stroke = this.lineColor;
-      }
+        var grandStaffChildrenChildren = grandStaffChildren[i].children;
+        for (var j = 0; j < grandStaffChildrenChildren.length; j++) {
+            grandStaffChildrenChildren[j].style.fill = this.lineColor;
+            grandStaffChildrenChildren[j].style.stroke = this.lineColor;
+        }
     }
     var clefs = document.getElementsByClassName("vf-clef");
     for (var j = 0; j < clefs.length; j++) {
-      var clefPath = clefs[j].children[0];
-      clefPath.style.fill = this.lineColor;
-      clefPath.style.stroke = this.lineColor;
+        var clefPath = clefs[j].children[0];
+        clefPath.style.fill = this.lineColor;
+        clefPath.style.stroke = this.lineColor;
     }
   },
 
@@ -167,98 +167,98 @@ export default {
     },
 
     init() {
-      const vm = this;
-      // Render the grand staff.
-      this.grandStaffDiv = document.getElementById("grandStaff");
-      this.grandStaffRenderer = new this.VF.Renderer(
-        this.grandStaffDiv,
-        this.VF.Renderer.Backends.SVG
-      );
-      this.grandStaffRenderer.resize(200, 300);
-      var grandStaffContext = this.grandStaffRenderer.getContext();
-      var trebleStave = new this.VF.Stave(30, 50, 200)
-        .addClef("treble")
-        .setStyle({
-          fillStyle: this.lineColor,
-          strokeStyle: this.lineColor,
-          lineWidth: this.lineWidth,
+        const vm = this;
+        // Render the grand staff.
+        this.grandStaffDiv = document.getElementById("grandStaff");
+        this.grandStaffRenderer = new this.VF.Renderer(
+                this.grandStaffDiv,
+                this.VF.Renderer.Backends.SVG
+        );
+        this.grandStaffRenderer.resize(200, 300);
+        var grandStaffContext = this.grandStaffRenderer.getContext();
+        var trebleStave = new this.VF.Stave(30, 50, 200)
+            .addClef("treble")
+            .setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
         });
-      var bassStave = new this.VF.Stave(30, 150, 200).addClef("bass").setStyle({
-        fillStyle: this.lineColor,
-        strokeStyle: this.lineColor,
-        lineWidth: this.lineWidth,
-      });
-      trebleStave.setContext(grandStaffContext).draw();
-      bassStave.setContext(grandStaffContext).draw();
+        var bassStave = new this.VF.Stave(30, 150, 200).addClef("bass").setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+        });
+        trebleStave.setContext(grandStaffContext).draw();
+        bassStave.setContext(grandStaffContext).draw();
 
-      var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3).setStyle({
-        fillStyle: this.lineColor,
-        strokeStyle: this.lineColor,
-        lineWidth: this.lineWidth,
-      });
-      var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
-        1
-      ).setStyle({
-        fillStyle: this.lineColor,
-        strokeStyle: this.lineColor,
-        lineWidth: this.lineWidth,
-      });
-      brace.setContext(grandStaffContext).draw();
-      lineLeft.setContext(grandStaffContext).draw();
+        var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3).setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+        });
+        var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
+            1
+        ).setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+        });
+        brace.setContext(grandStaffContext).draw();
+        lineLeft.setContext(grandStaffContext).draw();
 
-      // Set ground for background staves.
-      this.targetDiv = document.getElementById("staveBackground");
-      this.renderer = new this.VF.Renderer(
-        this.targetDiv,
-        this.VF.Renderer.Backends.SVG
-      );
-      this.renderer.resize(this.screenWidth, 300);
-      this.context = this.renderer.getContext();
-      this.tickContexts.push(new this.VF.TickContext());
-      this.tickContexts.push(new this.VF.TickContext());
+        // Set ground for background staves.
+        this.targetDiv = document.getElementById("staveBackground");
+        this.renderer = new this.VF.Renderer(
+            this.targetDiv,
+            this.VF.Renderer.Backends.SVG
+        );
+        this.renderer.resize(this.screenWidth, 300);
+        this.context = this.renderer.getContext();
+        this.tickContexts.push(new this.VF.TickContext());
+        this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 5000));
-      this.staves.push(new this.VF.Stave(30, 150, 5000));
+        this.staves.push(new this.VF.Stave(30, 50, 5000));
+        this.staves.push(new this.VF.Stave(30, 150, 5000));
 
-      this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
-      this.staves[0]
-        .setContext(this.context)
-        .setStyle({
-          fillStyle: this.lineColor,
-          strokeStyle: this.lineColor,
-          lineWidth: this.lineWidth,
-        })
-        .draw();
-      this.staves[1]
-        .setContext(this.context)
-        .setStyle({
-          fillStyle: this.lineColor,
-          strokeStyle: this.lineColor,
-          lineWidth: this.lineWidth,
-        })
-        .draw();
+        this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
+        this.staves[0]
+            .setContext(this.context)
+            .setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+            })
+            .draw();
+        this.staves[1]
+            .setContext(this.context)
+            .setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+            })
+            .draw();
 
 
-      // Set ground for the notes.
-      this.targetDiv = document.getElementById("noteBox");
-      this.renderer = new this.VF.Renderer(
-        this.targetDiv,
-        this.VF.Renderer.Backends.SVG
-      );
-      this.renderer.resize(this.screenWidth, 300);
-      this.context = this.renderer.getContext();
+        // Set ground for the notes.
+        this.targetDiv = document.getElementById("noteBox");
+        this.renderer = new this.VF.Renderer(
+            this.targetDiv,
+            this.VF.Renderer.Backends.SVG
+        );
+        this.renderer.resize(this.screenWidth, 300);
+        this.context = this.renderer.getContext();
 
-      this.tickContexts.push(new this.VF.TickContext());
-      this.tickContexts.push(new this.VF.TickContext());
+        this.tickContexts.push(new this.VF.TickContext());
+        this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 0));
-      this.staves.push(new this.VF.Stave(30, 150, 0));
+        this.staves.push(new this.VF.Stave(30, 50, 0));
+        this.staves.push(new this.VF.Stave(30, 150, 0));
 
-      this.staves[0].setContext(this.context);
-      this.staves[1].setContext(this.context);
+        this.staves[0].setContext(this.context);
+        this.staves[1].setContext(this.context);
 
-      
-      
+        
+        
     },
 
     enableScrolling() {

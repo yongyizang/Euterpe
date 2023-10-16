@@ -154,6 +154,7 @@ const mutations = {
         state.playersConfig = config.players;
         console.log("inside setInstrumentsConfig", state.playersConfig);
         state.limiter = new Tone.Limiter(-5).toDestination();
+        // state.limiter = new Tone.Channel().toDestination();
         // const tremolo = new Tone.Tremolo(9, 0.75).toDestination().start();
 
         for (const [player, playerData] of Object.entries(state.playersConfig)) {

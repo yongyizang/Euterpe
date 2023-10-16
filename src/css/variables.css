@@ -19,8 +19,10 @@
 
     --keyboard-border-radius: 5px;
   
-    --note-color: #e6a100;
-    --line-color: #ebe9e0;
+    --note-color: #3d3c3ce7;
+    --line-color: #3d3c3ce7;
+    /* --note-color: #f0f5c7e7;
+    --line-color: #f0f5c7e7; */
     --score-background-color: #3d3c3ce7;
   
     --pianoRoll-human-color: #32ddcf;
