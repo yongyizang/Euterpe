@@ -2,10 +2,10 @@ gui:
   score: 
     status: false
   textBox:
-    status: false
+    status: true
     title: "Last Note"
   pianoRoll:
-    status: false
+    status: true
   keyboard:
     status: true # not used (always true)
   chromaChart:
