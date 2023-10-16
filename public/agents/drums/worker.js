@@ -21,7 +21,7 @@ let statusType = null;
 let noteType = null;
 let parameterType = null;
 let agentHookType = null;
-let testVar = 42;
+
 // Audio related variables
 let channelCount = null;
 let sampleRate = null;

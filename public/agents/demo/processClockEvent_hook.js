@@ -28,115 +28,47 @@ function processClockEvent(content) {
     let timeDiff = startTime - prevStartTime;
     prevStartTime = startTime;
 
-    const currentTick = content.tick;   
+    const currentTick = content.tick; 
+    const quantizedEvents = content.humanQuantizedInput;  
+    // console.log(quantizedEvents);
+    let noteList = [];
+    if (quantizedEvents.length > 0){
+        let testNote = NoteEvent.fromPlain(quantizedEvents[0]);
+        let arp_note = new NoteEvent();
+        arp_note.player = self.playerType.AGENT;
+        // The instrument is required for playback
+        arp_note.instrument = self.instrumentType.PIANO;
+        // The type of the note is the same as the user's input (note on)
+        arp_note.type = testNote.type;
+        // The midi note number is calculated by adding the arpeggio interval
+        arp_note.midi = testNote.midi - 12;
+        // The velocity is the same as the user's input
+        arp_note.velocity = testNote.velocity;
+        // Every note of the arpegio is played with a delay
+        // of 0.1 seconds from the previous note.
+        arp_note.playAfter = {
+            tick: 7,
+            seconds: 0 ,
+        },
+        // And has duration of 0.1 seconds
+        arp_note.duration = {
+            tick: 0,
+            seconds: 0.6,
+        }
+        noteList.push(arp_note);
+        console.log("agent generated note: " + arp_note.midi);
+    }
     
-    let features = self.audio_features_queue.toArrayAndClear()
-    let chromas = features.map(f => f.chroma);
-    let rms = features.map(f => f.rms);
-    // self._param_writer.enqueue_change(5, chromas.length);
-
-    let tickAverageChroma = null
-    if (chromas.length == 0){
-        // float array of zeros
-        tickAverageChroma = new Float32Array(12);
-    }
-    else {
-        tickAverageChroma = average2d(chromas);
-        // The chroma's we get from Meyda seem to be shifted by 1 left. 
-        // That's probably a bug in Meyda. We'll shift it back here.
-        shiftRight(tickAverageChroma)
-    }
 
     let actualPeriod = timeDiff;
     let actualBPM = 60 / (actualPeriod / 1000) / self.config.clockSettings.ticksPerBeat;
     let error = actualBPM - 100;//self.config.clockSettings.tempo;
     self._param_writer.enqueue_change(3, actualBPM);
-    self._param_writer.enqueue_change(4, error);
+    // self._param_writer.enqueue_change(4, error);
     // console.log("agentWorker: " + Math.round(currentBPM) + " error: " + error);
 
-    let noteList = [];
-    let dividedBy2 = currentTick % 2 == 0;
-    let dividedBy4 = currentTick % 4 == 0;
-    let dividedBy8 = currentTick % 8 == 0;
-    if (dividedBy2){
-        const drumNote = new NoteEvent();
-        drumNote.player = self.playerType.AGENT;
-        drumNote.instrument = self.instrumentType.DRUMS;
-        drumNote.type = self.noteType.NOTE_ON;
-        drumNote.midi = 14; // That's required for playback
-        drumNote.velocity = 110; // That's required for playback
-        drumNote.createdAt = {
-            tick: currentTick,
-            seconds: performance.now()
-        }
-        // play the note 1 tick and 0 seconds after it was generated
-        drumNote.playAfter = {
-            tick: 0,
-            seconds: 0
-        }
-        // The duration of the drumNote
-        drumNote.duration = {
-            tick: 0,
-            seconds: 1
-        }
-        // Push the drumNote to the list of notes to be sent to the UI
-        noteList.push(drumNote);
-    }
-    if (dividedBy4 & !dividedBy8){
-        const drumNote = new NoteEvent();
-        drumNote.player = self.playerType.AGENT;
-        drumNote.instrument = self.instrumentType.DRUMS;
-        drumNote.type = self.noteType.NOTE_ON;
-        drumNote.midi = 13; // That's required for playback
-        drumNote.velocity = 90; // That's required for playback
-        drumNote.createdAt = {
-            tick: currentTick,
-            seconds: performance.now()
-        }
-        // play the note 1 tick and 0 seconds after it was generated
-        drumNote.playAfter = {
-            tick: 0,
-            seconds: 0
-        }
-        // The duration of the drumNote
-        drumNote.duration = {
-            tick: 0,
-            seconds: 1
-        }
-        // Push the drumNote to the list of notes to be sent to the UI
-        noteList.push(drumNote);
-    }
-    // Generate a kick every second quarter note (on the 1st and 3rd beat)
-    if (dividedBy8){
-        const drumNote = new NoteEvent();
-        drumNote.player = self.playerType.AGENT;
-        drumNote.instrument = self.instrumentType.DRUMS;
-        drumNote.type = self.noteType.NOTE_ON;
-        drumNote.midi = 12; // That's required for playback
-        drumNote.velocity = 127; // That's required for playback
-        drumNote.createdAt = {
-            tick: currentTick,
-            seconds: performance.now()
-        }
-        // play the note 1 tick and 0 seconds after it was generated
-        drumNote.playAfter = {
-            tick: 0,
-            seconds: 0
-        }
-        // The duration of the drumNote
-        drumNote.duration = {
-            tick: 0,
-            seconds: 1
-        }
-        // Push the drumNote to the list of notes to be sent to the UI
-        noteList.push(drumNote);
-    }
+    
 
-    // estimate the inference time of your algorithm
-    // the UI keeps track of this, and updates the 
-    // maximum supported BPM (in settings)
-    // use the parameter id for Inference Time in config_widgets.yaml
-    // self._param_writer.enqueue_change(2, predictTime);
 
     /*
     At this stage, the worker has finished processing the clock event
@@ -154,7 +86,7 @@ function processClockEvent(content) {
             [self.messageType.CLOCK_TIME]: content.tick, // Do not modify
             [self.messageType.INFERENCE_TIME]: endTime - startTime, // Do not modify
             // Add your messages here
-            [self.messageType.CHROMA_VECTOR]: tickAverageChroma,
+            // [self.messageType.CHROMA_VECTOR]: tickAverageChroma,
             [self.messageType.NOTE_LIST]: noteList,
         },
     })

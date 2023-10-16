@@ -42,7 +42,7 @@ export default {
         },
         top: {
             type: Number,
-            default: 250
+            default: 323
         },
         left: {
             type: Number,

@@ -62,6 +62,7 @@ function processNoteEvent(noteEvent){
     something to send.
     */
     // console.log("processNoteEvent", self.agentHookType);
+    console.log("Insde the Hook ", self.testVar);
     postMessage({
         hookType: self.agentHookType.NOTE_EVENT, // Do not modify
         message:{

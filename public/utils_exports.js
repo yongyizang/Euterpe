@@ -322,3 +322,4 @@ class NoteEvent {
   // }
 }
 
+export { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent };

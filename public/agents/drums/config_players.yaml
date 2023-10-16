@@ -20,8 +20,8 @@ players:
     mute: false
     volume: 5
     instruments:
-      - id: "piano"
-        label: "Piano"
+      - id: "synth"
+        label: "Synth"
         mute: false
         volume: 5
       - id: "drums"
