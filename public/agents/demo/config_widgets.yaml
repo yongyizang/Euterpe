@@ -18,63 +18,55 @@ gui:
     structure:
       - label: "Audio levels"
         parameters:
+            # The 'id' for each parameter must be unique and is used
+            # in the hooks for adding new values for monitoring
+            # The 'label' is the parameter name that appears in the GUI.
+            # The 'interval' is the refresh rate of the parameter in ms.
+            # The 'graph' flag allows you to visualize the value as a time grpah.
+            # The 'min' and 'max' indicate the expected range of the parameter.
           - id: 0 # id's must be unique
-            label: "rms" # choose any name
-            interval: 50 # in ms
+            label: "rms" 
+            interval: 50
             graph: true
             min: 0
             max: 0.2
-        #   - id: 1
-        #     label: "Loudness"
-        #     interval: 50 # in ms
-        #     graph: true
-        #     min: 0
-        #     max: 100
       - label: "Agent"
         parameters:
-        #   - id: 2
-        #     label: "Inference Time"
-        #     interval: 100 # in ms
-        #     graph: false
-        #     min: 0
-        #     max: 30
           - id: 3
             label: "True BPM"
-            interval: 100 # in ms
+            interval: 100 
             graph: true
             min: 80
             max: 130
           - id: 4
             label: "Error BPM"
-            interval: 100 # in ms
+            interval: 100
             graph: false
             min: -10
             max: +10
-          # - id: 5
-          #   label: "Audio Frames Per Tick"
-          #   interval: 100 # in ms
-          #   graph: true
-          #   min: 0
-          #   max: 20
-
       
   settingsModal:
     switches:
-      - id: 1 # unique within switches
+        # You can create up to 4 switches
+        # The 'id' for each switch needs to be unique within switches
+        # and in an ascending order starting from 1.
+        # The 'label' is the switch name that appears on the GUI.
+        # The 'status' is the default state of the switch.
+      - id: 1
         label: "Switch 1"
         status: false
       - id: 2
         label: "Switch 2"
         status: false
-      - id: 3
-        label: "Switch 3"
-        status: false
-      - id: 4
-        label: "Switch 4"
-        status: false
 
     sliders:
-      - id: 1 # unique within sliders
+        # You can create up to 4 sliders
+        # The 'id' for each slider needs to be unique within sliders
+        # and in an ascending order starting from 1.
+        # The 'label' is the slider name that appears on the GUI.
+        # The 'value' is the default value.
+        # The 'min' and 'max' indicate the slider's range.
+      - id: 1
         label: "Slider 1"
         value: 0
         min: 0
@@ -84,26 +76,8 @@ gui:
         value: 0
         min: 0
         max: 100
-      - id: 3
-        label: "Slider 3"
-        value: 0
-        min: 0
-        max: 100
-      - id: 4
-        label: "Slider 4"
-        value: 0
-        min: 0
-        max: 100
 
-    buttons:
-      - id: 1 # unique within buttons
-        label: "Button 1"
-      - id: 2
-        label: "Button 2"
-      - id: 3
-        label: "Button 3"
-      - id: 4
-        label: "Button 4"
+
 
 
 

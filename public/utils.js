@@ -321,3 +321,5 @@ class NoteEvent {
   //   this._playAt = value;
   // }
 }
+
+export { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent };

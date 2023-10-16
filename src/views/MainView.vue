@@ -248,7 +248,7 @@ export default {
         // Choose the agent. 
         // This string should be one of
         // dir names inside public/agents/
-        agentName: "template", 
+        agentName: "pianoGenie", 
         // Provide all the config files that should be loaded
         // These should be in public/agents/{agentName}/
         configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
@@ -420,7 +420,7 @@ export default {
 
         // Initialize agent worker
         // experiment with , { type : 'module' }
-        vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
+        vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`,  { type : 'module' });
         vm.agent.onmessage = vm.agentCallback;
 
         // Send a message to agent with some necessary 
@@ -616,6 +616,8 @@ export default {
                 // Trigger the metronome only if there is a "metronome" entry in config_players.yaml
                 if (vm.config.players.metronome)
                     vm.metronomeTrigger(); 
+                
+                vm.calculateMaxBPM();
 
                 // in grid-based mode, the agent's sampler is triggered in sync with the clock
                 vm.triggerAgentSamplerSync(); // UNCOMMENT
@@ -746,7 +748,7 @@ export default {
                         seconds: 0
                     }
             this.$store.dispatch("samplerOn", metronomeNote);
-            this.calculateMaxBPM();
+            
             }
         },
 
@@ -761,7 +763,7 @@ export default {
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
             if (noteEvent.type == vm.noteType.NOTE_ON) {
                     // console.log("note on");
-                if (this.config.gui.pianoRoll.status) {
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.status.human) {
                     vm.$root.$refs.pianoRoll.keyDown(noteEvent);
                 }
                 vm.$store.dispatch("noteOn", noteEvent);
@@ -775,7 +777,7 @@ export default {
                     }
                 }
             } else if (noteEvent.type == vm.noteType.NOTE_OFF) {
-                if (this.config.gui.pianoRoll.status) {
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.status.human) {
                     vm.$root.$refs.pianoRoll.keyUp(noteEvent);
                 }
                 vm.$store.dispatch("noteOff", noteEvent);
@@ -964,19 +966,24 @@ export default {
             let hookType = parseInt(e.data.hookType);
             let message = e.data.message;
             if (hookType == vm.agentHookType.CLOCK_EVENT) {
-                // Look for the CLOCK_TIME message
-                // The agent should always include a message of type CLOCK_TIME
-                // when posting from the CLOCK_EVENT hook
+                // Look for the CLOCK_TIME and INFERENCE_TIME messages
+                // The agent should always include two messages of type CLOCK_TIME and INFERENCE_TIME
+                // when posting from the CLOCK_EVENT hook (processClockEvent())
                 let agentPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
                 if ((agentPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
-                this.$toasted.show(
-                    "Network tick misalignment: expecting " +
-                    this.$store.getters.getLocalTickDelayed +
-                    ", got " +
-                    agentPredictionTick
-                );
-                this.misalignErrCount += 1;
+                    this.$toasted.show(
+                        "Network tick misalignment: expecting " +
+                        this.$store.getters.getLocalTickDelayed +
+                        ", got " +
+                        agentPredictionTick
+                    );
+                    this.misalignErrCount += 1;
                 }
+                let agentInferenceTime = e.data.message[vm.messageType.INFERENCE_TIME];
+                vm.modelInferenceTimes.push(agentInferenceTime);
+                console.log("just pushed ", agentInferenceTime, " to modelInferenceTimes")
+                
+
             }
 
             for (let messageTypeStr in message) {

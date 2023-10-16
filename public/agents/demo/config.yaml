@@ -56,9 +56,9 @@ clockSettings:
   # operates on a "free-time" mode (no BPM or timeSignature)
   clockPeriod: null
   
-# Worker related settings.
-workerSettings:
-  # For Workers that require warmup (such as neural networks)
+# Agent related settings.
+agentSettings:
+  # For Agents that require warmup (such as neural networks)
   warmupRounds: 2
 
 # Choose the text to be displayed in the splash screen animation

@@ -1,18 +1,76 @@
-// This is the older type of worker (non module). 
-// You need to use importScripts to import libraries.
-// Essentia.js can't be imported this way but Meyda can.
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
-importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js");
+// This is module type of worker. 
 
-importScripts("../../libraries/index_rb_no_exports.js");
-importScripts("../../utils.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.4.0/dist/tf.min.js");
+
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/core.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/piano_genie.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/music_vae.js");
+
+// importScripts("../../libraries/magenta-1-7-0.js");
+// importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js");
+
+
+// importScripts("../../libraries/index_rb_no_exports.js");
+// importScripts("../../utils.js");
 
 // Import hooks
-importScripts("./initAgent_hook.js");
-importScripts("./processClockEvent_hook.js");
-importScripts("./processNoteEvent_hook.js");
-importScripts("./processAudioBuffer_hook.js");
+// importScripts("./initAgent_hook.js");
+// importScripts("./processClockEvent_hook.js");
+// importScripts("./processNoteEvent_hook.js");
+// importScripts("./processAudioBuffer_hook.js");
 
+// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.4.0/dist/tf.min.js");
+// // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/music_vae.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/piano_genie.js");
+
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/core.js");
+
+// import { PianoGenie } from '@magenta/music';
+// import { MusicVAE } from '@magenta/music';
+// import * as mm from '@magenta/music';
+
+// import * as mm from 'https://cdn.jsdelivr.net/npm/@magenta/music@1.12.0/es6/core.js';
+// import '@magenta/music@1.12.0/es6/piano_genie.js';
+// import '@magenta/music@1.12.0/es6/music_vae.js';
+// import * as mm from '../../libraries/magenta-1-7-0';
+
+// import {MusicVAE} from "https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/music_vae.js";
+// import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.es2017.js'
+// import * as tf from 'https://www.npmjs.com/package/@tensorflow/tfjs/v/1.7.4/dist/tf.esm.js'
+// import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.es2017.js'
+// import * as tf from '@tensorflow/tfjs';
+import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.7.0/dist/tf.min.js';
+// tf.disableDeprecationWarnings();
+// import 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.58/Tone.js';
+// import * as tf from 'https://cdnjs.cloudflare.com/ajax/libs/tensorflow/1.2.8/tf.min.js';
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/index.js';
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/lib.js';
+
+import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/core.js'
+import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_vae.js';
+import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_rnn.js';
+import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/protobuf.js';
+
+import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/piano_genie.js';
+
+
+
+import { updateParameter, loadAlgorithm, loadExternalFiles} from './initAgent_hook.js';
+import { processClockEvent } from './processClockEvent_hook.js';
+import { processNoteEvent } from './processNoteEvent_hook.js';
+import { processAudioBuffer } from './processAudioBuffer_hook.js';
+import {
+    AudioReader,
+    AudioWriter,
+    ParameterReader,
+    ParameterWriter,
+    RingBuffer,
+    // deinterleave,
+    // interleave,
+  } from './../../libraries/index_rb_no_exports.js';
+import { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent } from './../../utils.js';
+
+// import Meyda from 'meyda';
 let config = null;
 let playerType = null;
 let instrumentType = null;  
@@ -43,6 +101,15 @@ let _param_writer = null;
 let newParameterUI = null;
 
 let prevTime = performance.now();
+
+let temperature = null;
+const totalNotes = 88; 
+let keyWhitelist = Array(totalNotes).fill().map((x,i) => {
+    return i;
+});
+const GENIE_CHECKPOINT = 'https://storage.googleapis.com/magentadata/js/checkpoints/piano_genie/model/epiano/stp_iq_auto_contour_dt_166006'; 
+
+
 
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize
@@ -84,21 +151,6 @@ function _uiParameterObserver(){
     if (self._param_reader.dequeue_change(newParameterUI)) {
         console.log("param index: " + newParameterUI.index + " value: " + newParameterUI.value);
         updateParameter(newParameterUI);
-    }
-}
-
-// Hook that takes the necessary configuration data from the main thread
-async function initAgent(content) {
-    console.log("inside initAgent");
-    try {
-        loadConfig(content);
-        loadExternalFiles(content);
-        loadAlgorithm(content);
-        initAudio(content);
-        initParameterSharing(content);
-        console.log("Initialization complete");
-    } catch (error) {
-        console.error("Error initializing worker:", error);
     }
 }
 
@@ -192,7 +244,8 @@ function initAudio(content){
     */
     self.staging = new Float32Array(self.hopSize);
 
-    Meyda.bufferSize = self.windowSize;
+    // Meyda.bufferSize = self.windowSize;
+    
     
     self.interval = setInterval(_readFromQueue, 10);
     console.log("finished setting up audio")
@@ -200,8 +253,9 @@ function initAudio(content){
 
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
+    console.log("EIMAI STHN ONMESSAGE");
     if (self.config == null) {
-        await self.initAgent(obj.data.content);
+        await initAgent(obj.data.content);
         // make sure that the config is loaded
         if (self.config == null) {
             console.error("Agent not initialized correctly. Failed to load config")
@@ -212,15 +266,40 @@ async function onMessageFunction (obj) {
         }
     } else {
         if (obj.data.hookType == self.agentHookType.CLOCK_EVENT) {
-            self.processClockEvent(obj.data.content);
+            processClockEvent(obj.data.content);
         } else if (obj.data.hookType == self.agentHookType.NOTE_EVENT){
             // The NoteEvent we receive from the UI is serialized
             // We need to deserialize it
             let noteEvent = NoteEvent.fromPlain(obj.data.content);
-            self.processNoteEvent(noteEvent);
+            console.log("noteEvent: ", noteEvent);
+            processNoteEvent(noteEvent);
         }
     }
     return;
 }
 
-onmessage = onMessageFunction;
+// Hook that takes the necessary configuration data from the main thread
+async function initAgent(content) {
+    // const mvae = new music_vae.MusicVAE('https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small');
+    // await mvae.initialize();
+    // console.log(mm);
+    
+    console.log("inside initAgent");
+    try {
+        loadConfig(content);
+        loadExternalFiles(content);
+        loadAlgorithm(content);
+        initAudio(content);
+        initParameterSharing(content);
+        console.log("Initialization complete");
+    } catch (error) {
+        console.error("Error initializing worker:", error);
+    }
+}
+
+self.onmessage = onMessageFunction;
+
+// self.addEventListener('message', (event) => {
+//     // Handle messages from the main thread
+//     console.log("EIMAI STHN ADD EVENT LISTENER");
+//   });

@@ -31,7 +31,8 @@ export const messageType = {
     CHORD_LABEL: 12,
     LABEL: 14,
     TEXT: 13,
-    CLOCK_TIME: 1
+    CLOCK_TIME: 1,
+    INFERENCE_TIME: 2
 };
   
 export const statusType = {
