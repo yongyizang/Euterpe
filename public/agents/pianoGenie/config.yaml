@@ -1,7 +1,7 @@
 ---
 # The name of your system
-title: "Euterpe"
-subtitle: "A music interaction system framework"
+title: "PianoGenie"
+subtitle: "With the power of Euterpe"
 
 # Set the correct flags based on the type of your music interaction algorithm
 interactionMode: 
@@ -66,8 +66,6 @@ agentSettings:
 introModal: true
 introModalContent:
   - "Hi! This is Euterpe."
-  - "Right now, I'm hosting a musical agent that does ... nothing"
-  - "Modify the *.yaml config files and add your code in the *hook.js files to create your own music agent"
-
+  - "Right now, I'm hosting a musical agent named PianoGenie"
 custom:
   useTriggerRelease: true
