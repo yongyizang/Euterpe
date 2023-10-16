@@ -823,9 +823,9 @@ export default {
             this.$store.commit("incrementTickDelayed");
 
             // MAJOR TODO : draw should probably go before the delayedTickIncrement
-            if (vm.config.gui.score.status) {
-                this.$root.$refs.score.draw();
-            }
+            // if (vm.config.gui.score.status) {
+            //     this.$root.$refs.score.draw();
+            // }
             let messageContent = {
                 tick: this.$store.getters.getLocalTick,
                 globalTick: this.$store.getters.getGlobalTick,

@@ -6,7 +6,7 @@ subtitle: "A music interaction system framework"
 # Set the correct flags based on the type of your music interaction algorithm
 interactionMode: 
   noteMode: true
-  audioMode: false
+  audioMode: true
 
 noteModeSettings:
   eventBased:

@@ -1,6 +1,6 @@
 gui:
   score: 
-    status: false
+    status: true
   textBox:
     status: true
     title: "Last Note"
