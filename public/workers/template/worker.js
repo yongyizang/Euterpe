@@ -500,8 +500,8 @@ async function processClockEvent(content) {
         message:{
             [self.messageType.CHROMA_VECTOR]: 
                     tickAverageChroma,
-            [self.messageType.NOTE_LIST]: 
-                    noteList,
+            // [self.messageType.NOTE_LIST]: 
+            //         noteList,
             [self.messageType.CLOCK_TIME]:
                     currentTick
         },

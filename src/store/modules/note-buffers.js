@@ -248,9 +248,10 @@ const actions = {
         // TODO : I still need this to display the notes in the score  
         // TODO : Move this code to score.js 
         let args = {};
+        // console.log("in store", quantizedEventList)
         // keep only the "on" and "hold" type events from quantizedEventList in a new array
         const quantizedEventListOnHold = quantizedEventList.filter((event) => event.type === state.noteType.NOTE_ON || event.type === state.noteType.NOTE_HOLD);
-
+        // console.log("in store ON HOLD", quantizedEventListOnHold);
         if ( quantizedEventListOnHold.length > 0 ) {
             args = {midi : quantizedEventList[0].midi,
                     // articulation is 1 if type="on" and 0 if type="hold"
@@ -296,15 +297,11 @@ const actions = {
         When a note is "off", turn off pianoState
     */
     noteOn ({ commit, state, getters }, midiEvent) {
-        // Everything starts Here.
-
-        // console.log("noteOn", midiEvent.midi);
         state.pianoState[midiEvent.midi].status = true;
-        state.pianoState[midiEvent.midi].timestamp = midiEvent.timestamp;
+        state.pianoState[midiEvent.midi].timestamp = midiEvent.createdAt.seconds;
 
         state.noteOnBuffer.push(midiEvent);
         state.midiEventBuffer.push(midiEvent);
-
         state.lastEvent = midiEvent;
         state.lastEventTick = getters.getGlobalTickDelayed;
         state.lastNoteOnEvent = midiEvent;
@@ -313,11 +310,10 @@ const actions = {
     },
     noteOff ({ commit, state, getters }, midiEvent) {
         state.pianoState[midiEvent.midi].status = false;
-        state.pianoState[midiEvent.midi].timestamp = midiEvent.timestamp;
+        state.pianoState[midiEvent.midi].timestamp = midiEvent.createdAt.seconds;
 
         state.midiEventBuffer.push(midiEvent);
         state.noteOffBuffer.push(midiEvent);
-
         state.lastEvent = midiEvent;
         state.lastEventTick = getters.getGlobalTickDelayed;
         state.lastNoteOffEvent = midiEvent;

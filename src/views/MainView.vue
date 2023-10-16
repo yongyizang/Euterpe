@@ -352,6 +352,7 @@ export default {
         this.$store.commit("initQuantBuffers", this.config);
         this.$store.commit("setTicksPerMeasure", this.config);
         this.$store.commit("createInstruments", this.config);
+        this.$store.commit("setNoteType", this.noteType);
         
         // Activate/Deactivate GUI widgets based on config
         this.scoreStatus = this.config.gui.score.status
@@ -543,7 +544,7 @@ export default {
             const newNoteEvent = new NoteEvent();
             newNoteEvent.player = vm.playerType.HUMAN;
             newNoteEvent.instrument = vm.instrumentType.PIANO;
-            newNoteEvent.source = vm.eventSourceType.KEYBOARD;
+            newNoteEvent.eventSource = vm.eventSourceType.KEYBOARD;
             newNoteEvent.name = noteName;
             newNoteEvent.type = vm.noteType.NOTE_ON;
             newNoteEvent.channel = 140; // this is channel midi channel 0
@@ -567,7 +568,7 @@ export default {
             const newNoteEvent = new NoteEvent();
             newNoteEvent.player = vm.playerType.HUMAN;
             newNoteEvent.instrument = vm.instrumentType.PIANO;
-            newNoteEvent.source = vm.eventSourceType.KEYBOARD;
+            newNoteEvent.eventSource = vm.eventSourceType.KEYBOARD;
             newNoteEvent.name = noteName;
             newNoteEvent.type = vm.noteType.NOTE_OFF;
             newNoteEvent.channel = 140; // this is channel midi channel 0
@@ -772,7 +773,9 @@ export default {
                 if (this.config.gui.pianoRoll.status) {
                     vm.$root.$refs.pianoRoll.keyDown(noteEvent);
                 }
+                vm.$store.dispatch("noteOn", noteEvent);
                 vm.$store.dispatch("samplerOn", noteEvent);
+                
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey){
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
@@ -784,7 +787,9 @@ export default {
                 if (this.config.gui.pianoRoll.status) {
                     vm.$root.$refs.pianoRoll.keyUp(noteEvent);
                 }
+                vm.$store.dispatch("noteOff", noteEvent);
                 vm.$store.dispatch("samplerOff", noteEvent);
+                
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey){
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
@@ -823,9 +828,11 @@ export default {
             this.$store.commit("incrementTickDelayed");
 
             // MAJOR TODO : draw should probably go before the delayedTickIncrement
-            // if (vm.config.gui.score.status) {
-            //     this.$root.$refs.score.draw();
-            // }
+            if (vm.config.gui.score.status) {
+                this.$root.$refs.score.draw();
+                let lastNote = this.$store.getters.getLastHumanNoteQuantized
+                console.log("startTick", lastNote.startTick, "midi", lastNote.midi, "duration", lastNote.dur);
+            }
             let messageContent = {
                 tick: this.$store.getters.getLocalTick,
                 globalTick: this.$store.getters.getGlobalTick,
@@ -849,6 +856,7 @@ export default {
             */
 
             const bufferEvent = this.$store.getters.getMidiEventBuffer;
+            // console.log("bufferEvent", bufferEvent);
             // activePianoNotes are sorted by their "on" timestamp (newest to oldest)
             const activePianoNotes = this.$store.getters.getActivePianoNotes;
             let currentQuantizedEvents = [];
@@ -878,21 +886,22 @@ export default {
                 const midi = activePianoNotes[i].midi;
                 const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === vm.noteType.NOTE_ON && elem.midi === midi);
                 if (noteOnEvent) {
-                // currentQuantizedEvents.push({
-                //   type: "on",
-                //   midi: midi,
-                // })
-                currentQuantizedEvents.push(noteOnEvent)
+                    // currentQuantizedEvents.push({
+                    //   type: "on",
+                    //   midi: midi,
+                    // })
+                    currentQuantizedEvents.push(noteOnEvent)
                 }
                 else {
-                            const noteHoldEvent = new NoteEvent();
-                            noteHoldEvent.type = vm.noteType.NOTE_HOLD;
-                            noteHoldEvent.player = vm.playerType.HUMAN;
-                            noteHoldEvent.midi = midi;
+                    const noteHoldEvent = new NoteEvent();
+                    noteHoldEvent.type = vm.noteType.NOTE_HOLD;
+                    noteHoldEvent.player = vm.playerType.HUMAN;
+                    noteHoldEvent.midi = midi;
 
-                currentQuantizedEvents.push(noteHoldEvent);
+                    currentQuantizedEvents.push(noteHoldEvent);
                 }
             }
+            // console.log("currentQuantEvents", currentQuantizedEvents);
             // TODO : it seems I ignore rests. If no active notes, then currentQuantizedEvents will be empty
 
             // now iterate over the bufferEvent and find all the noteOff notes and push them to currentQuantizedEvents as off events
@@ -919,7 +928,7 @@ export default {
             // let offEvents = currentQuantizedEvents.filter(elem => elem.type === "off");
             if (onHoldEvents.length > vm.config.noteModeSettings.gridBased.polyphony.input) {
                 // let onHoldEventsToRemove = onHoldEvents.slice(polyphony);
-                let onHoldEventsToKeep = onHoldEvents.slice(0, vm.config.polyphony.input);
+                let onHoldEventsToKeep = onHoldEvents.slice(0, vm.config.noteModeSettings.gridBased.polyphony.input);
                 // let offEventsToAdd = onHoldEventsToRemove.map(elem => {
                 //   return {
                 //     type: "off",
@@ -931,7 +940,8 @@ export default {
             else {
                 constrainedCurrentQuantizedEvents = [...currentQuantizedEvents];
             }
-
+            // console.log("currentQuantEvents", currentQuantizedEvents);
+            // console.log("CONSTRAINTQuantEvents", constrainedCurrentQuantizedEvents);
             this.$store.dispatch("storeHumanQuantizedInput", constrainedCurrentQuantizedEvents);
 
             this.$store.commit("clearContinuousBuffers");
@@ -1207,7 +1217,7 @@ export default {
                 newNoteEvent.player = vm.playerType.HUMAN;
                 newNoteEvent.instrument = vm.instrumentType.PIANO;
                 newNoteEvent.name = message.note.identifier;
-                newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
+                newNoteEvent.eventSource = vm.eventSourceType.MIDI_KEYBOARD;
                 newNoteEvent.type = vm.noteType.NOTE_ON;
                 newNoteEvent.channel = message.data[0];
                 newNoteEvent.midi = message.data[1];
@@ -1230,7 +1240,7 @@ export default {
                 newNoteEvent.player = vm.playerType.HUMAN;
                 newNoteEvent.instrument = vm.instrumentType.PIANO;
                 newNoteEvent.name = message.note.identifier;
-                newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
+                newNoteEvent.eventSource = vm.eventSourceType.MIDI_KEYBOARD;
                 newNoteEvent.type = vm.noteType.NOTE_OFF;
                 newNoteEvent.channel = message.data[0];
                 newNoteEvent.midi = message.data[1];

@@ -97,7 +97,8 @@ export default {
       // Scrolling starts once the x cursor has reached the desired latestNotePosition
       scrollsCounter: 0,
       scrollsNumberPerMeasure: 400,
-      preDur: 1
+      preDur: 1,
+      scrollEnabled: false,
     };
   },
 
@@ -262,14 +263,15 @@ export default {
 
     enableScrolling() {
       setInterval(() => {
-      if (this.$store.getters.getClockStatus && this.scrollEnabled) {
-        this.scrollScore(1);
-        this.scrollsCounter += 1;
-        this.scrollsNumberPerMeasure =
-          ((60 / this.$store.getters.getBPM) * 4 * 1000) /
-          this.scrollStepTime;
-        }
-      }, this.scrollStepTime);
+        if (this.$store.getters.getClockStatus && this.scrollEnabled) {
+          console.log("scrolling score")
+          this.scrollScore(1);
+          this.scrollsCounter += 1;
+          this.scrollsNumberPerMeasure =
+            ((60 / this.$store.getters.getBPM) * 4 * 1000) /
+            this.scrollStepTime;
+          }
+        }, this.scrollStepTime);
     },
 
     scrollScore(steps) {
@@ -280,46 +282,50 @@ export default {
     },
 
     formatQuantizedNote(quantNoteDict, clef = "treble", afairetis = 0) {
-      const vm = this;
+        const vm = this;
 
-      var formName;
-      var extraR = "";
+        var formName;
+        var extraR = "";
 
-      // Get formatted name
-      if (quantNoteDict.midi === 0) {
-        formName = clef == "treble" ? "b/4" : "d/2";
-        extraR = "r";
-      } else {
-        formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi));
-      }
-
-      // get formatted duration
-      var durationTokens;
-      var durations;
-      [durationTokens, durations] = this.DurationFormatter(
-        quantNoteDict.dur - afairetis
-      );
-      // console.log(formName, " ", durationTokens);
-      // stem_direction vm.VF.StaveNote.STEM_UP
-      var notes = [];
-      for (let i = 0; i < durationTokens.length; i++) {
-        let newNote = new vm.VF.StaveNote({
-          clef: clef,
-          keys: [formName],
-          duration: durationTokens[i] + extraR,
-        }).setStyle({
-          fillStyle: this.noteColor,
-          strokeStyle: this.noteColor,
-        });
-        if (durationTokens[i].includes("d")) {
-          newNote.addDotToAll();
+        // Get formatted name
+        if (quantNoteDict.midi === 0) {
+            formName = clef == "treble" ? "b/4" : "d/2";
+            extraR = "r";
+        } else {
+            formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi));
         }
-        if (formName.charAt(1) == "#") {
-          newNote.addAccidental(0, new vm.VF.Accidental("#"));
+
+        // get formatted duration
+        var durationTokens;
+        var durations;
+        [durationTokens, durations] = this.DurationFormatter(
+            quantNoteDict.dur - afairetis
+        );
+        // console.log(formName, " ", durationTokens);
+        // stem_direction vm.VF.StaveNote.STEM_UP
+        var notes = [];
+        for (let i = 0; i < durationTokens.length; i++) {
+            let newNote = new vm.VF.StaveNote({
+                clef: clef,
+                keys: [formName],
+                duration: durationTokens[i] + extraR,
+                }).setStyle({
+                    fillStyle: this.noteColor,
+                    strokeStyle: this.noteColor,
+                });
+            if (durationTokens[i].includes("d")) {
+                const dot = new vm.VF.Dot();
+                // dot.setDotShiftY(newNote.glyph.dot_shiftY);
+                newNote.addModifier(dot, 0);
+                // newNote.addDotToAll();
+            }
+            if (formName.charAt(1) == "#") {
+                // newNote.addAccidental(0, new vm.VF.Accidental("#"));
+                newNote.addModifier(new vm.VF.Accidental("#"), 0)
+            }
+            notes.push(newNote);
         }
-        notes.push(newNote);
-      }
-      return { notes: notes, durations: durations };
+        return { notes: notes, durations: durations };
     },
 
     // TODO drawTop and drawBottom are almost the same. Find a way so we don't have to

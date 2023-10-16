@@ -194,7 +194,8 @@ export default {
     noteActive(note) {
         // If the note is active, the state of that note is true.
         let midi = Note.midi(note);
-        return this.$store.getters.getPianoState[midi].status === true;
+        // return this.$store.getters.getPianoState[midi].status === true;
+        return false;
     },
 
     toggleAttack(currentNote) {
