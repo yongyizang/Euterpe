@@ -24,7 +24,6 @@ function processNoteEvent(noteEvent){
         let start = performance.now()
         // bypass is 0 or 1
         if (self.bypass == 0) {
-            console.log("temperature is " + self.temperature/100);
             outputMidi = self.genie.nextFromKeyList(button, self.keyWhitelist, self.temperature/100) + 21;
         } 
         
@@ -68,7 +67,6 @@ function processNoteEvent(noteEvent){
     something to send.
     */
     // console.log("processNoteEvent", self.agentHookType);
-    console.log("accessed ? ", self.config2);
     postMessage({
         hookType: self.agentHookType.NOTE_EVENT, // Do not modify
         message:{

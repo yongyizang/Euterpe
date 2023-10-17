@@ -7,8 +7,8 @@ import PianoRoll from "@/components/PianoRollLegacy.vue";
 import Score from "@/components/Score.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
 // import HorizontalSlider from '@/components/HorizontalSlider.vue'
-import BPMSlider from '@/components/BPMSlider.vue'
 import AudioMeter from "@/components/AudioMeter.vue";
+import BPMSlider from '@/components/BPMSlider.vue'
 // import VectorBar from "../components/VectorBar.vue";
 import ChromaChart from "@/components/ChromaChart.vue";
 import Monitor from "@/components/Monitor.vue";
@@ -25,10 +25,10 @@ import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
 import * as rb from "ringbuf.js";
 import {
-	playerType, instrumentType, eventSourceType,
-  messageType, statusType, noteType,
-  uiParameterType,
-  agentHookType
+    playerType, instrumentType, eventSourceType,
+    messageType, statusType, noteType,
+    uiParameterType,
+    agentHookType
 } from '@/utils/types.js'
 
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
@@ -57,92 +57,93 @@ export default {
 
     data() {
         return {
-        // Choose the agent. 
-        // This string should be one of
-        // dir names inside public/agents/
-        agentName: "pianoGenie", 
-        // Provide all the config files that should be loaded
-        // These should be in public/agents/{agentName}/
-        configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
+            // Choose the agent. 
+            // This string should be one of
+            // dir names inside public/agents/
+            agentName: "pianoGenie", 
+            // Provide all the config files that should be loaded
+            // These should be in public/agents/{agentName}/
+            configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
 
-        config: null,
-                
-        playerType,
-        instrumentType,
-        eventSourceType,
-        messageType,
-        statusType,
-        noteType,
-        uiParameterType,
-        agentHookType,
-                
-        // These need to be initialized here as empty arrays (computed properties)
-        // They'll be filled in the created() hook
-        switches: [],
-        sliders: [],
-        buttons: [],
-        // Information about the players and 
-        // instruments available to each player.
-        // It's used to create the mixer modal.
-        // This is filled in the created() hook
-        players: [],
+            config: null,
+                    
+            playerType,
+            instrumentType,
+            eventSourceType,
+            messageType,
+            statusType,
+            noteType,
+            uiParameterType,
+            agentHookType,
+                    
+            // These need to be initialized here as empty arrays (computed properties)
+            // They'll be filled in the created() hook
+            switches: [],
+            sliders: [],
+            buttons: [],
+            // Information about the players and 
+            // instruments available to each player.
+            // It's used to create the mixer modal.
+            // This is filled in the created() hook
+            players: [],
 
-        dataForMonitoring: {},
+            dataForMonitoring: {},
 
-        // Score status
-        scoreShown: true,
-        scrollStatus: true, // THIS ONE. Too many flags for score
-        scoreStatus: true,
-        // Textbox status
-        textBoxTitle: null,
-        textBoxText: null,
-        textBoxStatus: false,
+            // Score status
+            scoreShown: true,
+            scrollStatus: true, // THIS ONE. Too many flags for score
+            scoreStatus: true,
+            // Textbox status
+            textBoxTitle: null,
+            textBoxText: null,
+            textBoxStatus: false,
 
-        localBPM: null,
-        localSyncClockStatus: false, // used to trigger local UI change
-        screenWidth: document.body.clientWidth,
-        screenHeight: document.body.clientHeight,
-        keyboardKey: 0,
-        keyboardoctaveStart: 2,
-        keyboardoctaveEnd: 6,
+            localBPM: null,
+            localSyncClockStatus: false, // used to trigger local UI change
+            screenWidth: document.body.clientWidth,
+            screenHeight: document.body.clientHeight,
+            keyboardKey: 0,
+            keyboardoctaveStart: 2,
+            keyboardoctaveEnd: 6,
 
-        // audioContext: null,
-        mediaStreamSource: null,
-        audioSettings: null,
-        recorderWorkletNode: null,
-        recorderWorkletBundle: null,
+            // audioContext: null,
+            mediaStreamSource: null,
+            audioSettings: null,
+            recorderWorkletNode: null,
+            recorderWorkletBundle: null,
 
-        sab: null,
-        sab_par_ui: null,
-        rb_par_ui: null,
-        paramWriter: null,
-        sab_par_agent: null,
-        rb_par_agent: null,
+            sab: null,
+            sab_par_ui: null,
+            rb_par_ui: null,
+            paramWriter: null,
+            sab_par_agent: null,
+            rb_par_agent: null,
 
-        monitorObserverInterval: null,
+            monitorObserverInterval: null,
 
-        WebMIDISupport: false,
-        pageLoadTime: null,
-        modelLoadTime: null,
-        activeDevices: [],
-        selectedMIDIDevice: "",
+            WebMIDISupport: false,
+            pageLoadTime: null,
+            modelLoadTime: null,
+            activeDevices: [],
+            selectedMIDIDevice: "",
 
-        noteOffEventForNextTick: null,
+            noteOffEventForNextTick: null,
 
-        // used to calculate the average agent inference time (gridBased mode) 
-        // and estimate maxBPM
-        modelInferenceTimes: [],
-        // maxBPM (or min clock period) supported by the current device
-        maxBPM: 0,
-        // counter for the number of times the agent inference time exceeds the clock period
-        misalignErrCount: 0,
+            // used to calculate the average agent inference time (gridBased mode) 
+            // and estimate maxBPM
+            modelInferenceTimes: [],
+            // maxBPM (or min clock period) supported by the current device
+            maxBPM: 0,
+            // counter for the number of times the agent inference time exceeds the clock period
+            misalignErrCount: 0,
 
-        isNotChrome,
-        isMobile,
-        // Keep track of all the timeouts ids to clear them when the the user pauses
-        timeout_IDS_kill: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
-        timeout_IDS_live: [],
-
+            isNotChrome,
+            isMobile,
+            // Keep track of all the timeouts ids to clear them when the the user pauses
+            timeout_IDS_kill: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
+            timeout_IDS_live: [],
+            
+            mixer_data: null,
         };
     },
 
@@ -158,7 +159,7 @@ export default {
         this.$store.commit("setTicksPerMeasure", this.config);
         this.$store.commit("createInstruments", this.config);
         this.$store.commit("setNoteType", this.noteType);
-        
+
         // Activate/Deactivate GUI widgets based on config
         this.scoreStatus = this.config.gui.score.status
         this.textBoxStatus = this.config.gui.textBox.status
@@ -178,11 +179,11 @@ export default {
 
         this.monitorObserverInterval = 10;
         this.dataForMonitoring = {},
-        this.config.gui.monitor.structure.forEach((tab) => {
-            tab.parameters.forEach((parameter) => {
-                vm.dataForMonitoring[parameter.id] = 0;
+            this.config.gui.monitor.structure.forEach((tab) => {
+                tab.parameters.forEach((parameter) => {
+                    vm.dataForMonitoring[parameter.id] = 0;
+                });
             });
-        });
         console.log("created localBPM set to defaultBPM from config ", this.config.clockSettings.defaultBPM);
         this.localBPM = this.config.clockSettings.defaultBPM;
         console.log("created main end")
@@ -216,7 +217,7 @@ export default {
         // length in time is 1 second of stereo audio
         // Float32Array is 4 bytes per sample
         vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
-        
+
 
         // get a memory region for the parameter ring buffer
         // This one is to send parameters from the UI to the agent
@@ -266,7 +267,7 @@ export default {
             }
         });
         vm.timeout_IDS_live.push(setInterval(vm.agentParameterObserver, vm.monitorObserverInterval));
-        
+
 
         // Initialize Clock Worker (module)
         vm.clockWorker = new Worker("/clock.js", { type: "module" });
@@ -274,7 +275,7 @@ export default {
         vm.clockWorker.postMessage({ action: 'setBpm', bpm: vm.localBPM });
         vm.$store.commit("initializeClock");
 
-        if (vm.config.interactionMode.audioMode){
+        if (vm.config.interactionMode.audioMode) {
             /*
             * Initialize Audio Recorder (for audio recording).
             */
@@ -292,19 +293,19 @@ export default {
 
             vm.mediaStreamSource.connect(vm.analyserNode);
 
-            if (vm.config.gui.audioMeter.status){
+            if (vm.config.gui.audioMeter.status) {
                 vm.$root.$refs.audioMeter.init(vm.analyserNode);
                 vm.$root.$refs.audioMeter.updateAnalysis();
             }
-        
+
             // vm.$root.$refs.vectorBar.init();
             // vm.$root.$refs.vectorBar.updateAnalysis();
             vm.audioContext.resume(); // ?
 
             const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
             await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
-        
-        
+
+
 
             vm.recorderWorkletNode = new AudioWorkletNode(
                 vm.audioContext,
@@ -327,14 +328,14 @@ export default {
         * Web MIDI logic
         */
         if (navigator.requestMIDIAccess) {
-        navigator.requestMIDIAccess().then(function (access) {
-            vm.WebMIDISupport = true;
-            access.onstatechange = vm.onEnabled;
-        });
-        // Enable WebMIDI, then call onEnabled method.
-        WebMidi.enable()
-            .then(vm.onEnabled)
-            .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
+            navigator.requestMIDIAccess().then(function (access) {
+                vm.WebMIDISupport = true;
+                access.onstatechange = vm.onEnabled;
+            });
+            // Enable WebMIDI, then call onEnabled method.
+            WebMidi.enable()
+                .then(vm.onEnabled)
+                .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
         }
 
         /*
@@ -434,10 +435,10 @@ export default {
             var vm = this;
             if (vm.$store.getters.getClockStatus) {
                 vm.$store.commit("incrementTick");
-                
+
                 // Trigger the metronome only if there is a "metronome" entry in config_players.yaml
                 if (vm.config.players.metronome)
-                    vm.metronomeTrigger(); 
+                    vm.metronomeTrigger();
                 
                 vm.calculateMaxBPM();
 
@@ -455,13 +456,13 @@ export default {
                         // console.log("delayedExecution");
                         vm.timeout_IDS_live.push(setTimeout(function () {
                                 vm.estimateHumanQuantizedNote();
-                                vm.runTheAgent();
-                            }, parseInt(vm.$store.getters.getClockPeriod / 4))
+                            vm.runTheAgent();
+                        }, parseInt(vm.$store.getters.getClockPeriod / 4))
                         );
-                    }  else {
+                    } else {
                         vm.estimateHumanQuantizedNote();
                         vm.runTheAgent();
-                    }                  
+                    }
                 } else {
                     // inside runTheAgent we increment the "delayed" tick number.
                     // If we don't run the agent, we still want to increment the "delayed" tick number
@@ -485,6 +486,7 @@ export default {
             vm.$store.commit("changeClockStatus");
             // clear pianoState
             vm.$store.commit("clearPianoState");
+            // vm.manuallyUpdateData();
 
             // If the clock is not yet initialized...
             // if (!vm.$store.getters.getClockInitialized) {
@@ -533,7 +535,7 @@ export default {
             //     //     // the tick function which posts a message
             //     //     // and schedules a new tick
             //     //     function tick(){
-                    
+
             //     //     self.postMessage('tick');
             //     //     per = performance.now() - aa;
             //     //     // console.log("ClockWorker ",  Math.round(this.per), " bpm ", Math.round(60000/this.per/4));
@@ -560,19 +562,19 @@ export default {
             // getTicksPerBeat returns the number of ticks per beat
             // and we want the metronome to trigger every beat
             if (this.$store.getters.getLocalTick % this.$store.getters.getTicksPerBeat == 0) {
-            var currentNote =
-                this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
-                    const metronomeNote = new NoteEvent()
-                    metronomeNote.player = vm.playerType.METRONOME;
-                    metronomeNote.name = currentNote;
-                    metronomeNote.type = vm.noteType.NOTE_ON;
-                    metronomeNote.velocity = 127;
-                    metronomeNote.playAfter = {
-                        tick: 0,
-                        seconds: 0
-                    }
-            this.$store.dispatch("samplerOn", metronomeNote);
-            
+                var currentNote =
+                    this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
+                const metronomeNote = new NoteEvent()
+                metronomeNote.player = vm.playerType.METRONOME;
+                metronomeNote.name = currentNote;
+                metronomeNote.type = vm.noteType.NOTE_ON;
+                metronomeNote.velocity = 127;
+                metronomeNote.playAfter = {
+                    tick: 0,
+                    seconds: 0
+                }
+                this.$store.dispatch("samplerOn", metronomeNote);
+                
             }
         },
 
@@ -586,7 +588,7 @@ export default {
             // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
             if (noteEvent.type == vm.noteType.NOTE_ON) {
-                    // console.log("note on");
+                // console.log("note on");
                 if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.human) {
                     vm.$root.$refs.pianoRoll.keyDown(noteEvent);
                 }
@@ -594,7 +596,7 @@ export default {
                 vm.$store.dispatch("samplerOn", noteEvent);
                 
                 if (keyOnScreenRange && !onScreenKeyboard) {
-                    if (whiteKey){
+                    if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
                     } else {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-black-key-human')
@@ -608,7 +610,7 @@ export default {
                 vm.$store.dispatch("samplerOff", noteEvent);
                 
                 if (keyOnScreenRange && !onScreenKeyboard) {
-                    if (whiteKey){
+                    if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
                     } else {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-black-key-human')
@@ -618,17 +620,17 @@ export default {
 
             // If the clock is running, send the note to the piano roll
             if (vm.$store.getters.getClockStatus) {
-              // If eventBased mode, send an NOTE_EVENT MICP packet to the agent
-              // this packet will be sent to the processUserNoteEvent hook.
-              if (vm.config.noteModeSettings.eventBased.status) {
-                vm.agent.postMessage({
-                  hookType: vm.agentHookType.NOTE_EVENT,
-                  content: noteEvent,
-                });
-              }
-			}
-		},
-        
+                // If eventBased mode, send an NOTE_EVENT MICP packet to the agent
+                // this packet will be sent to the processUserNoteEvent hook.
+                if (vm.config.noteModeSettings.eventBased.status) {
+                    vm.agent.postMessage({
+                        hookType: vm.agentHookType.NOTE_EVENT,
+                        content: noteEvent,
+                    });
+                }
+            }
+        },
+
         
         // TODO : change the name : agent, clock event, tick etc
         runTheAgent() {
@@ -701,14 +703,14 @@ export default {
             for (let i = bufferEvent.length - 1; i >= 0; i--) {
                 let elem = bufferEvent[i];
                 if (elem.type === vm.noteType.NOTE_OFF) {
-                    const matchingIndexes = bufferEvent
-                        .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
-                        .filter(index => index !== -1);
-                    if (matchingIndexes.length > 0) {
-                        indexesToRemove.push(i);
-                        forgivenNoteOnIndex = Math.max(...matchingIndexes);
+                        const matchingIndexes = bufferEvent
+                            .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
+                            .filter(index => index !== -1);
+                        if (matchingIndexes.length > 0) {
+                            indexesToRemove.push(i);
+                            forgivenNoteOnIndex = Math.max(...matchingIndexes);
                         // indexesToRemove.push(Math.max(...matchingIndexes));
-                    }
+                        }
                 }
             }
 
@@ -807,7 +809,7 @@ export default {
             // TODO : for the future, keep a reference to the active notes of the previous tick
             // TODO : for more accuracy keep also a reference to the previous tick's quantized notes and constrained quantized notes
             // TODO : and modify the logic accordingly.
-            },
+        },
 
         agentParameterObserver() {
             let newParameterAgent = { index: null, value: null };
@@ -849,13 +851,13 @@ export default {
                 // when posting from the CLOCK_EVENT hook (processClockEvent())
                 let agentPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
                 if ((agentPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
-                    this.$toasted.show(
-                        "Network tick misalignment: expecting " +
-                        this.$store.getters.getLocalTickDelayed +
-                        ", got " +
-                        agentPredictionTick
-                    );
-                    this.misalignErrCount += 1;
+                        this.$toasted.show(
+                            "Network tick misalignment: expecting " +
+                            this.$store.getters.getLocalTickDelayed +
+                            ", got " +
+                            agentPredictionTick
+                        );
+                        this.misalignErrCount += 1;
                 }
                 let agentInferenceTime = e.data.message[vm.messageType.INFERENCE_TIME];
                 vm.modelInferenceTimes.push(agentInferenceTime);
@@ -875,11 +877,6 @@ export default {
                             vm.$refs.entryBtn.style.visibility = "visible";
                             vm.modelLoadTime = Date.now() - vm.modelLoadTime;
                             console.log("success");
-                            console.log(self.config2);
-                            console.log(vm.agent.config2);
-                            console.log(this.config2);
-                            console.log(vm.config2);
-                            console.log(config2);
                         }
                         break;
                     case vm.messageType.NOTE_LIST: {
@@ -902,7 +899,7 @@ export default {
                     case vm.messageType.CHROMA_VECTOR:
                         if (this.audioAndChroma)
                             this.$root.$refs.chromaChart.updateChromaData(messageValue);
-                            // this.$root.$refs.vectorBar.updateVectorData(messageValue);
+                        // this.$root.$refs.vectorBar.updateVectorData(messageValue);
                         else
                             console.warn("The Agent generates chroma vectors but the Chroma Chart is not enabled in the config file");
                         break;
@@ -942,8 +939,8 @@ export default {
                 // if (this.config.gui.pianoRoll.status)
                 if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent)
                     this.$root.$refs.pianoRoll.keyDown(noteEvent);
-                if (keyOnScreenRange){
-                    if (whiteKey){
+                if (keyOnScreenRange) {
+                    if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-agent');
                     } else {
                         this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-agent');
@@ -966,7 +963,7 @@ export default {
                     // Two ways to dealwith notes that have predefined duration.
                     // 1) Create a matching NOTE_OFF event and schedule it to be played after 'duration'
                     // 2) Use Tone.js triggerAttackRelease() api, which takes care of the NOTE_OFF event
-                    
+
                     if (noteEvent.duration.tick > 0) {
                         // ---------------- Second OPTION ----------------
                         if (vm.config.custom.useTriggerRelease) {
@@ -988,23 +985,23 @@ export default {
                         noteEventOff.duration = null;
                         // An ugly hack to make the two options work together for now.
                         // Once we decide which option to use, we can remove this.
-                        if (vm.config.custom.useTriggerRelease){
+                        if (vm.config.custom.useTriggerRelease) {
                             noteEventOff.custom = true;
                         }
                         this.$store.dispatch("storeAgentQuantizedOutput", noteEventOff);
                         // }
-                    
-                    } else if (noteEvent.duration.tick == 0){
-                        if (noteEvent.duration.seconds > 0){
+
+                    } else if (noteEvent.duration.tick == 0) {
+                        if (noteEvent.duration.seconds > 0) {
                             if (vm.config.custom.useTriggerRelease) {
-                                console.log("about to send samplerOnOff ", noteEvent.midi);
+                                // console.log("about to send samplerOnOff ", noteEvent.midi);
                                 this.$store.dispatch("samplerOnOff", noteEvent);
                                 vm.timeout_IDS_live.push(setTimeout(() => {
                                         this.uiNoteOffAgent(noteEvent);
                                     }, noteEvent.duration.seconds * 1000)
                                 );
-                            
-                            // console.log("option2  ")
+
+                                // console.log("option2  ")
                             } else {
                                 this.$store.dispatch("samplerOn", noteEvent);
                                 console.log("option1 ")
@@ -1013,9 +1010,9 @@ export default {
                                 // to a new method  that will call samplerOff and uiNoteOffAgent. TODO
                                 // For now, I just use option2
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                        this.uiNoteOffAgent(noteEvent);
-                                        this.$store.dispatch("samplerOff", noteEvent)
-                                    }, noteEvent.duration.seconds * 1000)
+                                    this.uiNoteOffAgent(noteEvent);
+                                    this.$store.dispatch("samplerOff", noteEvent)
+                                }, noteEvent.duration.seconds * 1000)
                                 );
                             }
                         } else {
@@ -1024,14 +1021,14 @@ export default {
                         }
                     }
 
-                } 
+                }
                 else {
                     this.$store.dispatch("samplerOn", noteEvent);
                 }
                 // this.$store.dispatch("samplerOn", noteEvent);
                 this.uiNoteOnAgent(noteEvent);
             } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
-                if (!noteEvent.hasOwnProperty('custom')){
+                if (!noteEvent.hasOwnProperty('custom')) {
                     this.$store.dispatch("samplerOff", noteEvent);
                 }
                 // console.log("about to call uiNoteOffAgent");
@@ -1053,13 +1050,13 @@ export default {
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
             // set a timeout to call keyUp based on noteEvent.playAfter.seconds
             vm.timeout_IDS_live.push(setTimeout(() => {
-                if (keyOnScreenRange){
-                    if (whiteKey){
+                if (keyOnScreenRange) {
+                    if (whiteKey) {
                         // console.log("released white key ", noteName)
-                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-agent');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-agent');
                     } else {
                         // console.log("released black key ", noteName)
-                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-agent');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-agent');
                     }
                 }
                 // if (this.config.gui.pianoRoll.status)
@@ -1078,7 +1075,7 @@ export default {
                 vm.activeDevices = [];
             } else {
                 WebMidi.inputs.forEach((device) => {
-                vm.activeDevices.push({ id: device.id, name: device.name });
+                    vm.activeDevices.push({ id: device.id, name: device.name });
                 });
                 this.selectedMIDIDevice = this.activeDevices[0].id;
                 this.messageListener();
@@ -1089,8 +1086,8 @@ export default {
             const vm = this;
             if (state.id) {
                 if (vm.selectedMIDIDevice !== state.id) {
-                vm.selectedMIDIDevice = state.id;
-                vm.messageListener();
+                    vm.selectedMIDIDevice = state.id;
+                    vm.messageListener();
                 }
             }
         },
@@ -1141,7 +1138,7 @@ export default {
                     tick: 0
                 };
                 newNoteEvent.duration = null;
-                
+
                 vm.processUserNoteEvent(newNoteEvent)
             });
         },
@@ -1155,12 +1152,12 @@ export default {
             // this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
             this.$store.commit("stopMute");
             // this is a nice hack
-            let id = setTimeout(function() {}, 0);
+            let id = setTimeout(function () { }, 0);
             while (id--) {
                 // check if id is in timeout_IDS_live. if not, then clear it
-                if (this.timeout_IDS_kill.includes(id)){
-                // console.log("deleting timeout id " + id);
-                clearTimeout(id); // will do nothing if no timeout with id is present
+                if (this.timeout_IDS_kill.includes(id)) {
+                    // console.log("deleting timeout id " + id);
+                    clearTimeout(id); // will do nothing if no timeout with id is present
                 }
             }
             // this.timeout_IDS_kill.forEach((timeoutId) => {
@@ -1188,7 +1185,7 @@ export default {
             // this.$root.$refs.mixerDat.guiMixer.hide();
             this.$root.$refs.monitor.pane.hidden = !this.$root.$refs.monitor.pane.hidden;
         },
-        toggleMixer(){
+        toggleMixer() {
             this.$root.$refs.mixer.pane.hidden = !this.$root.$refs.mixer.pane.hidden;
         },
         transposeOctUp() {
@@ -1221,8 +1218,29 @@ export default {
         },
 
         handleMixerUpdate(event) {
-            // console.log('in handler ', event);
             this.$store.commit("handleMixerUpdate", event);
+        },
+
+        manuallyUpdateMixer(event) {
+            this.mixer_data = event;
+            console.log("Main got mixer update", event);
+        },
+
+        manuallyUpdateData() {
+            let vm = this;
+            for (const [player, playerData] of Object.entries(vm.mixer_data)) {
+                console.log("player", player);
+                for (const [instId, instData] of Object.entries(playerData.instruments)) {
+                    console.log("instId", instId);
+                    let changeEvent = {
+                        playerId: player,
+                        instrumentId: instId,
+                        what: 'volume',
+                        value: instData.volume
+                    }
+                    vm.handleMixerUpdate(changeEvent);
+                };
+            }
         },
 
         loadConfigSync() {
@@ -1248,9 +1266,9 @@ export default {
             let config = "";
             xhrs.forEach((xhr) => {
                 if (xhr.status === 200) {
-                config += xhr.responseText + "\n";
+                    config += xhr.responseText + "\n";
                 } else {
-                throw new Error(`Failed to fetch config file: ${xhr.status}`);
+                    throw new Error(`Failed to fetch config file: ${xhr.status}`);
                 }
             });
 
@@ -1289,18 +1307,18 @@ export default {
             handler(newValue) {
                 let octaves;
                 if (newValue <= 750) {
-                octaves = 2;
+                    octaves = 2;
                 } else if (newValue <= 1024) {
-                // for iPads. 1024 * 768.
-                octaves = 3;
+                    // for iPads. 1024 * 768.
+                    octaves = 3;
                 } else if (newValue <= 1366) {
-                // for iPad Pros. 1366 * 1024.
-                octaves = 4;
+                    // for iPad Pros. 1366 * 1024.
+                    octaves = 4;
                 } else if (newValue <= 1920) {
-                // for 1920 * 1080 screens.
-                octaves = 5;
+                    // for 1920 * 1080 screens.
+                    octaves = 5;
                 } else {
-                octaves = 6;
+                    octaves = 6;
                 }
                 this.keyboardoctaveEnd = this.keyboardoctaveStart + octaves;
                 // A trick, to force keyboard re-render itself.
@@ -1312,9 +1330,9 @@ export default {
             immediate: true,
             handler(newValue) {
                 if (newValue == 10) {
-                this.$toasted.show(
-                    "Your local machine cannot run inference at this speed. Try lowering the BPM."
-                );
+                    this.$toasted.show(
+                        "Your local machine cannot run inference at this speed. Try lowering the BPM."
+                    );
                 }
             },
         },
@@ -1341,7 +1359,7 @@ export default {
             handler(newStates, oldStates) {
                 newStates.forEach((newState, index) => {
                     let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
-                    if ( newState.status !== oldStatus) {
+                    if (newState.status !== oldStatus) {
                         let floatStatus = newState.status ? 1.0 : 0.0;
                         const switchPropertyName = `SWITCH_${index + 1}`;
                         if (
@@ -1350,8 +1368,8 @@ export default {
                                 this.uiParameterType[switchPropertyName],
                                 floatStatus
                             )
-                            ) {
-                        console.warn("Couldn't enqueue.");
+                        ) {
+                            console.warn("Couldn't enqueue.");
                         }
                     }
                 });
@@ -1363,21 +1381,21 @@ export default {
             deep: true,
             handler(newStates, oldStates) {
                 newStates.forEach((newState, index) => {
-                let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
-                if (newState.value !== oldStatus) {
-                    // let floatStatus = newState.status ? 1.0 : 0.0;
-                    const sliderPropertyName = `SLIDER_${index + 1}`;
-                    console.log("detected ", sliderPropertyName, " change to ", newState.value);
-                    if (
-                        this.paramWriter != null &&
-                        !this.paramWriter.enqueue_change(
-                            this.uiParameterType[sliderPropertyName],
-                            newState.value
-                        )
+                    let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
+                    if (newState.value !== oldStatus) {
+                        // let floatStatus = newState.status ? 1.0 : 0.0;
+                        const sliderPropertyName = `SLIDER_${index + 1}`;
+                        console.log("detected ", sliderPropertyName, " change to ", newState.value);
+                        if (
+                            this.paramWriter != null &&
+                            !this.paramWriter.enqueue_change(
+                                this.uiParameterType[sliderPropertyName],
+                                newState.value
+                            )
                         ) {
-                    console.warn("Couldn't enqueue.");
+                            console.warn("Couldn't enqueue.");
+                        }
                     }
-                }
                 });
             }
         },
@@ -1592,10 +1610,9 @@ export default {
 
 <style>
 @media (min-width: 1024px) {
-.main {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-}
-}
-</style>
+    .main {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+}</style>

@@ -26,6 +26,10 @@
     --score-background-color: #f1e3a4;
   
     --pianoRoll-human-color: #32ddcf;
+    --pianoRoll-worker-color: #d15833;
+
+    --bg-range-color: #d3d3d3;
+    --bg-value-color: #e6a100;
     --pianoRoll-agent-color: #d15833;
 
     --grey-background-color: #3d3c3ce7;

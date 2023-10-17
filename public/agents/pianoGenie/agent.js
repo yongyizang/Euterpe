@@ -204,7 +204,6 @@ function initAudio(content){
 
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
-    console.log("EIMAI STHN ONMESSAGE");
     if (self.config == null) {
         await initAgent(obj.data.content);
         // make sure that the config is loaded
@@ -222,7 +221,6 @@ async function onMessageFunction (obj) {
             // The NoteEvent we receive from the UI is serialized
             // We need to deserialize it
             let noteEvent = NoteEvent.fromPlain(obj.data.content);
-            console.log("noteEvent: ", noteEvent);
             processNoteEvent(noteEvent);
         }
     }
