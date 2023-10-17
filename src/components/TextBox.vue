@@ -70,7 +70,7 @@ export default {
     border-radius: 8px;
     padding: 3px;
     margin: 1px;
-    background-color: var(--score-background-color);
+    background-color: var(--grey-background-color);
 }
 
 .title {

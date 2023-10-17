@@ -23,9 +23,12 @@
     --line-color: #3d3c3ce7;
     /* --note-color: #f0f5c7e7;
     --line-color: #f0f5c7e7; */
-    --score-background-color: #3d3c3ce7;
+    --score-background-color: #f1e3a4;
   
     --pianoRoll-human-color: #32ddcf;
     --pianoRoll-agent-color: #d15833;
+
+    --grey-background-color: #3d3c3ce7;
+
   }
   
