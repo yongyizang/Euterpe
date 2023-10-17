@@ -13,45 +13,61 @@ import {NoteEvent } from './../../utils_module.js';
 // Local variable to this hook
 let lastMidi = null;
 
+// Create a mapping for the pianoGenie buttons
+// Use the midi numbers of 60, 62, 64, 65, 67, 69, 71, 72
+// to map to the buttons 0, 1, 2, 3, 4, 5, 6, 7
+let buttonMap = {
+    60: 0,
+    62: 1,
+    64: 2,
+    65: 3,
+    67: 4,
+    69: 5,
+    71: 6,
+    72: 7
+}
+
 function processNoteEvent(noteEvent){
     // Put your code here
     let noteList = []
     if (noteEvent.type == self.noteType.NOTE_ON){
-        let button = noteEvent.midi - 60
-        // console.log("button ", button, "temp ", temperature/100);
-
-        let outputMidi = noteEvent.midi;
-        let start = performance.now()
-        // bypass is 0 or 1
-        if (self.bypass == 0) {
-            outputMidi = self.genie.nextFromKeyList(button, self.keyWhitelist, self.temperature/100) + 21;
-        } 
-        
-        let inferenceTime = performance.now() - start;
-        self._param_writer.enqueue_change(0, inferenceTime);
-        lastMidi = outputMidi;
-        // Create a new NoteObject and send it to the main thread
-        // create the new note
-        let arp_note = new NoteEvent();
-        arp_note.player = self.playerType.AGENT;
-        // The instrument is required for playback
-        arp_note.instrument = self.instrumentType.PIANO;
-        // The type of the note is the same as the user's input (note on)
-        arp_note.type = noteEvent.type;
-        arp_note.midi = outputMidi;
-        // The velocity is the same as the user's input
-        arp_note.velocity = noteEvent.velocity;
-        // Play it instantly
-        arp_note.playAfter = {
-            tick: 0,
-            seconds: 0 ,
-        },
-        arp_note.duration = {
-            tick: 0,
-            seconds: 0.5
+        // Check if midi is in the buttonMap
+        console.log("noteEvent.midi is ", noteEvent.midi, noteEvent.midi in buttonMap);
+        if (noteEvent.midi in buttonMap){
+            let button = buttonMap[noteEvent.midi];
+            let outputMidi = noteEvent.midi;
+            let start = performance.now()
+            // bypass is 0 or 1
+            if (self.bypass == 0) {
+                outputMidi = self.genie.nextFromKeyList(button, self.keyWhitelist, self.temperature/100) + 21;
+            } 
+            
+            let inferenceTime = performance.now() - start;
+            self._param_writer.enqueue_change(0, inferenceTime);
+            lastMidi = outputMidi;
+            // Create a new NoteObject and send it to the main thread
+            // create the new note
+            let arp_note = new NoteEvent();
+            arp_note.player = self.playerType.AGENT;
+            // The instrument is required for playback
+            arp_note.instrument = self.instrumentType.PIANO;
+            // The type of the note is the same as the user's input (note on)
+            arp_note.type = noteEvent.type;
+            arp_note.midi = outputMidi;
+            // The velocity is the same as the user's input
+            arp_note.velocity = noteEvent.velocity;
+            // Play it instantly
+            arp_note.playAfter = {
+                tick: 0,
+                seconds: 0 ,
+            },
+            arp_note.duration = {
+                tick: 0,
+                seconds: 0.5
+            }
+            // Push the note to the list of notes to be sent to the UI
+            noteList.push(arp_note);
         }
-        // Push the note to the list of notes to be sent to the UI
-        noteList.push(arp_note);
     } 
     else {
         // TODO
