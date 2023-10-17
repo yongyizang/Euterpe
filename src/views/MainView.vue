@@ -60,7 +60,7 @@ export default {
         // Choose the agent. 
         // This string should be one of
         // dir names inside public/agents/
-        agentName: "demo", 
+        agentName: "pianoGenie", 
         // Provide all the config files that should be loaded
         // These should be in public/agents/{agentName}/
         configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
@@ -233,7 +233,12 @@ export default {
 
         // Initialize agent worker
         // experiment with , { type : 'module' }
-        vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
+        // if agen'ts name is pianoGenie, then load the pianoGenie worker
+        if (vm.agentName == "pianoGenie") {
+            vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`, {type: 'module'});
+        } else {
+            vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
+        }
         vm.agent.onmessage = vm.agentCallback;
 
         // Send a message to agent with some necessary 
