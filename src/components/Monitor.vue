@@ -63,7 +63,7 @@ export default {
         },
         width: {
             type: Number,
-            default: 250
+            default: 300
         },
         // height: {
         //     type: Number,

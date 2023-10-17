@@ -27,15 +27,15 @@ gui:
           # The 'graph' flag allows you to visualize the value as a time grpah.
           # The 'min' and 'max' indicate the expected range of the parameter.
           - id: 0 
-            label: "inference time" 
+            label: "inference" 
             interval: 50
             graph: true
             min: 0
-            max: 20
+            max: 40
   settingsModal:
     switches:
       - id: 1 
-        label: "Switch 1"
+        label: "Bypass"
         status: false
     sliders:
         # You can create up to 4 sliders

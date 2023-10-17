@@ -8,11 +8,11 @@
         interactionMode.noteMode : true
         nodeModeSettings.gridBased.status: true
 */
-import { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent } from './../../utils_module.js';
+import {NoteEvent } from './../../utils_module.js';
+
+// Local variable to this hook
 let lastMidi = null;
-let keyWhitelist = Array(88).fill().map((x,i) => {
-    return i;
-});
+
 function processNoteEvent(noteEvent){
     // Put your code here
     let noteList = []
@@ -20,8 +20,14 @@ function processNoteEvent(noteEvent){
         let button = noteEvent.midi - 60
         // console.log("button ", button, "temp ", temperature/100);
 
+        let outputMidi = noteEvent.midi;
         let start = performance.now()
-        const outputMidi = self.genie.nextFromKeyList(button, keyWhitelist, temperature/100) + 21;
+        // bypass is 0 or 1
+        if (self.bypass == 0) {
+            console.log("temperature is " + self.temperature/100);
+            outputMidi = self.genie.nextFromKeyList(button, self.keyWhitelist, self.temperature/100) + 21;
+        } 
+        
         let inferenceTime = performance.now() - start;
         self._param_writer.enqueue_change(0, inferenceTime);
         lastMidi = outputMidi;
@@ -62,6 +68,7 @@ function processNoteEvent(noteEvent){
     something to send.
     */
     // console.log("processNoteEvent", self.agentHookType);
+    console.log("accessed ? ", self.config2);
     postMessage({
         hookType: self.agentHookType.NOTE_EVENT, // Do not modify
         message:{

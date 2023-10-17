@@ -84,7 +84,7 @@ function updateParameter(newUpdate){
     });
     
     You can always import external *js files using importScripts()
-    at the top of worker.js
+    at the top of agent.js
 */
 async function loadExternalFiles(content) {
     // Put your code here

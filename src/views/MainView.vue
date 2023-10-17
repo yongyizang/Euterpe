@@ -234,12 +234,12 @@ export default {
         // Initialize agent worker
         // experiment with , { type : 'module' }
         // if agen'ts name is pianoGenie, then load the pianoGenie worker
-        // if (vm.agentName == "pianoGenie") {
-        //     vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`, {type: 'module'});
-        // } else {
-        //     vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
-        // }
-        vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`,  { type : 'module' });
+        if (vm.agentName == "pianoGenie") {
+            vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`, {type: 'module'});
+        } else {
+            vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`);
+        }
+        // vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`,  { type : 'module' });
 
         vm.agent.onmessage = vm.agentCallback;
 
@@ -875,6 +875,11 @@ export default {
                             vm.$refs.entryBtn.style.visibility = "visible";
                             vm.modelLoadTime = Date.now() - vm.modelLoadTime;
                             console.log("success");
+                            console.log(self.config2);
+                            console.log(vm.agent.config2);
+                            console.log(this.config2);
+                            console.log(vm.config2);
+                            console.log(config2);
                         }
                         break;
                     case vm.messageType.NOTE_LIST: {
@@ -1538,11 +1543,11 @@ export default {
                                 one of those browsers if you want to use Web MIDI
                                 functionalities.</span>
                         </div>
-                        <p class="settingsSubtitle">Worker Parameters</p>
+                        <p class="settingsSubtitle">Agent Parameters</p>
                         <div class="md-layout md-gutter md-alignment-center">
                             <div class="md-layout-item md-large-size-50 md-small-size-100">
                                 <div class="md-layout md-gutter md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
-                                    <!-- Sliders for worker parameters -->
+                                    <!-- Sliders for agent Parameters -->
                                     <div v-for="sliderItem in sliders" :key="sliderItem.id"
                                         class="md-layout-item md-large-size-25 md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
                                         <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
@@ -1552,7 +1557,7 @@ export default {
                             </div>
                             <div class="md-layout-item md-large-size-50 md-small-size-100">
                                 <div class="md-layout md-gutter md-alignment-center">
-                                    <!-- Buttons for worker parameters -->
+                                    <!-- Buttons for agent Parameters -->
                                     <div v-for="buttonItem in buttons" :key="buttonItem.id"
                                         class="md-layout-item md-large-size-100">
                                         <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
@@ -1565,7 +1570,7 @@ export default {
                         <div class="md-layout md-gutter md-alignment-center">
                             <div class="md-layout-item md-large-size-100">
                                 <div class="md-layout md-gutter md-alignment-center">
-                                    <!-- Switches for worker parameters -->
+                                    <!-- Switches for agent Parameters -->
                                     <div v-for="swi in switches" :key="swi.id"
                                         class="md-layout-item md-large-size-25 md-medium-size-50"
                                         style="display:flex;align-items:center;justify-content:center;padding-top:17px">
