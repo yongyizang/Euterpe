@@ -93,4 +93,5 @@ function processNoteEvent(noteEvent){
     });
 }
 
+// Very important, don't delete
 export {processNoteEvent};

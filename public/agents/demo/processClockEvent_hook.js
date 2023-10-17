@@ -88,6 +88,7 @@ function processClockEvent(content) {
             // Add your messages here
             // [self.messageType.CHROMA_VECTOR]: tickAverageChroma,
             [self.messageType.NOTE_LIST]: noteList,
+            [self.messageType.LABEL]: "Dm7"
         },
     })
 }

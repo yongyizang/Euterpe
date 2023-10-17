@@ -1,14 +1,12 @@
 gui:
   score: 
     status: true
-    human: true
-    agent: true
   textBox:
     status: true
     title: "TextBox Title"
   pianoRoll:
     status: true
-    human: false
+    human: true
     agent: true
   keyboard:
     status: true # not used (always true)
