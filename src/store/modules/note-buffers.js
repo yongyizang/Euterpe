@@ -187,13 +187,24 @@ const getters = {
 }
 
 const actions = {
-    updateLastAgentNote ({ commit, state, getters }, workerNoteEvent) {
+    updateLastAgentNote ({ commit, state, getters }, workerNoteEvents) {
         // now update the lastAgentNote
         // this is only used in score.js to display the notes
         // so maybe it should go there
-        const midi = workerNoteEvent.midi;
-        const cpc = workerNoteEvent.chroma;
-        const articulation =  workerNoteEvent.type === state.noteType.NOTE_ON ? 1 : 0;
+        let workerNoteEvent = null;
+        let midi = 0;
+        let articulation = 1;
+        let cpc = 12;
+        if (workerNoteEvents.length > 0){
+            workerNoteEvent = workerNoteEvents[0];
+
+            midi = workerNoteEvent.midi;
+            cpc = workerNoteEvent.chroma;
+            articulation =  workerNoteEvent.type === state.noteType.NOTE_ON ? 1 : 0;
+        }
+        // else {
+        //     midi = 0;
+        // }
 
         if (midi == 0) {
             if (state.lastAgentNote.midi == 0){

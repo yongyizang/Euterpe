@@ -208,7 +208,7 @@ export default {
         vm.audioContext = new AudioContext();
         // Tone.setContext(vm.audioContext); // this cause huge latency
         Tone.context.lookAhead = 0; // increase it if you experience audio clicks
-
+        
         // SAB
         // get a memory region for the Audio ring buffer
         // length in time is 1 second of stereo audio
@@ -290,6 +290,7 @@ export default {
         
             // vm.$root.$refs.vectorBar.init();
             // vm.$root.$refs.vectorBar.updateAnalysis();
+            vm.audioContext.resume(); // ?
 
             const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
             await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
@@ -414,6 +415,7 @@ export default {
         });
 
         vm.modelLoadTime = Date.now();
+        console.log("TONE TONE TONE ",Tone.now());
 
     },
     methods: {
@@ -787,6 +789,9 @@ export default {
             }
             // console.log("currentQuantEvents", currentQuantizedEvents);
             // console.log("CONSTRAINTQuantEvents", constrainedCurrentQuantizedEvents);
+            // constrainedCurrentQuantizedEvents.forEach(elem => {
+            //     console.log("type ", elem.type);
+            // })
             this.$store.dispatch("storeHumanQuantizedInput", constrainedCurrentQuantizedEvents);
 
             this.$store.commit("clearContinuousBuffers");
@@ -809,14 +814,17 @@ export default {
             const agentNotesToBePlayed = this.$store.getters.popAgentNotesToBePlayedAt(
                 this.$store.getters.getGlobalTickDelayed
             );
+            // This guy here should update the lastNoteAI for the score to get
+            // naively choose the first note only. ScoreUI only supports monophonic
+            this.$store.dispatch("updateLastAgentNote", agentNotesToBePlayed);
             if (agentNotesToBePlayed.length > 0) {
-                // This guy here should update the lastNoteAI for the score to get
-                // naively choose the first note only. ScoreUI only supports monophonic
-                this.$store.dispatch("updateLastAgentNote", agentNotesToBePlayed[0]);
+                
 
                 agentNotesToBePlayed.forEach((noteEvent) => {
-                vm.processAgentNoteEvent(noteEvent);
+                    vm.processAgentNoteEvent(noteEvent);
                 });
+            } else {
+                // console.log("no agent notes to be played");
             }
         },
 
@@ -863,6 +871,8 @@ export default {
                     case vm.messageType.NOTE_LIST: {
                         const noteEventsList = messageValue;
                         noteEventsList.forEach((noteEventPlain) => {
+                            // Only On and Hold notes are sent from the agent's clockEvent hook
+
                             // The noteEvents received from the agent are serialized
                             // we need to deserialize them before using them
                             let noteEvent = NoteEvent.fromPlain(noteEventPlain);
@@ -1012,6 +1022,8 @@ export default {
                 }
                 // console.log("about to call uiNoteOffAgent");
                 this.uiNoteOffAgent(noteEvent);
+            } else if (noteEvent.type === vm.noteType.NOTE_HOLD){
+                console.log("HOLD event received from agent");
             }
         },
 
@@ -1151,6 +1163,7 @@ export default {
             vm.$refs.mainLoadingScreen.style.display = "none";
             vm.$refs.mainContent.style.display = "block";
             vm.$modal.show("introModal");
+            console.log("TONE ENTRY ",Tone.now());
         },
 
         showSettingsModal() {
