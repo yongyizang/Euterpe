@@ -7,8 +7,8 @@
         top: `${top}px`,
         right: `${right}px`,
         zIndex: 100,
-        width: `${width}px`, 
-        height: `${height}px`,
+        width: `auto`, 
+        height: `auto`,
         // ...styles,
         }"
         @mousedown="startDrag"
@@ -44,14 +44,6 @@ export default {
         right: {
             type: Number,
             default: 20
-        },
-        width: {
-            type: Number,
-            default: 300
-        },
-        height: {
-            type: Number,
-            default: 400
         },
         // cssClasses: {
         //   default: '',

@@ -6,24 +6,19 @@
     </div>
   </template> -->
 <template>
-    <div
-        :ref="ref_c"
-        :id="id_c"
-        :style="{
+    <div :ref="ref_c" :id="id_c" :style="{
         position: `${position}`,
         top: `${top}px`,
         left: `${left}px`,
         zIndex: 100,
-        width: `${width}px`, 
-        height: `${height}px`,
+        width: `auto`,
+        height: `auto`,
         // ...styles,
-        }"
-        @mousedown="startDrag"
-    ></div>
+    }" @mousedown="startDrag"></div>
 </template>
   
 <script>
-import {Pane} from 'tweakpane';
+import { Pane } from 'tweakpane';
 
 export default {
     name: 'MixerComponent',
@@ -52,10 +47,6 @@ export default {
             type: Number,
             default: 200
         },
-        height: {
-            type: Number,
-            default: 400
-        },
         // cssClasses: {
         //   default: '',
         //   type: String
@@ -73,7 +64,7 @@ export default {
             title: "",
         };
     },
-    beforeCreate(){
+    beforeCreate() {
         console.log("beforeCreate mixer start")
         // this.$root.$refs.mixer = this;
         console.log("beforeCreate mixer end")
@@ -86,8 +77,9 @@ export default {
     },
     mounted() {
         console.log("mounted mixer start")
+        this.getMixerData();
     },
-  
+
     methods: {
         startDrag(event) {
             // If event.target.className is not a string return
@@ -95,13 +87,13 @@ export default {
             // if that string contains 'fldv' or 'rotv'
             if (event.target.className.includes('fldv') ||
                 event.target.className.includes('rotv')
-            ){
+            ) {
                 this.isDragging = true;
                 this.offsetX = event.clientX - this.$refs.mixer.getBoundingClientRect().left;
                 this.offsetY = event.clientY - this.$refs.mixer.getBoundingClientRect().top;
                 window.addEventListener('mousemove', this.handleDrag);
                 window.addEventListener('mouseup', this.stopDrag);
-                
+
             }
         },
         handleDrag(event) {
@@ -110,7 +102,7 @@ export default {
                 this.$refs.mixer.style.left = event.clientX - this.offsetX + 'px';
                 this.$refs.mixer.style.top = event.clientY - this.offsetY + 'px';
             }
-            
+
         },
         stopDrag(event) {
             this.isDragging = false;
@@ -124,8 +116,8 @@ export default {
             let vm = this;
             vm.playersConfig = playersConfig;
             vm.pane = new Pane({
-              container: vm.$refs.mixer,
-              title: 'Mixer',
+                container: vm.$refs.mixer,
+                title: 'Mixer',
             })
             // vm.pane.on('fold', (ev) => {
             //     console.log('changed: ', ev.value);
@@ -137,7 +129,7 @@ export default {
             //     console.log(ev);
             //     console.log('changed: ' + JSON.stringify(ev.value));
             // });
-            
+
             // Create the mixer data object for Pane. 
             for (const [player, playerData] of Object.entries(vm.playersConfig)) {
                 vm.data[`${player}`] = {
@@ -173,11 +165,11 @@ export default {
                             playerId: player,
                             instrumentId: null,
                             what: 'volume',
-                            value : ev
+                            value: ev
                         }
                         vm.updateData(changeEvent);
                     }
-                );
+                    );
                 playerFolder.addInput(vm.data[player], 'mute',
                     {
                         label: "mute",
@@ -186,11 +178,11 @@ export default {
                             playerId: player,
                             instrumentId: null,
                             what: 'mute',
-                            value : ev
+                            value: ev
                         }
                         vm.updateData(changeEvent);
                     }
-                );
+                    );
                 for (const [instId, instData] of Object.entries(playerData.instruments)) {
                     console.log(instData.label);
                     // player.instruments.forEach((instrument) => {
@@ -209,11 +201,11 @@ export default {
                                 playerId: player,
                                 instrumentId: instId,
                                 what: 'volume',
-                                value : ev
+                                value: ev
                             }
                             vm.updateData(changeEvent);
                         }
-                    );
+                        );
                     instFolder.addInput(vm.data[player].instruments[instId], 'mute',
                         {
                             label: "mute",
@@ -222,26 +214,50 @@ export default {
                                 playerId: player,
                                 instrumentId: instId,
                                 what: 'mute',
-                                value : ev
+                                value: ev
                             }
                             vm.updateData(changeEvent);
                         }
-                    );
+                        );
                 };
             }
         },
+        // manuallyUpdateData() {
+        //     let vm = this;
+        //     for (const [player, playerData] of Object.entries(vm.data)) {
+        //         let changeEvent = {
+        //             playerId: player,
+        //             instrumentId: null,
+        //             what: 'volume',
+        //             value: ev
+        //         }
+        //         vm.updateData(changeEvent);
+        //         for (const [instId, instData] of Object.entries(playerData.instruments)) {
+        //             let changeEvent = {
+        //                 playerId: player,
+        //                 instrumentId: instId,
+        //                 what: 'volume',
+        //                 value: ev
+        //             }
+        //             vm.updateData(changeEvent);
+        //         };
+        //     }
+        // },
         updateData(changeEvent) {
             // Emit a signal to push the mixer change
             // to the parent component, which will update 
             // the samplers' statuses
             this.$emit('newEventSignal', changeEvent);
-        }
+        },
+        getMixerData() {
+            this.$emit('getMixerDataSignal', this.data);
+        },
     },
-  
-  };
-  </script>
-  <style>
-  :root {
+
+};
+</script>
+<style>
+:root {
     --tp-base-background-color: hsla(0, 9%, 22%, 0.863);
     --tp-base-shadow-color: hsla(44, 78%, 24%, 0.247);
     /* --tp-button-background-color: hsla(0, 0%, 80%, 1); */
@@ -252,7 +268,7 @@ export default {
     /* --tp-container-background-color: hsla(0, 0%, 0%, 0.795); */
     --tp-container-background-color-active: hsla(0, 0%, 0%, 0.781);
     --tp-container-background-color-focus: hsla(0, 0%, 0%, 0.719);
-    --tp-container-background-color-hover: hsla(36, 89%, 26%, 0.4); 
+    --tp-container-background-color-hover: hsla(36, 89%, 26%, 0.4);
     --tp-container-foreground-color: hsla(0, 0%, 100%, 0.5);
     --tp-groove-foreground-color: hsla(0, 78%, 51%, 0.2);
     /* --tp-input-background-color: hsla(0, 81%, 46%, 0.822); */
@@ -263,5 +279,5 @@ export default {
     --tp-label-foreground-color: hsla(39, 53%, 86%, 0.945);
     --tp-mixer-background-color: hsla(0, 0%, 0%, 0.3);
     --tp-mixer-foreground-color: hsla(0, 0%, 100%, 0.3);
-  }
-  </style>
+}
+</style>

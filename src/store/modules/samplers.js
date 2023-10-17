@@ -168,13 +168,10 @@ const mutations = {
             };
             state.samplersAndBuses[`${player}`].bus.volume.value = volumeDB;
             state.samplersAndBuses[`${player}`].bus.mute = playerData.mute;
-            console.log("player ", player, "playerData ", playerData);
-            // for (const  instrumentData of Object.entries(playerData.instruments)) {
+
             playerData.instruments.forEach((instrumentData) => {
                 state.samplersAndBuses[`${player}`].samplersBus[`${instrumentData.id}`] = new Tone.Channel().connect(state.samplersAndBuses[`${player}`].bus);
                 let volumeDB = instrumentData.volume === 10 ? 0 : -Math.abs(20 * Math.log(instrumentData.volume / 10));
-                // console.log("instrumentData", instrumentData);
-                // console.log("player ", player, "instrument ", instrumentData.id, "volume ", volumeDB, "mute ", instrumentData.mute);
                 state.samplersAndBuses[`${player}`].samplersBus[`${instrumentData.id}`].volume.value = volumeDB;
                 state.samplersAndBuses[`${player}`].samplersBus[`${instrumentData.id}`].mute = instrumentData.mute;
                 state.samplersAndBuses[`${player}`].lastStates[`${instrumentData.id}`] = {
@@ -196,12 +193,13 @@ const mutations = {
     handleMixerUpdate(state, update){
         let isVolume = false;
         let isMute = false; 
+
         if (update.what == 'mute'){
             isMute = true;
         } else if (update.what == 'volume'){
             isVolume = true
         } else {
-            console.error("unknown mixer variable type, check confi_players.yaml, we only suppoer 'mute' and 'volume'")
+            console.error("unknown mixer variable type, check confi_players.yaml, we only support 'mute' and 'volume'")
         }
         
         // find which bus
@@ -213,7 +211,6 @@ const mutations = {
         
         if (isVolume == true){
             let volume = update.value.value;
-            // if volume == 10, then volumeDB = 0 else,  -Math.abs(20*Math.log(volume/10));
             const volumeDB = volume === 10 ? 0 : -Math.abs(20 * Math.log(volume / 10));
             bus.volume.value = volumeDB;
             if (instrument != null){
@@ -229,7 +226,6 @@ const mutations = {
                 state.samplersAndBuses[`${player}`].lastMuteState = update.value.value;
             }
         }
-        
     },
 };
 

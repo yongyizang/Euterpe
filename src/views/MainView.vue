@@ -4,11 +4,11 @@
         <div ref="mainLoadingScreen" id="mainLoadingScreen">
             <div id="loadingScreenInjection" class="center">
                 <h1 class="loadingTitle">
-                {{ config.title }}
+                    {{ config.title }}
                 </h1>
                 <h3 class="loadingSubtitle"> {{ config.subtitle }}</h3>
                 <p ref="workerStatus" class="loadingStatus">
-                Loading the Worker...
+                    Loading the Worker...
                 </p>
                 <div id="entryBtnContainer" style="width:100%;height:60px;">
                     <button @click="entryProgram" ref="entryBtn" class="entryBtn" style="visibility: hidden;">
@@ -16,15 +16,15 @@
                     </button>
                 </div>
                 <p v-if="isNotChrome">
-                We highly recommend using Chrome for better user experience.
+                    We highly recommend using Chrome for better user experience.
                 </p>
                 <p v-if="isMobile">
-                The model may not perform normally on mobile devices. We recommend
-                using Desktop computers.
+                    The model may not perform normally on mobile devices. We recommend
+                    using Desktop computers.
                 </p>
             </div>
         </div>
-        <div ref="mainContent" id="mainContent"  style="justify-content: center; align-items: center;">
+        <div ref="mainContent" id="mainContent" style="justify-content: center; align-items: center;">
             <div style="
                 background-color: rgb(0, 0, 0);
                 opacity: 0.5;
@@ -35,18 +35,20 @@
                 ">
             </div>
             <!-- Intro Modal -->
-            <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+            <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback"
+                @closed="modalCallback">
                 <div class="modalDiv">
-                <p class="modalTitle">
-                    Introduction
-                </p>
-                <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon class="modalIcon">close</md-icon></button>
+                    <p class="modalTitle">
+                        Introduction
+                    </p>
+                    <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon
+                            class="modalIcon">close</md-icon></button>
                 </div>
                 <div class="modalContent">
-                <p v-for="(content, index) in config.introModalContent" :key="index">
-                    {{ content }}
-                    <br />
-                </p>
+                    <p v-for="(content, index) in config.introModalContent" :key="index">
+                        {{ content }}
+                        <br />
+                    </p>
                 </div>
             </modal>
 
@@ -56,48 +58,48 @@
 
             <div v-if="config.gui.keyboard.status">
                 <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
-                :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
+                    :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
             </div>
-            
-            <Mixer @newEventSignal="handleMixerUpdate"/>
+
+            <Mixer @newEventSignal="handleMixerUpdate" @getMixerDataSignal="manuallyUpdateMixer" />
 
             <!-- <div v-if="config.gui.monitor.status"> -->
-            <Monitor :dataFromParent="dataForMonitoring"/>
+            <Monitor :dataFromParent="dataForMonitoring" />
             <!-- </div> -->
 
             <div v-if="config.gui.score.status">
-                <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
+                <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus" />
             </div>
 
             <div v-if="audioAndMeter">
                 <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
-                style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
+                    style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
             </div>
-            
+
             <!-- <VectorBar ref="vectorBar" :width=300 :height="100" :num_bars="12" orientation="top"
                 style="position:absolute; z-index:0; top:0px; right:0px; background-color:transparent" /> -->
             <div v-if="audioAndChroma">
-                <ChromaChart  />
+                <ChromaChart />
             </div>
             <div v-if="textBoxStatus">
-                <TextBox :height=100 :width=180 :title="textBoxTitle" :text="textBoxText" 
+                <TextBox :height=100 :width=180 :title="textBoxTitle" :text="textBoxText"
                     style="position: absolute; bottom: 300px; right: 20px; z-index:8" />
             </div>
-            
+
 
             <!-- On-screen buttons -->
             <div style="position: absolute; bottom: 230px; right: 11px">
                 <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
-                <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
+                    <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
                 </md-button>
                 <md-button class="controlBtn" @click="showSettingsModal">
-                <md-icon>settings</md-icon>
+                    <md-icon>settings</md-icon>
                 </md-button>
                 <md-button class="controlBtn" @click="toggleMixer">
-                <md-icon>tune</md-icon>
+                    <md-icon>tune</md-icon>
                 </md-button>
                 <md-button class="controlBtn" @click="toggleMonitor">
-                <i class="material-symbols-outlined">monitoring</i>
+                    <i class="material-symbols-outlined">monitoring</i>
                 </md-button>
             </div>
             <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
@@ -111,77 +113,91 @@
 
 
             <!-- Settings Modal -->
-            <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+            <modal name="settingsModal" :minWidth=700 :minHeight=600 :adaptive="true" @opened="modalCallback"
+                @closed="modalCallback">
                 <!-- overflow-y: scroll; -->
                 <div style="padding:0; margin: 0; ">
-                <div class="modalDiv">
-                    <p class="modalTitle">
-                    Settings
-                    </p>
-                    <button class="modalBtn" @click="$modal.hide('settingsModal')"><md-icon
-                        class="modalIcon">close</md-icon></button>
-                </div>
-                <div class="modalContent" style="overflow-y: scroll; height:600px">
-                    <p class="settingsSubtitle">Clock</p>
-                    <div class="md-layout md-gutter md-alignment-center">
-                    <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
-                        <div class="settingsDiv">
-                        <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
-                        <div style="padding-top: 14px">
-                            <p class="settingsValue">{{ localBPM }}</p>
-                            <vue-slider v-model="localBPM" :lazy="true" :min="60" :max="120" class="settingsSlider"></vue-slider>
-                        </div>
-                        </div>
+                    <div class="modalDiv">
+                        <p class="modalTitle">
+                            Settings
+                        </p>
+                        <button class="modalBtn" @click="$modal.hide('settingsModal')"><md-icon class="modalIcon"
+                                style="padding:0;margin:0;height:24px">close</md-icon></button>
                     </div>
-                    </div>
-                    <p class="settingsSubtitle">MIDI</p>
-                    <div class="MIDIInput" v-if="WebMIDISupport">
-                        <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
-                            placeholder="Type here to search for MIDI device">
-                        </Dropdown>
-                    </div>
-                    <span v-else>
-                        Currently, Using MIDI devices in browser is only supported by Google
-                        Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
-                        one of those browsers if you want to use Web MIDI
-                        functionalities.</span>
-                    <p class="settingsSubtitle">Worker Parameters</p>
-                    <div class="md-layout md-gutter md-alignment-center">
-                    <div class="md-layout-item md-large-size-50 md-small-size-100">
-                        <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Sliders for worker parameters -->
-                        <div v-for="sliderItem in sliders" :key="sliderItem.id"
-                            class="md-layout-item md-large-size-25 md-alignment-center">
-                            <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
-                            :label="sliderItem.label" />
-                        </div>
-                        </div>
-                    </div>
-                    <div class="md-layout-item md-large-size-50 md-small-size-100">
-                        <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Buttons for worker parameters -->
-                        <div v-for="buttonItem in buttons" :key="buttonItem.id" class="md-layout-item md-large-size-100">
-                            <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
-                            <span class="forceTextColor">{{ buttonItem.label }}</span>
-                            </md-button>
-                        </div>
-                        </div>
-                    </div>
-                    </div>
-                    <div class="md-layout md-gutter md-alignment-center">
-                    <div class="md-layout-item md-large-size-100">
-                        <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Switches for worker parameters -->
-                        <div v-for="swi in switches" :key="swi.id" class="md-layout-item md-large-size-25 md-medium-size-50">
-                            <div style="display:block; min-width:60px; padding-top:17px">
-                            <span style="padding:0; margin:0;">{{ swi.label }}</span>
-                            <toggle-button color="#74601c" v-model="swi.status" style="transform: scale(0.9);" />
+                    <div class="modalContent" style="overflow-y: scroll; height:600px">
+                        <div id="ClockSection" class="settingsBorderedTitle" style="display:flex;justify-content:start;align-items:center">
+                            <p class="settingsSubtitle" style="padding:0; margin-right:50px">
+                                <md-icon
+                            class="modalIcon">history_toggle_off</md-icon> <br />
+                            <span style="line-height:36px">Clock</span></p>
+                            <div class="md-layout md-gutter md-alignment-left settingsBordered">
+                                <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+                                    <div class="settingsDiv">
+                                        <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
+                                        <div style="padding-top: 14px">
+                                            <BPMSlider v-model="localBPM" :min="60" :max="120" :label="localBPM" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <div id="MIDISection" style="display:flex;justify-content:start;align-items:center;margin-top:50px">
+                            <p class="settingsSubtitle settingsBorderedTitle" style="padding:0">
+                                <md-icon
+                            class="modalIcon" style="font-weight:400">piano</md-icon> <br />
+                            <span style="line-height:36px">MIDI</span></p>
+                            <div class="MIDIInput" style="padding-left: 8px" v-if="WebMIDISupport">
+                                <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
+                                    placeholder="Type here to search for MIDI device">
+                                </Dropdown>
+                            </div>
+                            <span v-else>
+                                Currently, Using MIDI devices in browser is only supported by Google
+                                Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
+                                one of those browsers if you want to use Web MIDI
+                                functionalities.</span>
+                        </div>
+                        <p class="settingsSubtitle">Worker Parameters</p>
+                        <div class="md-layout md-gutter md-alignment-center">
+                            <div class="md-layout-item md-large-size-50 md-small-size-100">
+                                <div class="md-layout md-gutter md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
+                                    <!-- Sliders for worker parameters -->
+                                    <div v-for="sliderItem in sliders" :key="sliderItem.id"
+                                        class="md-layout-item md-large-size-25 md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
+                                        <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
+                                            :label="sliderItem.label" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-layout-item md-large-size-50 md-small-size-100">
+                                <div class="md-layout md-gutter md-alignment-center">
+                                    <!-- Buttons for worker parameters -->
+                                    <div v-for="buttonItem in buttons" :key="buttonItem.id"
+                                        class="md-layout-item md-large-size-100">
+                                        <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
+                                            <span class="forceTextColor">{{ buttonItem.label }}</span>
+                                        </md-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md-layout md-gutter md-alignment-center">
+                            <div class="md-layout-item md-large-size-100">
+                                <div class="md-layout md-gutter md-alignment-center">
+                                    <!-- Switches for worker parameters -->
+                                    <div v-for="swi in switches" :key="swi.id"
+                                        class="md-layout-item md-large-size-25 md-medium-size-50"
+                                        style="display:flex;align-items:center;justify-content:center;padding-top:17px">
+                                        <span style="padding:0; margin:0;">{{ swi.label }}</span>
+                                        <div style="display:block; min-width:30px;">
+                                            <toggle-button color="#74601c" v-model="swi.status"
+                                                style="transform: scale(0.9);" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    </div>
-                </div>
                 </div>
             </modal>
         </div>
@@ -198,6 +214,7 @@ import Score from "@/components/Score.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
 import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from "@/components/AudioMeter.vue";
+import BPMSlider from '@/components/BPMSlider.vue'
 // import VectorBar from "../components/VectorBar.vue";
 import ChromaChart from "@/components/ChromaChart.vue";
 import Monitor from "@/components/Monitor.vue";
@@ -214,10 +231,10 @@ import AudioKeys from "audiokeys";
 import yaml from "js-yaml";
 import * as rb from "ringbuf.js";
 import {
-	playerType, instrumentType, eventSourceType,
-  messageType, statusType, noteType,
-  uiParameterType,
-  workerHookType
+    playerType, instrumentType, eventSourceType,
+    messageType, statusType, noteType,
+    uiParameterType,
+    workerHookType
 } from '@/utils/types.js'
 
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
@@ -234,6 +251,7 @@ export default {
         PianoRoll,
         VerticalSlider,
         HorizontalSlider,
+        BPMSlider,
         Dropdown,
         AudioMeter,
         TextBox,
@@ -246,98 +264,99 @@ export default {
 
     data() {
         return {
-        // Choose the worker. 
-        // This string should be one of
-        // dir names inside public/workers/
-        workerName: "template", 
-        // Provide all the config files that should be loaded
-        // These should be in public/workers/{workerName}/
-        configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
+            // Choose the worker. 
+            // This string should be one of
+            // dir names inside public/workers/
+            workerName: "template",
+            // Provide all the config files that should be loaded
+            // These should be in public/workers/{workerName}/
+            configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'],
 
-        config: null,
-                
-        playerType,
-        instrumentType,
-        eventSourceType,
-        messageType,
-        statusType,
-        noteType,
-        uiParameterType,
-        workerHookType,
+            config: null,
 
-                
-        // These need to be initialized here as empty arrays (computed properties)
-        // They'll be filled in the created() hook
-        switches: [],
-        sliders: [],
-        buttons: [],
-        // Information about the players and 
-        // instruments available to each player.
-        // It's used to create the mixer modal.
-        // This is filled in the created() hook
-        players: [],
+            playerType,
+            instrumentType,
+            eventSourceType,
+            messageType,
+            statusType,
+            noteType,
+            uiParameterType,
+            workerHookType,
 
-        dataForMonitoring: {},
 
-        // Score status
-        scoreShown: false,
-        scrollStatus: false,
-        scoreStatus: false,
-        // Textbox status
-        textBoxTitle: null,
-        textBoxText: null,
-        textBoxStatus: false,
+            // These need to be initialized here as empty arrays (computed properties)
+            // They'll be filled in the created() hook
+            switches: [],
+            sliders: [],
+            buttons: [],
+            // Information about the players and 
+            // instruments available to each player.
+            // It's used to create the mixer modal.
+            // This is filled in the created() hook
+            players: [],
 
-        localBPM: null,
-        localSyncClockStatus: false, // used to trigger local UI change
-        screenWidth: document.body.clientWidth,
-        screenHeight: document.body.clientHeight,
-        keyboardKey: 0,
-        keyboardoctaveStart: 2,
-        keyboardoctaveEnd: 6,
+            dataForMonitoring: {},
 
-        // audioContext: null,
-        mediaStreamSource: null,
-        audioSettings: null,
-        recorderWorkletNode: null,
-        recorderWorkletBundle: null,
+            // Score status
+            scoreShown: false,
+            scrollStatus: false,
+            scoreStatus: false,
+            // Textbox status
+            textBoxTitle: null,
+            textBoxText: null,
+            textBoxStatus: false,
 
-        sab: null,
-        sab_par_ui: null,
-        rb_par_ui: null,
-        paramWriter: null,
-        sab_par_worker: null,
-        rb_par_worker: null,
+            localBPM: null,
+            localSyncClockStatus: false, // used to trigger local UI change
+            screenWidth: document.body.clientWidth,
+            screenHeight: document.body.clientHeight,
+            keyboardKey: 0,
+            keyboardoctaveStart: 2,
+            keyboardoctaveEnd: 6,
 
-        monitorObserverInterval: null,
+            // audioContext: null,
+            mediaStreamSource: null,
+            audioSettings: null,
+            recorderWorkletNode: null,
+            recorderWorkletBundle: null,
 
-        WebMIDISupport: false,
-        pageLoadTime: null,
-        modelLoadTime: null,
-        activeDevices: [],
-        selectedMIDIDevice: "",
+            sab: null,
+            sab_par_ui: null,
+            rb_par_ui: null,
+            paramWriter: null,
+            sab_par_worker: null,
+            rb_par_worker: null,
 
-        // humanVolume: 1,
-        // humanSamplerMuted: false,
-        // humanUprightBassVolume: 1,
-        // humanUprightBassMuted: false,
-        // workerVolume: 1,
-        // metronomeVolume: 1,
+            monitorObserverInterval: null,
 
-        // used to calculate the average worker inference time (clockBased mode) 
-        // and estimate maxBPM
-        modelInferenceTimes: [],
-        // maxBPM (or min clock period) supported by the current device
-        maxBPM: 0,
-        // counter for the number of times the worker inference time exceeds the clock period
-        misalignErrCount: 0,
+            WebMIDISupport: false,
+            pageLoadTime: null,
+            modelLoadTime: null,
+            activeDevices: [],
+            selectedMIDIDevice: "",
 
-        isNotChrome,
-        isMobile,
-        // Keep track of all the timeouts ids to clear them when the the user pauses
-        timeout_IDS_kill: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
-        timeout_IDS_live: [],
+            // humanVolume: 1,
+            // humanSamplerMuted: false,
+            // humanUprightBassVolume: 1,
+            // humanUprightBassMuted: false,
+            // workerVolume: 1,
+            // metronomeVolume: 1,
 
+            // used to calculate the average worker inference time (clockBased mode) 
+            // and estimate maxBPM
+            modelInferenceTimes: [],
+            // maxBPM (or min clock period) supported by the current device
+            maxBPM: 0,
+            // counter for the number of times the worker inference time exceeds the clock period
+            misalignErrCount: 0,
+
+            isNotChrome,
+            isMobile,
+            // Keep track of all the timeouts ids to clear them when the the user pauses
+            timeout_IDS_kill: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
+            timeout_IDS_live: [],
+            
+            mixer_data: null,
         };
     },
 
@@ -352,7 +371,7 @@ export default {
         this.$store.commit("initQuantBuffers", this.config);
         this.$store.commit("setTicksPerMeasure", this.config);
         this.$store.commit("createInstruments", this.config);
-        
+
         // Activate/Deactivate GUI widgets based on config
         this.scoreStatus = this.config.gui.score.status
         this.textBoxStatus = this.config.gui.textBox.status
@@ -372,11 +391,11 @@ export default {
 
         this.monitorObserverInterval = 10;
         this.dataForMonitoring = {},
-        this.config.gui.monitor.structure.forEach((tab) => {
-            tab.parameters.forEach((parameter) => {
-                vm.dataForMonitoring[parameter.id] = 0;
+            this.config.gui.monitor.structure.forEach((tab) => {
+                tab.parameters.forEach((parameter) => {
+                    vm.dataForMonitoring[parameter.id] = 0;
+                });
             });
-        });
         console.log("created localBPM set to defaultBPM from config ", this.config.clockSettings.defaultBPM);
         this.localBPM = this.config.clockSettings.defaultBPM;
         console.log(this.dataForMonitoring);
@@ -411,7 +430,7 @@ export default {
         // length in time is 1 second of stereo audio
         // Float32Array is 4 bytes per sample
         vm.sab = rb.RingBuffer.getStorageForCapacity(vm.audioContext.sampleRate * 2, Float32Array);
-        
+
 
         // get a memory region for the parameter ring buffer
         // This one is to send parameters from the UI to the worker
@@ -454,7 +473,7 @@ export default {
             }
         });
         vm.timeout_IDS_live.push(setInterval(vm.workerParameterObserver, vm.monitorObserverInterval));
-        
+
 
         // Initialize Clock Worker (module)
         vm.clockWorker = new Worker("/workers/clock.js", { type: "module" });
@@ -462,7 +481,7 @@ export default {
         vm.clockWorker.postMessage({ action: 'setBpm', bpm: vm.localBPM });
         vm.$store.commit("initializeClock");
 
-        if (vm.config.interactionMode.audioMode){
+        if (vm.config.interactionMode.audioMode) {
             /*
             * Initialize Audio Recorder (for audio recording).
             */
@@ -480,18 +499,18 @@ export default {
 
             vm.mediaStreamSource.connect(vm.analyserNode);
 
-            if (vm.config.gui.audioMeter.status){
+            if (vm.config.gui.audioMeter.status) {
                 vm.$root.$refs.audioMeter.init(vm.analyserNode);
                 vm.$root.$refs.audioMeter.updateAnalysis();
             }
-        
+
             // vm.$root.$refs.vectorBar.init();
             // vm.$root.$refs.vectorBar.updateAnalysis();
 
             const recorderWorkletUrl = await URLFromFiles(['recorder-worklet.js', 'libraries/index_rb.js'])
             await vm.audioContext.audioWorklet.addModule(recorderWorkletUrl);
-        
-        
+
+
 
             vm.recorderWorkletNode = new AudioWorkletNode(
                 vm.audioContext,
@@ -514,14 +533,14 @@ export default {
         * Web MIDI logic
         */
         if (navigator.requestMIDIAccess) {
-        navigator.requestMIDIAccess().then(function (access) {
-            vm.WebMIDISupport = true;
-            access.onstatechange = vm.onEnabled;
-        });
-        // Enable WebMIDI, then call onEnabled method.
-        WebMidi.enable()
-            .then(vm.onEnabled)
-            .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
+            navigator.requestMIDIAccess().then(function (access) {
+                vm.WebMIDISupport = true;
+                access.onstatechange = vm.onEnabled;
+            });
+            // Enable WebMIDI, then call onEnabled method.
+            WebMidi.enable()
+                .then(vm.onEnabled)
+                .catch((err) => this.$toasted.show("WebMIDI Error: " + err));
         }
 
         /*
@@ -620,10 +639,10 @@ export default {
             var vm = this;
             if (vm.$store.getters.getClockStatus) {
                 vm.$store.commit("incrementTick");
-                
+
                 // Trigger the metronome only if there is a "metronome" entry in config_players.yaml
                 if (vm.config.players.metronome)
-                    vm.metronomeTrigger(); 
+                    vm.metronomeTrigger();
 
                 // in grid-based mode, the worker's sampler is triggered in sync with the clock
                 vm.triggerWorkerSamplerSync(); // UNCOMMENT
@@ -638,12 +657,12 @@ export default {
                     if (vm.config.noteModeSettings.gridBased.delayedExecution) {
                         console.log("delayedExecution");
                         vm.timeout_IDS_live.push(setTimeout(function () {
-                                vm.runTheWorker();
-                            }, parseInt(vm.$store.getters.getClockPeriod / 4))
+                            vm.runTheWorker();
+                        }, parseInt(vm.$store.getters.getClockPeriod / 4))
                         );
-                    }  else {
+                    } else {
                         vm.runTheWorker();
-                    }                  
+                    }
                 } else {
                     // inside runTheWorker we increment the "delayed" tick number.
                     // If we don't run the worker, we still want to increment the "delayed" tick number
@@ -667,6 +686,7 @@ export default {
             vm.$store.commit("changeClockStatus");
             // clear pianoState
             vm.$store.commit("clearPianoState");
+            // vm.manuallyUpdateData();
 
             // If the clock is not yet initialized...
             // if (!vm.$store.getters.getClockInitialized) {
@@ -715,7 +735,7 @@ export default {
             //     //     // the tick function which posts a message
             //     //     // and schedules a new tick
             //     //     function tick(){
-                    
+
             //     //     self.postMessage('tick');
             //     //     per = performance.now() - aa;
             //     //     // console.log("ClockWorker ",  Math.round(this.per), " bpm ", Math.round(60000/this.per/4));
@@ -742,19 +762,19 @@ export default {
             // getTicksPerBeat returns the number of ticks per beat
             // and we want the metronome to trigger every beat
             if (this.$store.getters.getLocalTick % this.$store.getters.getTicksPerBeat == 0) {
-            var currentNote =
-                this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
-                    const metronomeNote = new NoteEvent()
-                    metronomeNote.player = vm.playerType.METRONOME;
-                    metronomeNote.name = currentNote;
-                    metronomeNote.type = vm.noteType.NOTE_ON;
-                    metronomeNote.velocity = 127;
-                    metronomeNote.playAfter = {
-                        tick: 0,
-                        seconds: 0
-                    }
-            this.$store.dispatch("samplerOn", metronomeNote);
-            this.calculateMaxBPM();
+                var currentNote =
+                    this.$store.getters.getLocalTick % this.$store.getters.getTicksPerMeasure === 0 ? "G0" : "C0";
+                const metronomeNote = new NoteEvent()
+                metronomeNote.player = vm.playerType.METRONOME;
+                metronomeNote.name = currentNote;
+                metronomeNote.type = vm.noteType.NOTE_ON;
+                metronomeNote.velocity = 127;
+                metronomeNote.playAfter = {
+                    tick: 0,
+                    seconds: 0
+                }
+                this.$store.dispatch("samplerOn", metronomeNote);
+                this.calculateMaxBPM();
             }
         },
 
@@ -768,13 +788,13 @@ export default {
             // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
             if (noteEvent.type == vm.noteType.NOTE_ON) {
-                    // console.log("note on");
+                // console.log("note on");
                 if (this.config.gui.pianoRoll.status) {
                     vm.$root.$refs.pianoRoll.keyDown(noteEvent);
                 }
                 vm.$store.dispatch("samplerOn", noteEvent);
                 if (keyOnScreenRange && !onScreenKeyboard) {
-                    if (whiteKey){
+                    if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
                     } else {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-black-key-human')
@@ -786,7 +806,7 @@ export default {
                 }
                 vm.$store.dispatch("samplerOff", noteEvent);
                 if (keyOnScreenRange && !onScreenKeyboard) {
-                    if (whiteKey){
+                    if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
                     } else {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-black-key-human')
@@ -796,17 +816,17 @@ export default {
 
             // If the clock is running, send the note to the piano roll
             if (vm.$store.getters.getClockStatus) {
-              // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
-              // this packet will be sent to the processUserNoteEvent hook.
-              if (vm.config.noteModeSettings.eventBased) {
-                vm.worker.postMessage({
-                  hookType: vm.workerHookType.NOTE_EVENT,
-                  content: noteEvent,
-                });
-              }
-			}
-		},
-        
+                // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+                // this packet will be sent to the processUserNoteEvent hook.
+                if (vm.config.noteModeSettings.eventBased) {
+                    vm.worker.postMessage({
+                        hookType: vm.workerHookType.NOTE_EVENT,
+                        content: noteEvent,
+                    });
+                }
+            }
+        },
+
         /*
         * neural network web worker's callback and worker call methods.
         * Called every tick, and processes the AI's output.
@@ -860,13 +880,13 @@ export default {
             for (let i = bufferEvent.length - 1; i >= 0; i--) {
                 let elem = bufferEvent[i];
                 if (elem.type === vm.noteType.NOTE_OFF) {
-                const matchingIndexes = bufferEvent
-                    .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
-                    .filter(index => index !== -1);
-                if (matchingIndexes.length > 0) {
-                    indexesToRemove.push(i);
-                    indexesToRemove.push(Math.max(...matchingIndexes));
-                }
+                    const matchingIndexes = bufferEvent
+                        .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
+                        .filter(index => index !== -1);
+                    if (matchingIndexes.length > 0) {
+                        indexesToRemove.push(i);
+                        indexesToRemove.push(Math.max(...matchingIndexes));
+                    }
                 }
             }
             indexesToRemove = Array.from(new Set([...indexesToRemove]));
@@ -878,19 +898,19 @@ export default {
                 const midi = activePianoNotes[i].midi;
                 const noteOnEvent = cleanedEventBuffer.find(elem => elem.type === vm.noteType.NOTE_ON && elem.midi === midi);
                 if (noteOnEvent) {
-                // currentQuantizedEvents.push({
-                //   type: "on",
-                //   midi: midi,
-                // })
-                currentQuantizedEvents.push(noteOnEvent)
+                    // currentQuantizedEvents.push({
+                    //   type: "on",
+                    //   midi: midi,
+                    // })
+                    currentQuantizedEvents.push(noteOnEvent)
                 }
                 else {
-                            const noteHoldEvent = new NoteEvent();
-                            noteHoldEvent.type = vm.noteType.NOTE_HOLD;
-                            noteHoldEvent.player = vm.playerType.HUMAN;
-                            noteHoldEvent.midi = midi;
+                    const noteHoldEvent = new NoteEvent();
+                    noteHoldEvent.type = vm.noteType.NOTE_HOLD;
+                    noteHoldEvent.player = vm.playerType.HUMAN;
+                    noteHoldEvent.midi = midi;
 
-                currentQuantizedEvents.push(noteHoldEvent);
+                    currentQuantizedEvents.push(noteHoldEvent);
                 }
             }
             // TODO : it seems I ignore rests. If no active notes, then currentQuantizedEvents will be empty
@@ -938,7 +958,7 @@ export default {
             // TODO : for the future, keep a reference to the active notes of the previous tick
             // TODO : for more accuracy keep also a reference to the previous tick's quantized notes and constrained quantized notes
             // TODO : and modify the logic accordingly.
-            },
+        },
 
         workerParameterObserver() {
             let newParameterWorker = { index: null, value: null };
@@ -956,7 +976,7 @@ export default {
             );
             if (workerNotesToBePlayed.length > 0) {
                 workerNotesToBePlayed.forEach((noteEvent) => {
-                vm.processWorkerNoteEvent(noteEvent);
+                    vm.processWorkerNoteEvent(noteEvent);
                 });
             }
         },
@@ -971,13 +991,13 @@ export default {
                 // when posting from the CLOCK_EVENT hook
                 let workerPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
                 if ((workerPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
-                this.$toasted.show(
-                    "Network tick misalignment: expecting " +
-                    this.$store.getters.getLocalTickDelayed +
-                    ", got " +
-                    workerPredictionTick
-                );
-                this.misalignErrCount += 1;
+                    this.$toasted.show(
+                        "Network tick misalignment: expecting " +
+                        this.$store.getters.getLocalTickDelayed +
+                        ", got " +
+                        workerPredictionTick
+                    );
+                    this.misalignErrCount += 1;
                 }
             }
 
@@ -1011,7 +1031,7 @@ export default {
                     case vm.messageType.CHROMA_VECTOR:
                         if (this.audioAndChroma)
                             this.$root.$refs.chromaChart.updateChromaData(messageValue);
-                            // this.$root.$refs.vectorBar.updateVectorData(messageValue);
+                        // this.$root.$refs.vectorBar.updateVectorData(messageValue);
                         else
                             console.warn("The Agent generates chroma vectors but the Chroma Chart is not enabled in the config file");
                         break;
@@ -1048,8 +1068,8 @@ export default {
             vm.timeout_IDS_kill.push(setTimeout(() => {
                 if (this.config.gui.pianoRoll.status)
                     this.$root.$refs.pianoRoll.keyDown(noteEvent);
-                if (keyOnScreenRange){
-                    if (whiteKey){
+                if (keyOnScreenRange) {
+                    if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
                     } else {
                         this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-worker');
@@ -1072,7 +1092,7 @@ export default {
                     // Two ways to dealwith notes that have predefined duration.
                     // 1) Create a matching NOTE_OFF event and schedule it to be played after 'duration'
                     // 2) Use Tone.js triggerAttackRelease() api, which takes care of the NOTE_OFF event
-                    
+
                     if (noteEvent.duration.tick > 0) {
                         // ---------------- Second OPTION ----------------
                         if (vm.config.custom.useTriggerRelease) {
@@ -1094,14 +1114,14 @@ export default {
                         noteEventOff.duration = null;
                         // An ugly hack to make the two options work together for now.
                         // Once we decide which option to use, we can remove this.
-                        if (vm.config.custom.useTriggerRelease){
+                        if (vm.config.custom.useTriggerRelease) {
                             noteEventOff.custom = true;
                         }
                         this.$store.dispatch("storeWorkerQuantizedOutput", noteEventOff);
                         // }
-                    
-                    } else if (noteEvent.duration.tick == 0){
-                        if (noteEvent.duration.seconds > 0){
+
+                    } else if (noteEvent.duration.tick == 0) {
+                        if (noteEvent.duration.seconds > 0) {
                             if (vm.config.custom.useTriggerRelease) {
                                 // console.log("about to send samplerOnOff ", noteEvent.midi);
                                 this.$store.dispatch("samplerOnOff", noteEvent);
@@ -1109,8 +1129,8 @@ export default {
                                     this.uiNoteOffWorker(noteEvent);
                                 }, noteEvent.duration.seconds * 1000)
                                 );
-                            
-                            // console.log("option2  ")
+
+                                // console.log("option2  ")
                             } else {
                                 this.$store.dispatch("samplerOn", noteEvent);
                                 console.log("option1 ")
@@ -1119,9 +1139,9 @@ export default {
                                 // to a new method  that will call samplerOff and uiNoteOffWorker. TODO
                                 // For now, I just use option2
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                        this.uiNoteOffWorker(noteEvent);
-                                        this.$store.dispatch("samplerOff", noteEvent)
-                                    }, noteEvent.duration.seconds * 1000)
+                                    this.uiNoteOffWorker(noteEvent);
+                                    this.$store.dispatch("samplerOff", noteEvent)
+                                }, noteEvent.duration.seconds * 1000)
                                 );
                             }
                         } else {
@@ -1130,14 +1150,14 @@ export default {
                         }
                     }
 
-                } 
+                }
                 else {
                     this.$store.dispatch("samplerOn", noteEvent);
                 }
                 // this.$store.dispatch("samplerOn", noteEvent);
                 this.uiNoteOnWorker(noteEvent);
             } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
-                if (!noteEvent.hasOwnProperty('custom')){
+                if (!noteEvent.hasOwnProperty('custom')) {
                     this.$store.dispatch("samplerOff", noteEvent);
                 }
                 // console.log("about to call uiNoteOffWorker");
@@ -1145,7 +1165,7 @@ export default {
             }
         },
 
-        uiNoteOffWorker(noteEvent){
+        uiNoteOffWorker(noteEvent) {
             let vm = this;
             // console.log("uiNoteOffWorker")
             // TODO : the worker should do that
@@ -1157,13 +1177,13 @@ export default {
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
             // set a timeout to call keyUp based on noteEvent.playAfter.seconds
             vm.timeout_IDS_live.push(setTimeout(() => {
-                if (keyOnScreenRange){
-                    if (whiteKey){
+                if (keyOnScreenRange) {
+                    if (whiteKey) {
                         // console.log("released white key ", noteName)
-                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
                     } else {
                         // console.log("released black key ", noteName)
-                    this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
                     }
                 }
                 if (this.config.gui.pianoRoll.status)
@@ -1181,7 +1201,7 @@ export default {
                 vm.activeDevices = [];
             } else {
                 WebMidi.inputs.forEach((device) => {
-                vm.activeDevices.push({ id: device.id, name: device.name });
+                    vm.activeDevices.push({ id: device.id, name: device.name });
                 });
                 this.selectedMIDIDevice = this.activeDevices[0].id;
                 this.messageListener();
@@ -1192,8 +1212,8 @@ export default {
             const vm = this;
             if (state.id) {
                 if (vm.selectedMIDIDevice !== state.id) {
-                vm.selectedMIDIDevice = state.id;
-                vm.messageListener();
+                    vm.selectedMIDIDevice = state.id;
+                    vm.messageListener();
                 }
             }
         },
@@ -1244,7 +1264,7 @@ export default {
                     tick: 0
                 };
                 newNoteEvent.duration = null;
-                
+
                 vm.processUserNoteEvent(newNoteEvent)
             });
         },
@@ -1258,12 +1278,12 @@ export default {
             // this.recorderWorkletNode.parameters.get('recordingStatus').setValueAtTime(0, this.audioContext.currentTime);
             this.$store.commit("stopMute");
             // this is a nice hack
-            let id = setTimeout(function() {}, 0);
+            let id = setTimeout(function () { }, 0);
             while (id--) {
                 // check if id is in timeout_IDS_live. if not, then clear it
-                if (this.timeout_IDS_kill.includes(id)){
-                // console.log("deleting timeout id " + id);
-                clearTimeout(id); // will do nothing if no timeout with id is present
+                if (this.timeout_IDS_kill.includes(id)) {
+                    // console.log("deleting timeout id " + id);
+                    clearTimeout(id); // will do nothing if no timeout with id is present
                 }
             }
             // this.timeout_IDS_kill.forEach((timeoutId) => {
@@ -1290,7 +1310,7 @@ export default {
             // this.$root.$refs.mixerDat.guiMixer.hide();
             this.$root.$refs.monitor.pane.hidden = !this.$root.$refs.monitor.pane.hidden;
         },
-        toggleMixer(){
+        toggleMixer() {
             this.$root.$refs.mixer.pane.hidden = !this.$root.$refs.mixer.pane.hidden;
         },
         transposeOctUp() {
@@ -1323,8 +1343,29 @@ export default {
         },
 
         handleMixerUpdate(event) {
-            // console.log('in handler ', event);
             this.$store.commit("handleMixerUpdate", event);
+        },
+
+        manuallyUpdateMixer(event) {
+            this.mixer_data = event;
+            console.log("Main got mixer update", event);
+        },
+
+        manuallyUpdateData() {
+            let vm = this;
+            for (const [player, playerData] of Object.entries(vm.mixer_data)) {
+                console.log("player", player);
+                for (const [instId, instData] of Object.entries(playerData.instruments)) {
+                    console.log("instId", instId);
+                    let changeEvent = {
+                        playerId: player,
+                        instrumentId: instId,
+                        what: 'volume',
+                        value: instData.volume
+                    }
+                    vm.handleMixerUpdate(changeEvent);
+                };
+            }
         },
 
         loadConfigSync() {
@@ -1350,9 +1391,9 @@ export default {
             let config = "";
             xhrs.forEach((xhr) => {
                 if (xhr.status === 200) {
-                config += xhr.responseText + "\n";
+                    config += xhr.responseText + "\n";
                 } else {
-                throw new Error(`Failed to fetch config file: ${xhr.status}`);
+                    throw new Error(`Failed to fetch config file: ${xhr.status}`);
                 }
             });
 
@@ -1391,18 +1432,18 @@ export default {
             handler(newValue) {
                 let octaves;
                 if (newValue <= 750) {
-                octaves = 2;
+                    octaves = 2;
                 } else if (newValue <= 1024) {
-                // for iPads. 1024 * 768.
-                octaves = 3;
+                    // for iPads. 1024 * 768.
+                    octaves = 3;
                 } else if (newValue <= 1366) {
-                // for iPad Pros. 1366 * 1024.
-                octaves = 4;
+                    // for iPad Pros. 1366 * 1024.
+                    octaves = 4;
                 } else if (newValue <= 1920) {
-                // for 1920 * 1080 screens.
-                octaves = 5;
+                    // for 1920 * 1080 screens.
+                    octaves = 5;
                 } else {
-                octaves = 6;
+                    octaves = 6;
                 }
                 this.keyboardoctaveEnd = this.keyboardoctaveStart + octaves;
                 // A trick, to force keyboard re-render itself.
@@ -1414,9 +1455,9 @@ export default {
             immediate: true,
             handler(newValue) {
                 if (newValue == 10) {
-                this.$toasted.show(
-                    "Your local machine cannot run inference at this speed. Try lowering the BPM."
-                );
+                    this.$toasted.show(
+                        "Your local machine cannot run inference at this speed. Try lowering the BPM."
+                    );
                 }
             },
         },
@@ -1443,7 +1484,7 @@ export default {
             handler(newStates, oldStates) {
                 newStates.forEach((newState, index) => {
                     let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
-                    if ( newState.status !== oldStatus) {
+                    if (newState.status !== oldStatus) {
                         let floatStatus = newState.status ? 1.0 : 0.0;
                         const switchPropertyName = `SWITCH_${index + 1}`;
                         if (
@@ -1452,8 +1493,8 @@ export default {
                                 this.uiParameterType[switchPropertyName],
                                 floatStatus
                             )
-                            ) {
-                        console.warn("Couldn't enqueue.");
+                        ) {
+                            console.warn("Couldn't enqueue.");
                         }
                     }
                 });
@@ -1465,21 +1506,21 @@ export default {
             deep: true,
             handler(newStates, oldStates) {
                 newStates.forEach((newState, index) => {
-                let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
-                if (newState.value !== oldStatus) {
-                    // let floatStatus = newState.status ? 1.0 : 0.0;
-                    const sliderPropertyName = `SLIDER_${index + 1}`;
-                    console.log("detected ", sliderPropertyName, " change to ", newState.value);
-                    if (
-                        this.paramWriter != null &&
-                        !this.paramWriter.enqueue_change(
-                            this.uiParameterType[sliderPropertyName],
-                            newState.value
-                        )
+                    let oldStatus = oldStates.length == 0 ? null : oldStates[index].status;
+                    if (newState.value !== oldStatus) {
+                        // let floatStatus = newState.status ? 1.0 : 0.0;
+                        const sliderPropertyName = `SLIDER_${index + 1}`;
+                        console.log("detected ", sliderPropertyName, " change to ", newState.value);
+                        if (
+                            this.paramWriter != null &&
+                            !this.paramWriter.enqueue_change(
+                                this.uiParameterType[sliderPropertyName],
+                                newState.value
+                            )
                         ) {
-                    console.warn("Couldn't enqueue.");
+                            console.warn("Couldn't enqueue.");
+                        }
                     }
-                }
                 });
             }
         },
@@ -1489,10 +1530,9 @@ export default {
 </script>
 <style>
 @media (min-width: 1024px) {
-.main {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-}
-}
-</style>
+    .main {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+}</style>
