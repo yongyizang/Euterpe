@@ -25,49 +25,17 @@ import {NoteEvent } from './../../utils_module.js';
 */
 function processClockEvent(content) {
     
-    let startTime = performance.now();
-    let timeDiff = startTime - self.prevStartTime;
-    self.prevStartTime = startTime;
+    // This should be the first line in your processClockEvent() hook
+    // Do not remove it, as it is used to keep track of the agent's
+    // inference time, and to calculate the maximum supported BPM
+    let startTime = performance.now(); // Do not remove
 
-    const currentTick = content.tick; 
-    const quantizedEvents = content.humanQuantizedInput;  
-    // console.log(quantizedEvents);
-    let noteList = [];
-    if (quantizedEvents.length > 0){
-        let testNote = NoteEvent.fromPlain(quantizedEvents[0]);
-        let arp_note = new NoteEvent();
-        arp_note.player = self.playerType.AGENT;
-        // The instrument is required for playback
-        arp_note.instrument = self.instrumentType.PIANO;
-        // The type of the note is the same as the user's input (note on)
-        arp_note.type = testNote.type;
-        // The midi note number is calculated by adding the arpeggio interval
-        arp_note.midi = testNote.midi - 12;
-        // The velocity is the same as the user's input
-        arp_note.velocity = testNote.velocity;
-        // Every note of the arpegio is played with a delay
-        // of 0.1 seconds from the previous note.
-        arp_note.playAfter = {
-            tick: 7,
-            seconds: 0 ,
-        },
-        // And has duration of 0.1 seconds
-        arp_note.duration = {
-            tick: 0,
-            seconds: 0.6,
-        }
-        noteList.push(arp_note);
-        console.log("agent generated note: " + arp_note.midi);
-    }
+
+
+    // Put your code here
+
+
     
-
-    let actualPeriod = timeDiff;
-    let actualBPM = 60 / (actualPeriod / 1000) / self.config.clockSettings.ticksPerBeat;
-    // let error = actualBPM - 100;//self.config.clockSettings.tempo;
-    self.param_writer.enqueue_change(3, actualBPM);
-    // self.param_writer.enqueue_change(4, error);
-    // console.log("agentWorker: " + Math.round(currentBPM) + " error: " + error);
-
     /*
     At this stage, the worker has finished processing the clock event
     and sends the results to the UI. Since we estimated a chroma vector
@@ -84,9 +52,7 @@ function processClockEvent(content) {
             [self.messageType.CLOCK_TIME]: content.tick, // Do not modify
             [self.messageType.INFERENCE_TIME]: endTime - startTime, // Do not modify
             // Add your messages here
-            // [self.messageType.CHROMA_VECTOR]: tickAverageChroma,
-            [self.messageType.NOTE_LIST]: noteList,
-            [self.messageType.LABEL]: "Dm7"
+            
         },
     })
 }
