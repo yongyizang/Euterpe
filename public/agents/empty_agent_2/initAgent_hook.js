@@ -1,4 +1,3 @@
-
 /*
     First, you should set the Agent parameters that are controllable
     by UI elements. Those UI elements are defined in config_widgets.yaml
@@ -10,15 +9,13 @@
 
     Currently you can use up to 4 sliders and 4 switches.
     You can delete the ones you don't need.
+
+    NOTE: You should use the 'self' keyword to define the parameters
+        e.g. self.gain = 0.5;
+        that way, they will be accessible from the other hooks and the agent.js
 */
-let slider1 = null;
-let slider2 = null;
-let slider3 = null;
-let slider4 = null;
-let switch1 = null;
-let switch2 = null;
-let switch3 = null;
-let switch4 = null;
+self.slider1 = null;
+self.switch1 = null;
 
 /*
     This function is invoked every time there is a change in the UI parameters. 
@@ -46,26 +43,8 @@ function updateParameter(newUpdate){
         case self.uiParameterType.SLIDER_1:
             self.slider1 = newUpdate.value;
             break;
-        case self.uiParameterType.SLIDER_2:
-            self.slider2 = newUpdate.value;
-            break;
-        case self.uiParameterType.SLIDER_3:
-            self.slider3 = newUpdate.value;
-            break;
-        case self.uiParameterType.SLIDER_4:
-            self.slider4 = newUpdate.value;
-            break;
         case self.uiParameterType.SWITCH_1:
             self.switch1 = newUpdate.value;
-            break;
-        case self.uiParameterType.SWITCH_2:
-            self.switch2 = newUpdate.value;
-            break;
-        case self.uiParameterType.SWITCH_3:
-            self.switch3 = newUpdate.value;
-            break;
-        case self.uiParameterType.SWITCH_4:
-            self.switch4 = newUpdate.value;
             break;
         default:
             console.warn("Invalid parameter type");
@@ -99,6 +78,7 @@ async function loadExternalFiles(content) {
     progress messages will be shown in the intro screen while the agent is loading.
 */
 async function loadAlgorithm(content) {
+    
     // A simple example of loading a model with tensorflow.js : 
     // tf.setBackend('webgl');
     // try {
@@ -106,7 +86,13 @@ async function loadAlgorithm(content) {
     // } catch (error) {
     //     console.error(error);
     // }
+    // const mvae = new mm.music_vae.MusicVAE('https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small');
+    // await mvae.initialize();
+    // self.genie = new piano_genie.PianoGenie(GENIE_CHECKPOINT);
+    // await self.genie.initialize();
 
+    // Warm up the model if needed
+    
     postMessage({
         hookType: self.agentHookType.INIT_AGENT,
         message:{
@@ -116,37 +102,7 @@ async function loadAlgorithm(content) {
                     "Core algorithm is loaded",
         },
     })
-
     
-    /* Warm up the model if needed.
-    let inferenceTimes = [];
-    for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
-
-        
-        let aa = performance.now();
-
-        // simulate a blocking operation (i.e neural network inference)
-        simulateBlockingOperation(10);
-
-        let inferenceTime = performance.now() - aa;
-        inferenceTimes.push(inferenceTime);
-
-        // you can sent WARMUP status messages to the UI if you want.
-        // these will appear in the intro screen
-        postMessage({
-            hookType: self.agentHookType.INIT_AGENT,
-            message:{
-                [self.messageType.STATUS]: 
-                        self.statusType.WARMUP,
-                [self.messageType.TEXT]: 
-                        "Worker is warming up. Current round: " + (i + 1) + "/" + self.config.agentSettings.warmupRounds,
-            },
-        })
-    }
-    // you can print the average inference time to the console for debugging
-    console.log("Average inference time: " + inferenceTimes.reduce((a, b) => a + b, 0) / inferenceTimes.length);
-    */
-
     // Once your model/agent is ready to play, 
     // UI expects a success message, don't forget to send it.
     postMessage({
@@ -159,3 +115,5 @@ async function loadAlgorithm(content) {
         },
     })
 }
+
+export { updateParameter, loadAlgorithm, loadExternalFiles};

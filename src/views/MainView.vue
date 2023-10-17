@@ -34,7 +34,6 @@ import {
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
 import { NoteEvent } from '@/utils/NoteEvent.js'
 
-
 export default {
 
     name: "mainScreen",
@@ -44,7 +43,6 @@ export default {
         Score,
         PianoRoll,
         VerticalSlider,
-        // HorizontalSlider,
         BPMSlider,
         Dropdown,
         AudioMeter,
@@ -53,6 +51,8 @@ export default {
         Monitor,
         ChromaChart
         // VectorBar,
+        // HorizontalSlider,
+
     },
 
     data() {
@@ -235,11 +235,11 @@ export default {
         // Initialize agent worker
         // experiment with , { type : 'module' }
         // if agen'ts name is pianoGenie, then load the pianoGenie worker
-        if (vm.agentName == "pianoGenie") {
-            vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`, {type: 'module'});
-        } else {
-            vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`);
-        }
+        // if (vm.agentName == "pianoGenie") {
+        vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`, {type: 'module'});
+        // } else {
+        //     vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`);
+        // }
         // vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`,  { type : 'module' });
 
         vm.agent.onmessage = vm.agentCallback;

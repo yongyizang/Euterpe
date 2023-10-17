@@ -8,8 +8,12 @@
         interactionMode.noteMode : true
         nodeModeSettings.gridBased.status: true
 */
+import {NoteEvent } from './../../utils_module.js';
+
+
 function processNoteEvent(noteEvent){
     // Put your code here
+
 
     /* 
     At this stage, the worker has finished processing the note event
@@ -24,7 +28,10 @@ function processNoteEvent(noteEvent){
         message:{
             // add your messages here
             // For example:
-            // [self.messageType.NOTE_LIST]: noteList,
+            [self.messageType.NOTE_LIST]: noteList,
         }
     });
 }
+
+// Very important, don't delete
+export {processNoteEvent};

@@ -11,14 +11,15 @@
     Currently you can use up to 4 sliders and 4 switches.
     You can delete the ones you don't need.
 */
-let slider1 = null;
-let slider2 = null;
-let slider3 = null;
-let slider4 = null;
-let switch1 = null;
-let switch2 = null;
-let switch3 = null;
-let switch4 = null;
+self.slider1 = null;
+self.slider2 = null;
+self.slider3 = null;
+self.slider4 = null;
+self.switch1 = null;
+self.switch2 = null;
+self.switch3 = null;
+self.switch4 = null;
+
 
 /*
     This function is invoked every time there is a change in the UI parameters. 
@@ -159,3 +160,5 @@ async function loadAlgorithm(content) {
         },
     })
 }
+
+export { updateParameter, loadAlgorithm, loadExternalFiles};

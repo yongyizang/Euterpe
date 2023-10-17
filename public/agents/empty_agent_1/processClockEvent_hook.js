@@ -1,3 +1,4 @@
+import {NoteEvent } from './../../utils_module.js';
 /*
     A hook for processing note/MIDI events from the user.
 
@@ -55,3 +56,5 @@ function processClockEvent(content) {
         },
     })
 }
+
+export {processClockEvent};

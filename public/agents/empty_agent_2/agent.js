@@ -1,79 +1,85 @@
-// This is the older type of worker (non module). 
-// You need to use importScripts to import libraries.
-// Essentia.js can't be imported this way but Meyda can.
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
-importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js");
+import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.7.0/dist/tf.min.js';
+import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/piano_genie.js';
+// tf.disableDeprecationWarnings();
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/core.js'
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_vae.js';
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_rnn.js';
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/protobuf.js';
 
-importScripts("../../libraries/index_rb_no_exports.js");
-importScripts("../../utils.js");
+import { updateParameter, loadAlgorithm, loadExternalFiles} from './initAgent_hook.js';
+import { processClockEvent } from './processClockEvent_hook.js';
+import { processNoteEvent } from './processNoteEvent_hook.js';
+import { processAudioBuffer } from './processAudioBuffer_hook.js';
+import {
+    AudioReader, AudioWriter,
+    ParameterReader,ParameterWriter,
+    RingBuffer,
+  } from './../../libraries/index_rb_exports.js';
+import { LIFOQueue, FIFOQueue, 
+        deinterleave_custom, simulateBlockingOperation, 
+        shiftRight, average2d, NoteEvent } from './../../utils_module.js';
 
-// Import hooks
-importScripts("./initAgent_hook.js");
-importScripts("./processClockEvent_hook.js");
-importScripts("./processNoteEvent_hook.js");
-importScripts("./processAudioBuffer_hook.js");
-
-let config = null;
-let playerType = null;
-let instrumentType = null;  
-let messageType = null;
-let statusType = null;
-let noteType = null;
-let parameterType = null;
-let agentHookType = null;
+// Global variables shared between the agent.js and the hooks
+// need to be declared using the self keyword
+// Local variables can be declared using the let keyword (or const)
+self.config = null;
+self.playerType = null;
+self.instrumentType = null;  
+self.messageType = null;
+self.statusType = null;
+self.noteType = null;
+self.parameterType = null;
+self.agentHookType = null;
 
 // Audio related variables
-let channelCount = null;
-let sampleRate = null;
+self.channelCount = null;
+self.sampleRate = null;
+self.audio_frames_queue = null;
+self.audio_features_queue = null;
+self.windowSize = null;
+self.hopSize = null;
+
 let staging = null;
 let _audio_reader = null;
-let audio_frames_queue = null;
-let audio_features_queue = null;
-let frames = null;
-let windowSize = null;
-let hopSize = null;
+let framesPerTick = null;
 let sampleCounter = null;
 let currentFrame = null;
-let frameCounter = null;
-let interval = null;
-let uiParameterInterval = null;
+let stagingIntervalID = null;
+let uiParameterIntervalID = null;
 
-let _param_reader = null;
-let _param_writer = null;
-let newParameterUI = null;
-
-let prevTime = performance.now();
+self.param_reader = null;
+self.param_writer = null;
 
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize
 // and we send them for processing in the processAudioBuffer() hook
 function _readFromQueue() {
-    const samples_read = self._audio_reader.dequeue(self.staging);
+    const samples_read = _audio_reader.dequeue(staging);
     if (!samples_read) {
         return 0;
     }
     // samples_read can have less length than staging
     for (let i = 0; i < samples_read; i++) {
-        if (self.sampleCounter == self.windowSize - 1){
+        if (sampleCounter == self.windowSize - 1){
         
             // Here you can do some analysis on the current audio frame
-            let channel1 = new Float32Array(self.currentFrame.length / self.channelCount);
-            let channel2 = new Float32Array(self.currentFrame.length / self.channelCount);
+            let channel1 = new Float32Array(currentFrame.length / self.channelCount);
+            let channel2 = new Float32Array(currentFrame.length / self.channelCount);
             let channels = [channel1, channel2];
             // console.log("in read from queue");
-            deinterleave_custom(self.currentFrame, channels, self.channelCount);
+            deinterleave_custom(currentFrame, channels, self.channelCount);
             let tempFrame = new Float32Array(self.windowSize);
             // Copy the last windowSize - hopSize samples to the current frame
             // to the beginning of the new frame
             for (let j = 0; j < (self.windowSize - self.hopSize); j++){
-                tempFrame[j] = self.currentFrame[j + self.hopSize];
+                tempFrame[j] = currentFrame[j + self.hopSize];
             }
-            self.currentFrame = tempFrame;
-            self.sampleCounter = self.windowSize - self.hopSize;
+            currentFrame = tempFrame;
+            sampleCounter = self.windowSize - self.hopSize;
 
-            self.processAudioBuffer(channels);
+            processAudioBuffer(channels);
         }
-        self.currentFrame[self.sampleCounter] = self.staging[i];
+        currentFrame[sampleCounter] = staging[i];
         self.sampleCounter += 1;
     }
     return samples_read;
@@ -81,38 +87,23 @@ function _readFromQueue() {
 
 function _uiParameterObserver(){
     let newParameterUI = { index: null, value: null };
-    if (self._param_reader.dequeue_change(newParameterUI)) {
+    if (self.param_reader.dequeue_change(newParameterUI)) {
         console.log("param index: " + newParameterUI.index + " value: " + newParameterUI.value);
         updateParameter(newParameterUI);
     }
 }
 
-// Hook that takes the necessary configuration data from the main thread
-async function initAgent(content) {
-    console.log("inside initAgent");
-    try {
-        loadConfig(content);
-        loadExternalFiles(content);
-        loadAlgorithm(content);
-        initAudio(content);
-        initParameterSharing(content);
-        console.log("Initialization complete");
-    } catch (error) {
-        console.error("Error initializing worker:", error);
-    }
-}
-
 function initParameterSharing(content){
     // Reads parameters from the UI (sliders, buttons, etc.)
-    self._param_reader = new ParameterReader(
+    self.param_reader = new ParameterReader(
         new RingBuffer(content.sab_par_ui, Uint8Array)
     );
     // Writes parameters to the UI (e.g., rms, loudness, inference time, etc.)
     // The parameters need to be single float values
-    self._param_writer = new ParameterWriter(
+    self.param_writer = new ParameterWriter(
         new RingBuffer(content.sab_par_agent, Uint8Array)
     );
-    self.uiParameterInterval = setInterval(_uiParameterObserver, 100);
+    uiParameterIntervalID = setInterval(_uiParameterObserver, 100);
 }
 
 function loadConfig(content) {
@@ -138,7 +129,7 @@ function loadConfig(content) {
 function initAudio(content){
     // console.log(content)
     // Reads audio samples directly from the microphone
-    self._audio_reader = new AudioReader(
+    _audio_reader = new AudioReader(
         new RingBuffer(content.sab, Float32Array)
     );
 
@@ -154,7 +145,7 @@ function initAudio(content){
     self.hopSize = self.config.audioModeSettings.hopSize * self.channelCount;
 
     // Audio Frames per clock tick
-    self.framesPerTick = self.sampleRate * self.channelCount * 60 / 
+    framesPerTick = self.sampleRate * self.channelCount * 60 / 
                          60 / // self.config.clockSettings.tempo
                         self.hopSize / 
                         self.config.clockSettings.ticksPerBeat;
@@ -169,20 +160,20 @@ function initAudio(content){
     push and pop frames from the queue.
     We set the max size of the queue to the equivalent duration of 16 clock ticks
     */
-    self.audio_frames_queue = new LIFOQueue(16 * self.framesPerTick);
+    self.audio_frames_queue = new LIFOQueue(16 * framesPerTick);
 
     // Same for the audio features queue. These features are extracted
     // from the audio frames. 
-    self.audio_features_queue = new LIFOQueue(16 * self.framesPerTick);
+    self.audio_features_queue = new LIFOQueue(16 * framesPerTick);
     
     // The current frame/window array. We'll keep pushing samples to it
     // untill it's full (windowSize samples). Then we'll push it to the
     // audio_frames_queue and start a new frame/window.
-    self.currentFrame = new Float32Array(self.windowSize);
+    currentFrame = new Float32Array(self.windowSize);
 
     // This counter will be used to keep track of the number of samples
     // we have pushed to the current frame/window.
-    self.sampleCounter = 0
+    sampleCounter = 0
     
     /*
     // A smaller staging array to copy the audio samples from, before conversion
@@ -190,18 +181,17 @@ function initAudio(content){
     // that the ring buffer can hold, so it's 250ms, allowing to not make
     // deadlines:
     */
-    self.staging = new Float32Array(self.hopSize);
+    staging = new Float32Array(self.hopSize);
 
-    Meyda.bufferSize = self.windowSize;
-    
-    self.interval = setInterval(_readFromQueue, 10);
+    // Meyda.bufferSize = self.windowSize;
+    stagingIntervalID = setInterval(_readFromQueue, 10);
     console.log("finished setting up audio")
 }
 
 // Hook selector based on the MICP packet type
 async function onMessageFunction (obj) {
     if (self.config == null) {
-        await self.initAgent(obj.data.content);
+        await initAgent(obj.data.content);
         // make sure that the config is loaded
         if (self.config == null) {
             console.error("Agent not initialized correctly. Failed to load config")
@@ -212,15 +202,30 @@ async function onMessageFunction (obj) {
         }
     } else {
         if (obj.data.hookType == self.agentHookType.CLOCK_EVENT) {
-            self.processClockEvent(obj.data.content);
+            processClockEvent(obj.data.content);
         } else if (obj.data.hookType == self.agentHookType.NOTE_EVENT){
             // The NoteEvent we receive from the UI is serialized
             // We need to deserialize it
             let noteEvent = NoteEvent.fromPlain(obj.data.content);
-            self.processNoteEvent(noteEvent);
+            processNoteEvent(noteEvent);
         }
     }
     return;
 }
 
-onmessage = onMessageFunction;
+// Hook that takes the necessary configuration data from the main thread
+async function initAgent(content) {
+    console.log("inside initAgent");
+    try {
+        loadConfig(content);
+        loadExternalFiles(content);
+        loadAlgorithm(content);
+        initAudio(content);
+        initParameterSharing(content);
+        console.log("Initialization complete");
+    } catch (error) {
+        console.error("Error initializing worker:", error);
+    }
+}
+
+self.onmessage = onMessageFunction;

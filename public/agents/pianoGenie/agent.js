@@ -49,8 +49,8 @@ let currentFrame = null;
 let stagingIntervalID = null;
 let uiParameterIntervalID = null;
 
-self._param_reader = null;
-self._param_writer = null;
+self.param_reader = null;
+self.param_writer = null;
 // let newParameterUI = null;
 
 // let prevTime = performance.now();
@@ -101,7 +101,7 @@ function _readFromQueue() {
 
 function _uiParameterObserver(){
     let newParameterUI = { index: null, value: null };
-    if (self._param_reader.dequeue_change(newParameterUI)) {
+    if (self.param_reader.dequeue_change(newParameterUI)) {
         console.log("param index: " + newParameterUI.index + " value: " + newParameterUI.value);
         updateParameter(newParameterUI);
     }
@@ -109,12 +109,12 @@ function _uiParameterObserver(){
 
 function initParameterSharing(content){
     // Reads parameters from the UI (sliders, buttons, etc.)
-    self._param_reader = new ParameterReader(
+    self.param_reader = new ParameterReader(
         new RingBuffer(content.sab_par_ui, Uint8Array)
     );
     // Writes parameters to the UI (e.g., rms, loudness, inference time, etc.)
     // The parameters need to be single float values
-    self._param_writer = new ParameterWriter(
+    self.param_writer = new ParameterWriter(
         new RingBuffer(content.sab_par_agent, Uint8Array)
     );
     uiParameterIntervalID = setInterval(_uiParameterObserver, 100);

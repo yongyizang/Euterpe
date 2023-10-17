@@ -9,3 +9,5 @@
 function processAudioBuffer(buffer) {
     // Put your code here
 }
+
+export {processAudioBuffer};

@@ -14,7 +14,7 @@ function processAudioBuffer(buffer) {
     */
 
     // An example of how you can use Meyda to extract audio features from the left channel
-    let features = Meyda.extract(['rms', 'chroma'], buffer[0]);
+    // let features = Meyda.extract(['rms', 'chroma'], buffer[0]);
 
     /*
     An example of how you can send those features to the UI
@@ -29,7 +29,7 @@ function processAudioBuffer(buffer) {
     The first arg for enqueue_change is the parameter id (see config_widgets.yaml)
     and the second arg is the float value you want to send. 
     */
-    self._param_writer.enqueue_change(0, features.rms);
+    // self.param_writer.enqueue_change(0, features.rms);
 
     /*
         Here we push the overlapped audio frames and their features
@@ -37,6 +37,8 @@ function processAudioBuffer(buffer) {
         audio inputs at the same time. These queues can be accessed from both 
         processClockEvent() and processNoteEvent() hooks.
     */
-    self.audio_frames_queue.push(buffer[0]);
-    self.audio_features_queue.push(features);
+    // self.audio_frames_queue.push(buffer[0]);
+    // self.audio_features_queue.push(features);
 }
+
+export {processAudioBuffer};

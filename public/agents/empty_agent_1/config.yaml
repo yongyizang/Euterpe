@@ -1,12 +1,12 @@
 ---
 # The name of your system
-title: "Euterpe"
-subtitle: "A music interaction system framework"
+title: "Empty Agent Template"
+subtitle: "Using Euterpe"
 
 # Set the correct flags based on the type of your music interaction algorithm
 interactionMode: 
   noteMode: true
-  audioMode: true
+  audioMode: false
 
 noteModeSettings:
   eventBased:
@@ -16,19 +16,20 @@ noteModeSettings:
   gridBased:
     # If gridBased.status: true, then the worker's processClockEvent() hook is active
     # for processing raw and quantized MIDI events buffers at every "clock-tick"
-    status: true
+    status: false
     # Choose what information you want Euterpe to provide to your algorithm (Worker)
     # when calling the processClockEvent() hook, at every clock-tick (or grid slot)
     eventBuffer: false # A buffer with all the MIDI events played by the user since the last tick (grid slot).
-    quantizedEvents: true # The time-quantized (or grid-aligned) MIDI events that correspond to the current tick (grid slot).
+    quantizedEvents: false # The time-quantized (or grid-aligned) MIDI events that correspond to the current tick (grid slot).
     # Set the polyphony that your music algorithm supports. Euterpe limits the user's input polyphony
     # so that you don't have to do it. Currently, it only applies to the quantizedEvents (gridBased mode)
     polyphony:
       input: 1
     # Optional feature to better align the user's input with the metronome
+    # It drastically improves the displayed score due to better the better alignment.
     # For details, check our paper (section 3.4.1)
-    # Use only when necessary, as it might introduce clock/tempo instabilities
-    delayedExecution: true
+    # Use only when necessary though, as it might introduce clock/tempo instabilities.
+    delayedExecution: false
 
 audioModeSettings:
   windowSize: 1024
@@ -62,10 +63,10 @@ agentSettings:
   warmupRounds: 2
 
 # Choose the text to be displayed in the splash screen animation
-introModal: false
+introModal: true
 introModalContent:
   - "Hi! This is Euterpe."
-  - "I am a web-framework for music interaction systems."
-
+  - "Right now, I'm hosting a musical agent that does ... nothing"
+  - "Modify the *.yaml config files and add your code in the *hook.js files to create your own music agent"
 custom:
   useTriggerRelease: true

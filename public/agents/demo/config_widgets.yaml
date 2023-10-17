@@ -35,7 +35,7 @@ gui:
       - label: "Agent"
         parameters:
           - id: 3
-            label: "True BPM"
+            label: "Debug"
             interval: 100 
             graph: true
             min: 80

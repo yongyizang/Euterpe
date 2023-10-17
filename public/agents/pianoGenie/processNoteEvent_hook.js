@@ -43,7 +43,7 @@ function processNoteEvent(noteEvent){
             } 
             
             let inferenceTime = performance.now() - start;
-            self._param_writer.enqueue_change(0, inferenceTime);
+            self.param_writer.enqueue_change(0, inferenceTime);
             lastMidi = outputMidi;
             // Create a new NoteObject and send it to the main thread
             // create the new note
