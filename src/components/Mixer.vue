@@ -15,7 +15,7 @@
         left: `${left}px`,
         zIndex: 100,
         width: `${width}px`, 
-        height: `${height}px`,
+        height: `auto`,
         // ...styles,
         }"
         @mousedown="startDrag"
@@ -52,10 +52,10 @@ export default {
             type: Number,
             default: 200
         },
-        height: {
-            type: Number,
-            default: 400
-        },
+        // height: {
+        //     type: Number,
+        //     default: 400
+        // },
         // cssClasses: {
         //   default: '',
         //   type: String
