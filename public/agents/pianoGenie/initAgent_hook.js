@@ -116,7 +116,7 @@ async function loadAlgorithm(content) {
     for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
         let start = performance.now();
 
-        let note = self.genie.nextFromKeyList(0, keyWhitelist, self.temperature);
+        let note = self.genie.nextFromKeyList(0, keyWhitelist, self.temperature/100);
 
         let inferenceTime = performance.now() - start;
         inferenceTimes.push(inferenceTime);
