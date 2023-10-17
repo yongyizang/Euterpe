@@ -234,11 +234,13 @@ export default {
         // Initialize agent worker
         // experiment with , { type : 'module' }
         // if agen'ts name is pianoGenie, then load the pianoGenie worker
-        if (vm.agentName == "pianoGenie") {
-            vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`, {type: 'module'});
-        } else {
-            vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
-        }
+        // if (vm.agentName == "pianoGenie") {
+        //     vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`, {type: 'module'});
+        // } else {
+        //     vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
+        // }
+        vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`,  { type : 'module' });
+
         vm.agent.onmessage = vm.agentCallback;
 
         // Send a message to agent with some necessary 
@@ -990,11 +992,11 @@ export default {
                     } else if (noteEvent.duration.tick == 0){
                         if (noteEvent.duration.seconds > 0){
                             if (vm.config.custom.useTriggerRelease) {
-                                // console.log("about to send samplerOnOff ", noteEvent.midi);
+                                console.log("about to send samplerOnOff ", noteEvent.midi);
                                 this.$store.dispatch("samplerOnOff", noteEvent);
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                    this.uiNoteOffAgent(noteEvent);
-                                }, noteEvent.duration.seconds * 1000)
+                                        this.uiNoteOffAgent(noteEvent);
+                                    }, noteEvent.duration.seconds * 1000)
                                 );
                             
                             // console.log("option2  ")
@@ -1056,7 +1058,7 @@ export default {
                     }
                 }
                 // if (this.config.gui.pianoRoll.status)
-                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.human) 
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent) 
                     this.$root.$refs.pianoRoll.keyUp(noteEvent);
             }, noteEvent.playAfter.seconds * 1000)
             );

@@ -138,7 +138,7 @@ export default {
         if (this.$store.getters.getClockStatus) {
           // Update camera position.
           // Camera moves down to give the illusion that every noteblock goes up.
-          this.camera.position.y += (1 / 10) * delta;
+          this.camera.position.y += (1 / 10) * delta * 2;
         }
         // Tell renderer to re-render.
         this.renderer.render(this.scene, this.camera);

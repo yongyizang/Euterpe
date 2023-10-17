@@ -1,12 +1,58 @@
 // This is module type of worker. 
 
+// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.4.0/dist/tf.min.js");
+
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/core.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/piano_genie.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/music_vae.js");
+
+// importScripts("../../libraries/magenta-1-7-0.js");
+// importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js");
+
+
+// importScripts("../../libraries/index_rb_no_exports.js");
+// importScripts("../../utils.js");
+
+// Import hooks
+// importScripts("./initAgent_hook.js");
+// importScripts("./processClockEvent_hook.js");
+// importScripts("./processNoteEvent_hook.js");
+// importScripts("./processAudioBuffer_hook.js");
+
+// importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.4.0/dist/tf.min.js");
+// // importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/music_vae.js");
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/piano_genie.js");
+
+// importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/core.js");
+
+// import { PianoGenie } from '@magenta/music';
+// import { MusicVAE } from '@magenta/music';
+// import * as mm from '@magenta/music';
+
+// import * as mm from 'https://cdn.jsdelivr.net/npm/@magenta/music@1.12.0/es6/core.js';
+// import '@magenta/music@1.12.0/es6/piano_genie.js';
+// import '@magenta/music@1.12.0/es6/music_vae.js';
+// import * as mm from '../../libraries/magenta-1-7-0';
+
+// import {MusicVAE} from "https://cdn.jsdelivr.net/npm/@magenta/music@^1.12.0/es6/music_vae.js";
+// import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.es2017.js'
+// import * as tf from 'https://www.npmjs.com/package/@tensorflow/tfjs/v/1.7.4/dist/tf.esm.js'
+// import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.3.0/dist/tf.es2017.js'
+// import * as tf from '@tensorflow/tfjs';
 import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.7.0/dist/tf.min.js';
 // tf.disableDeprecationWarnings();
+// import 'https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.58/Tone.js';
+// import * as tf from 'https://cdnjs.cloudflare.com/ajax/libs/tensorflow/1.2.8/tf.min.js';
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/index.js';
+// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/lib.js';
+
 import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/core.js'
 import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_vae.js';
 import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_rnn.js';
 import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/protobuf.js';
+
 import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/piano_genie.js';
+
 
 
 import { updateParameter, loadAlgorithm, loadExternalFiles} from './initAgent_hook.js';
@@ -22,8 +68,9 @@ import {
     // deinterleave,
     // interleave,
   } from './../../libraries/index_rb_no_exports.js';
-import { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent } from './../../utils.js';
+import { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent } from './../../utils_module.js';
 
+// import Meyda from 'meyda';
 let config = null;
 let playerType = null;
 let instrumentType = null;  
@@ -122,7 +169,6 @@ function initParameterSharing(content){
 
 function loadConfig(content) {
     self.config = content.config;
-    self.config2 = content.config;
     self.playerType = content.playerType;
     self.instrumentType = content.instrumentType;
     self.noteType = content.noteType;

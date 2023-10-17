@@ -8,7 +8,7 @@
         interactionMode.noteMode : true
         nodeModeSettings.gridBased.status: true
 */
-import { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent } from './../../utils.js';
+import { LIFOQueue, FIFOQueue, deinterleave_custom, simulateBlockingOperation, shiftRight, average2d, NoteEvent } from './../../utils_module.js';
 let lastMidi = null;
 let keyWhitelist = Array(88).fill().map((x,i) => {
     return i;
@@ -62,7 +62,6 @@ function processNoteEvent(noteEvent){
     something to send.
     */
     // console.log("processNoteEvent", self.agentHookType);
-    console.log("Insde the Hook ", self.testVar);
     postMessage({
         hookType: self.agentHookType.NOTE_EVENT, // Do not modify
         message:{
