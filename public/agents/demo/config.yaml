@@ -12,7 +12,7 @@ noteModeSettings:
   eventBased:
     # If eventBased.status: true, then the worker's processNoteEvent() hook is active
     # for instant processing of each user's MIDI event.
-    status: true
+    status: false
   gridBased:
     # If gridBased.status: true, then the worker's processClockEvent() hook is active
     # for processing raw and quantized MIDI events buffers at every "clock-tick"
@@ -28,7 +28,7 @@ noteModeSettings:
     # Optional feature to better align the user's input with the metronome
     # For details, check our paper (section 3.4.1)
     # Use only when necessary, as it might introduce clock/tempo instabilities
-    delayedExecution: false
+    delayedExecution: true
 
 audioModeSettings:
   windowSize: 1024
@@ -56,9 +56,9 @@ clockSettings:
   # operates on a "free-time" mode (no BPM or timeSignature)
   clockPeriod: null
   
-# Worker related settings.
-workerSettings:
-  # For Workers that require warmup (such as neural networks)
+# Agent related settings.
+agentSettings:
+  # For Agents that require warmup (such as neural networks)
   warmupRounds: 2
 
 # Choose the text to be displayed in the splash screen animation

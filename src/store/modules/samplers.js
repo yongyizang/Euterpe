@@ -13,30 +13,11 @@ import {
 // };
 
 const state = {
-    metronomeMuteStatus: true,
-    humanMuteStatus: false,
-    workerMuteStatus: false,
-
     playersConfig: null,
-    
     // master limiter
     limiter: null,
     // player's buses
     samplersAndBuses: {},
-    
-    // metronome
-    metronomeBus: null,
-    metronomeSamplersBus: null,
-    metronomeSamplers: null,
-    // human
-    humanBus: null,
-    humanSamplersBus: null,
-    humanSamplers: null,
-    // worker
-    workerBus: null,
-    workerSamplersBus: null,
-    workerSamplers: null,
-    
 };
 
 const getters = {
@@ -67,7 +48,6 @@ const actions = {
         let instrument_label = instNamesMap[noteEvent.instrument];
         if (noteEvent.player == playerType.HUMAN){
             
-            // let instrument_to_play_on = context.state.humanSamplers[instrument_label];
             let instrument_to_play_on = context.state.samplersAndBuses["human"].samplers[instrument_label];
             if (instrument_to_play_on == null){
                 throw new Error("Instrument " + instrument_label + " is not available for the Human. Make sure it is declared in the config_players file.");
@@ -81,8 +61,6 @@ const actions = {
             if (name == null){
                 name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
             }
-            // console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
-            // let instrument_to_play_on = context.state.workerSamplers[instrument_label];
             let instrument_to_play_on = context.state.samplersAndBuses["agent"].samplers[instrument_label];
             if (instrument_to_play_on == null){
                 throw new Error("Instrument " + instrument_label + "is not available for the Agent. Make sure it is declared in the config_players file.");
@@ -125,9 +103,6 @@ const actions = {
 const mutations = {
 
     stopMute(state) {
-        // state.metronomeBus.mute = true;
-        // // state.humanBus.mute = true;
-        // state.workerBus.mute = true;
         for (const [player, playerData] of Object.entries(state.samplersAndBuses)) {
             if (player == 'human'){
                 return;
@@ -137,11 +112,6 @@ const mutations = {
 
     },
     startUnMute(state) {
-        // state.metronomeBus.mute = false;
-        // // state.humanBus.mute = state.humanMuteStatus;    
-        // state.workerBus.mute = false;
-        
-        // Instead of the above old way, now we can iterate the samplersAndBuses object and set the mute status for each bus
         for (const [player, playerData] of Object.entries(state.samplersAndBuses)) {
             if (player == 'human'){
                 return;
@@ -154,6 +124,7 @@ const mutations = {
         state.playersConfig = config.players;
         console.log("inside setInstrumentsConfig", state.playersConfig);
         state.limiter = new Tone.Limiter(-5).toDestination();
+        // state.limiter = new Tone.Channel().toDestination();
         // const tremolo = new Tone.Tremolo(9, 0.75).toDestination().start();
 
         for (const [player, playerData] of Object.entries(state.playersConfig)) {

@@ -17,14 +17,14 @@ import {
 	  playerType, instrumentType, eventSourceType,
     messageType, statusType, noteType,
     uiParameterType,
-    workerHookType
+    agentHookType
     } from '@/utils/types.js'
 
 import("../css/variables.css");
 
-// get --pianoRoll-human-color and --pianoRoll-worker-color from CSS.
-const colorForWorker = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRoll-worker-color"
+// get --pianoRoll-human-color and --pianoRoll-agent-color from CSS.
+const colorForAgent = getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRoll-agent-color"
 );
 const colorForHuman = getComputedStyle(document.documentElement).getPropertyValue(
   "--pianoRoll-human-color"
@@ -40,8 +40,8 @@ const humanMaterial = new THREE.MeshBasicMaterial({
   color: colorForHuman,
   side: THREE.DoubleSide,
 });
-const workerMaterial = new THREE.MeshBasicMaterial({
-  color: colorForWorker,
+const agentMaterial = new THREE.MeshBasicMaterial({
+  color: colorForAgent,
   side: THREE.DoubleSide,
 });
 
@@ -159,7 +159,7 @@ export default {
             .getBoundingClientRect();
 
           // Define the noteblock plane.
-          const plane = new THREE.Mesh(geometry, (noteEvent.player == playerType.AGENT) ? workerMaterial : humanMaterial);
+          const plane = new THREE.Mesh(geometry, (noteEvent.player == playerType.AGENT) ? agentMaterial : humanMaterial);
           const noteWidth =
             notePosition.right - notePosition.left - NoteAnimationMargin * 2;
           plane.scale.set(noteWidth, initialScaling, 1);

@@ -39,7 +39,7 @@ export default {
         },
         top: {
             type: Number,
-            default: 135
+            default: 311
         },
         right: {
             type: Number,

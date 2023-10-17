@@ -15,9 +15,9 @@ import * as THREE from "three";
 import { Midi } from "@tonaljs/tonal";
 import("../css/variables.css");
 
-// get --pianoRoll-human-color and --pianoRoll-worker-color from CSS.
-const colorForWorker = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRoll-worker-color"
+// get --pianoRoll-human-color and --pianoRoll-agent-color from CSS.
+const colorForAgent = getComputedStyle(document.documentElement).getPropertyValue(
+  "--pianoRoll-agent-color"
 );
 const colorForHuman = getComputedStyle(document.documentElement).getPropertyValue(
   "--pianoRoll-human-color"

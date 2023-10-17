@@ -1,5 +1,4 @@
 <template>
-
     <div
         :ref="ref_c"
         :id="id_c"
@@ -128,6 +127,7 @@
       // this.width = 300;
       // this.height = 300; 
       console.log("mounted chromaChart start/end")
+      this.triggerCollapse();
     },
 
     methods: {

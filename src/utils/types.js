@@ -31,7 +31,8 @@ export const messageType = {
     CHORD_LABEL: 12,
     LABEL: 14,
     TEXT: 13,
-    CLOCK_TIME: 1
+    CLOCK_TIME: 1,
+    INFERENCE_TIME: 2
 };
   
 export const statusType = {
@@ -64,8 +65,8 @@ export const uiParameterType = {
     SWITCH_4: 11,  
 }
 
-export const workerHookType = {
+export const agentHookType = {
     CLOCK_EVENT : 0,
     NOTE_EVENT : 1,
-    INIT_WORKER: 2,
+    INIT_AGENT: 2,
 }

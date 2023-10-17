@@ -17,7 +17,7 @@ The UI is the main thread of Euterpe and it performs the following operations:
 
 ### Worker 
 
-The Worker is a separate thread that hosts your music interaction algorithm.
+The Agent is a separate thread that hosts your music interaction algorithm.
 The Worker receives input from the UI in a timely manner, and sends back its output to the UI.
     
 ### Music Interaction Communication Protocol (MICP)

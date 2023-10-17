@@ -18,7 +18,9 @@
     overflow-y: hidden;
     -webkit-box-shadow: -4px 6px 15px -9px #000000;
     box-shadow: -4px 6px 15px -9px #000000;
-    background-color: var(--score-background-color);
+    /* background-color: var(--score-background-color); */
+    background-image: url('/img/paper3.png'); 
+    background-size: cover;
     -webkit-border-bottom-right-radius: 40px;
     -webkit-border-bottom-left-radius: 40px;
     -moz-border-radius-bottomright: 40px;
@@ -77,8 +79,9 @@
     left: 0;
     background: linear-gradient(
       270deg,
-      rgba(0,0,0, 0) 0%,
-      var(--score-background-color) 100%
+      rgba(241, 4, 4, 0) 0%,
+      /* var(--score-background-color) 100% */
+      #705c0480 100%
     );
   }
   
@@ -89,11 +92,12 @@
     height: 300px;
     position: absolute;
     top: 0;
-    left: calc(100% - 60px);
+    left: calc(100% - 40px);
     background: linear-gradient(
       90deg,
-      rgba(0,0,0, 0) 0%,
-      var(--score-background-color) 100%
+      #463b0600 0%,
+      #665e3477 50%,
+      #2e2b1c3a 100%
     );
   }
   

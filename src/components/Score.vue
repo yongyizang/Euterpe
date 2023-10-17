@@ -40,11 +40,11 @@ export default {
   props: {
     scrollStatus: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     scoreShown: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
 
@@ -97,7 +97,8 @@ export default {
       // Scrolling starts once the x cursor has reached the desired latestNotePosition
       scrollsCounter: 0,
       scrollsNumberPerMeasure: 400,
-      preDur: 1
+      preDur: 1,
+      scrollEnabled: false,
     };
   },
 
@@ -146,17 +147,17 @@ export default {
     var grandStaff = document.getElementById("grandStaff");
     var grandStaffChildren = grandStaff.children;
     for (var i = 0; i < grandStaffChildren.length; i++) {
-      var grandStaffChildrenChildren = grandStaffChildren[i].children;
-      for (var j = 0; j < grandStaffChildrenChildren.length; j++) {
-        grandStaffChildrenChildren[j].style.fill = this.lineColor;
-        grandStaffChildrenChildren[j].style.stroke = this.lineColor;
-      }
+        var grandStaffChildrenChildren = grandStaffChildren[i].children;
+        for (var j = 0; j < grandStaffChildrenChildren.length; j++) {
+            grandStaffChildrenChildren[j].style.fill = this.lineColor;
+            grandStaffChildrenChildren[j].style.stroke = this.lineColor;
+        }
     }
     var clefs = document.getElementsByClassName("vf-clef");
     for (var j = 0; j < clefs.length; j++) {
-      var clefPath = clefs[j].children[0];
-      clefPath.style.fill = this.lineColor;
-      clefPath.style.stroke = this.lineColor;
+        var clefPath = clefs[j].children[0];
+        clefPath.style.fill = this.lineColor;
+        clefPath.style.stroke = this.lineColor;
     }
   },
 
@@ -166,110 +167,111 @@ export default {
     },
 
     init() {
-      const vm = this;
-      // Render the grand staff.
-      this.grandStaffDiv = document.getElementById("grandStaff");
-      this.grandStaffRenderer = new this.VF.Renderer(
-        this.grandStaffDiv,
-        this.VF.Renderer.Backends.SVG
-      );
-      this.grandStaffRenderer.resize(200, 300);
-      var grandStaffContext = this.grandStaffRenderer.getContext();
-      var trebleStave = new this.VF.Stave(30, 50, 200)
-        .addClef("treble")
-        .setStyle({
-          fillStyle: this.lineColor,
-          strokeStyle: this.lineColor,
-          lineWidth: this.lineWidth,
+        const vm = this;
+        // Render the grand staff.
+        this.grandStaffDiv = document.getElementById("grandStaff");
+        this.grandStaffRenderer = new this.VF.Renderer(
+                this.grandStaffDiv,
+                this.VF.Renderer.Backends.SVG
+        );
+        this.grandStaffRenderer.resize(200, 300);
+        var grandStaffContext = this.grandStaffRenderer.getContext();
+        var trebleStave = new this.VF.Stave(30, 50, 200)
+            .addClef("treble")
+            .setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
         });
-      var bassStave = new this.VF.Stave(30, 150, 200).addClef("bass").setStyle({
-        fillStyle: this.lineColor,
-        strokeStyle: this.lineColor,
-        lineWidth: this.lineWidth,
-      });
-      trebleStave.setContext(grandStaffContext).draw();
-      bassStave.setContext(grandStaffContext).draw();
+        var bassStave = new this.VF.Stave(30, 150, 200).addClef("bass").setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+        });
+        trebleStave.setContext(grandStaffContext).draw();
+        bassStave.setContext(grandStaffContext).draw();
 
-      var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3).setStyle({
-        fillStyle: this.lineColor,
-        strokeStyle: this.lineColor,
-        lineWidth: this.lineWidth,
-      });
-      var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
-        1
-      ).setStyle({
-        fillStyle: this.lineColor,
-        strokeStyle: this.lineColor,
-        lineWidth: this.lineWidth,
-      });
-      brace.setContext(grandStaffContext).draw();
-      lineLeft.setContext(grandStaffContext).draw();
+        var brace = new this.VF.StaveConnector(trebleStave, bassStave).setType(3).setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+        });
+        var lineLeft = new this.VF.StaveConnector(trebleStave, bassStave).setType(
+            1
+        ).setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+        });
+        brace.setContext(grandStaffContext).draw();
+        lineLeft.setContext(grandStaffContext).draw();
 
-      // Set ground for background staves.
-      this.targetDiv = document.getElementById("staveBackground");
-      this.renderer = new this.VF.Renderer(
-        this.targetDiv,
-        this.VF.Renderer.Backends.SVG
-      );
-      this.renderer.resize(this.screenWidth, 300);
-      this.context = this.renderer.getContext();
-      this.tickContexts.push(new this.VF.TickContext());
-      this.tickContexts.push(new this.VF.TickContext());
+        // Set ground for background staves.
+        this.targetDiv = document.getElementById("staveBackground");
+        this.renderer = new this.VF.Renderer(
+            this.targetDiv,
+            this.VF.Renderer.Backends.SVG
+        );
+        this.renderer.resize(this.screenWidth, 300);
+        this.context = this.renderer.getContext();
+        this.tickContexts.push(new this.VF.TickContext());
+        this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 5000));
-      this.staves.push(new this.VF.Stave(30, 150, 5000));
+        this.staves.push(new this.VF.Stave(30, 50, 5000));
+        this.staves.push(new this.VF.Stave(30, 150, 5000));
 
-      this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
-      this.staves[0]
-        .setContext(this.context)
-        .setStyle({
-          fillStyle: this.lineColor,
-          strokeStyle: this.lineColor,
-          lineWidth: this.lineWidth,
-        })
-        .draw();
-      this.staves[1]
-        .setContext(this.context)
-        .setStyle({
-          fillStyle: this.lineColor,
-          strokeStyle: this.lineColor,
-          lineWidth: this.lineWidth,
-        })
-        .draw();
+        this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
+        this.staves[0]
+            .setContext(this.context)
+            .setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+            })
+            .draw();
+        this.staves[1]
+            .setContext(this.context)
+            .setStyle({
+            fillStyle: this.lineColor,
+            strokeStyle: this.lineColor,
+            lineWidth: this.lineWidth,
+            })
+            .draw();
 
 
-      // Set ground for the notes.
-      this.targetDiv = document.getElementById("noteBox");
-      this.renderer = new this.VF.Renderer(
-        this.targetDiv,
-        this.VF.Renderer.Backends.SVG
-      );
-      this.renderer.resize(this.screenWidth, 300);
-      this.context = this.renderer.getContext();
+        // Set ground for the notes.
+        this.targetDiv = document.getElementById("noteBox");
+        this.renderer = new this.VF.Renderer(
+            this.targetDiv,
+            this.VF.Renderer.Backends.SVG
+        );
+        this.renderer.resize(this.screenWidth, 300);
+        this.context = this.renderer.getContext();
 
-      this.tickContexts.push(new this.VF.TickContext());
-      this.tickContexts.push(new this.VF.TickContext());
+        this.tickContexts.push(new this.VF.TickContext());
+        this.tickContexts.push(new this.VF.TickContext());
 
-      this.staves.push(new this.VF.Stave(30, 50, 0));
-      this.staves.push(new this.VF.Stave(30, 150, 0));
+        this.staves.push(new this.VF.Stave(30, 50, 0));
+        this.staves.push(new this.VF.Stave(30, 150, 0));
 
-      this.staves[0].setContext(this.context);
-      this.staves[1].setContext(this.context);
+        this.staves[0].setContext(this.context);
+        this.staves[1].setContext(this.context);
 
-      
-      
+        
+        
     },
 
     enableScrolling() {
       setInterval(() => {
-      if (this.$store.getters.getClockStatus && this.scrollEnabled) {
-        this.scrollScore(1);
-        this.scrollsCounter += 1;
-        this.scrollsNumberPerMeasure =
-          ((60 / this.$store.getters.getBPM) * 4 * 1000) /
-          this.scrollStepTime;
-        }
-      }, this.scrollStepTime);
+        if (this.$store.getters.getClockStatus && this.scrollEnabled) {
+          // console.log("scrolling score")
+          this.scrollScore(1);
+          this.scrollsCounter += 1;
+          this.scrollsNumberPerMeasure =
+            ((60 / this.$store.getters.getBPM) * 4 * 1000) /
+            this.scrollStepTime;
+          }
+        }, this.scrollStepTime);
     },
 
     scrollScore(steps) {
@@ -280,46 +282,50 @@ export default {
     },
 
     formatQuantizedNote(quantNoteDict, clef = "treble", afairetis = 0) {
-      const vm = this;
+        const vm = this;
 
-      var formName;
-      var extraR = "";
+        var formName;
+        var extraR = "";
 
-      // Get formatted name
-      if (quantNoteDict.midi === 0) {
-        formName = clef == "treble" ? "b/4" : "d/2";
-        extraR = "r";
-      } else {
-        formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi));
-      }
-
-      // get formatted duration
-      var durationTokens;
-      var durations;
-      [durationTokens, durations] = this.DurationFormatter(
-        quantNoteDict.dur - afairetis
-      );
-      // console.log(formName, " ", durationTokens);
-      // stem_direction vm.VF.StaveNote.STEM_UP
-      var notes = [];
-      for (let i = 0; i < durationTokens.length; i++) {
-        let newNote = new vm.VF.StaveNote({
-          clef: clef,
-          keys: [formName],
-          duration: durationTokens[i] + extraR,
-        }).setStyle({
-          fillStyle: this.noteColor,
-          strokeStyle: this.noteColor,
-        });
-        if (durationTokens[i].includes("d")) {
-          newNote.addDotToAll();
+        // Get formatted name
+        if (quantNoteDict.midi === 0) {
+            formName = clef == "treble" ? "b/4" : "d/2";
+            extraR = "r";
+        } else {
+            formName = NoteFormatter(Note.fromMidiSharps(quantNoteDict.midi));
         }
-        if (formName.charAt(1) == "#") {
-          newNote.addAccidental(0, new vm.VF.Accidental("#"));
+
+        // get formatted duration
+        var durationTokens;
+        var durations;
+        [durationTokens, durations] = this.DurationFormatter(
+            quantNoteDict.dur - afairetis
+        );
+        // console.log(formName, " ", durationTokens);
+        // stem_direction vm.VF.StaveNote.STEM_UP
+        var notes = [];
+        for (let i = 0; i < durationTokens.length; i++) {
+            let newNote = new vm.VF.StaveNote({
+                clef: clef,
+                keys: [formName],
+                duration: durationTokens[i] + extraR,
+                }).setStyle({
+                    fillStyle: this.noteColor,
+                    strokeStyle: this.noteColor,
+                });
+            if (durationTokens[i].includes("d")) {
+                const dot = new vm.VF.Dot();
+                // dot.setDotShiftY(newNote.glyph.dot_shiftY);
+                newNote.addModifier(dot, 0);
+                // newNote.addDotToAll();
+            }
+            if (formName.charAt(1) == "#") {
+                // newNote.addAccidental(0, new vm.VF.Accidental("#"));
+                newNote.addModifier(new vm.VF.Accidental("#"), 0)
+            }
+            notes.push(newNote);
         }
-        notes.push(newNote);
-      }
-      return { notes: notes, durations: durations };
+        return { notes: notes, durations: durations };
     },
 
     // TODO drawTop and drawBottom are almost the same. Find a way so we don't have to
@@ -475,6 +481,7 @@ export default {
     draw() {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
+      console.log("TO DRAW ", aiQuantNoteDict.midi);
 
       if (aiQuantNoteDict.startTick == -1){
         aiQuantNoteDict.dur = this.preDur

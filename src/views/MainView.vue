@@ -234,7 +234,7 @@ import {
     playerType, instrumentType, eventSourceType,
     messageType, statusType, noteType,
     uiParameterType,
-    workerHookType
+    agentHookType
 } from '@/utils/types.js'
 
 import { URLFromFiles, isMobile, isNotChrome } from '@/utils/helpers.js'
@@ -259,17 +259,16 @@ export default {
         Monitor,
         ChromaChart
         // VectorBar,
-
     },
 
     data() {
         return {
-            // Choose the worker. 
+            // Choose the agent. 
             // This string should be one of
-            // dir names inside public/workers/
-            workerName: "template",
+            // dir names inside public/agents/
+            agentName: "demo",
             // Provide all the config files that should be loaded
-            // These should be in public/workers/{workerName}/
+            // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'],
 
             config: null,
@@ -281,8 +280,7 @@ export default {
             statusType,
             noteType,
             uiParameterType,
-            workerHookType,
-
+            agentHookType,
 
             // These need to be initialized here as empty arrays (computed properties)
             // They'll be filled in the created() hook
@@ -298,9 +296,9 @@ export default {
             dataForMonitoring: {},
 
             // Score status
-            scoreShown: false,
-            scrollStatus: false,
-            scoreStatus: false,
+            scoreShown: true,
+            scrollStatus: true, // THIS ONE. Too many flags for score
+            scoreStatus: true,
             // Textbox status
             textBoxTitle: null,
             textBoxText: null,
@@ -324,8 +322,8 @@ export default {
             sab_par_ui: null,
             rb_par_ui: null,
             paramWriter: null,
-            sab_par_worker: null,
-            rb_par_worker: null,
+            sab_par_agent: null,
+            rb_par_agent: null,
 
             monitorObserverInterval: null,
 
@@ -341,13 +339,14 @@ export default {
             // humanUprightBassMuted: false,
             // workerVolume: 1,
             // metronomeVolume: 1,
+        noteOffEventForNextTick: null,
 
-            // used to calculate the average worker inference time (clockBased mode) 
+            // used to calculate the average agent inference time (gridBased mode) 
             // and estimate maxBPM
             modelInferenceTimes: [],
             // maxBPM (or min clock period) supported by the current device
             maxBPM: 0,
-            // counter for the number of times the worker inference time exceeds the clock period
+            // counter for the number of times the agent inference time exceeds the clock period
             misalignErrCount: 0,
 
             isNotChrome,
@@ -371,6 +370,7 @@ export default {
         this.$store.commit("initQuantBuffers", this.config);
         this.$store.commit("setTicksPerMeasure", this.config);
         this.$store.commit("createInstruments", this.config);
+        this.$store.commit("setNoteType", this.noteType);
 
         // Activate/Deactivate GUI widgets based on config
         this.scoreStatus = this.config.gui.score.status
@@ -398,7 +398,6 @@ export default {
             });
         console.log("created localBPM set to defaultBPM from config ", this.config.clockSettings.defaultBPM);
         this.localBPM = this.config.clockSettings.defaultBPM;
-        console.log(this.dataForMonitoring);
         console.log("created main end")
     },
 
@@ -433,28 +432,28 @@ export default {
 
 
         // get a memory region for the parameter ring buffer
-        // This one is to send parameters from the UI to the worker
+        // This one is to send parameters from the UI to the agent
         vm.sab_par_ui = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
         vm.rb_par_ui = new rb.RingBuffer(vm.sab_par_ui, Uint8Array);
         vm.paramWriter = new rb.ParameterWriter(vm.rb_par_ui);
 
         // get a memory region for the parameter ring buffer
-        // This one is to send parameters from the worker to the UI
-        vm.sab_par_worker = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
-        vm.rb_par_worker = new rb.RingBuffer(vm.sab_par_worker, Uint8Array);
-        vm.paramReader = new rb.ParameterReader(vm.rb_par_worker);
+        // This one is to send parameters from the agent to the UI
+        vm.sab_par_agent = rb.RingBuffer.getStorageForCapacity(31, Uint8Array);
+        vm.rb_par_agent = new rb.RingBuffer(vm.sab_par_agent, Uint8Array);
+        vm.paramReader = new rb.ParameterReader(vm.rb_par_agent);
 
 
         // Initialize agent worker
         // experiment with , { type : 'module' }
-        vm.worker = new Worker(`/workers/${vm.workerName}/worker.js`);
-        vm.worker.onmessage = vm.workerCallback;
+        vm.agent = new Worker(`/agents/${vm.agentName}/worker.js`);
+        vm.agent.onmessage = vm.agentCallback;
 
-        // Send a message to worker with some necessary 
-        // configurations and constants to store inside the worker
+        // Send a message to agent with some necessary 
+        // configurations and constants to store inside the agent
         // TODO : i removed await
-        vm.worker.postMessage({
-            hookType: vm.workerHookType.INIT_WORKER,
+        vm.agent.postMessage({
+            hookType: vm.agentHookType.INIT_AGENT,
             content: {
                 config: vm.config,
                 playerType: vm.playerType,
@@ -463,20 +462,20 @@ export default {
                 statusType: vm.statusType,
                 noteType: vm.noteType,
                 uiParameterType: vm.uiParameterType,
-                workerHookType: vm.workerHookType,
+                agentHookType: vm.agentHookType,
 
                 sab: vm.sab,
                 sab_par_ui: vm.sab_par_ui,
-                sab_par_worker: vm.sab_par_worker,
+                sab_par_agent: vm.sab_par_agent,
                 channelCount: 2,
                 sampleRate: vm.audioContext.sampleRate
             }
         });
-        vm.timeout_IDS_live.push(setInterval(vm.workerParameterObserver, vm.monitorObserverInterval));
+        vm.timeout_IDS_live.push(setInterval(vm.agentParameterObserver, vm.monitorObserverInterval));
 
 
         // Initialize Clock Worker (module)
-        vm.clockWorker = new Worker("/workers/clock.js", { type: "module" });
+        vm.clockWorker = new Worker("/clock.js", { type: "module" });
         vm.clockWorker.onmessage = vm.tickBehavior;
         vm.clockWorker.postMessage({ action: 'setBpm', bpm: vm.localBPM });
         vm.$store.commit("initializeClock");
@@ -526,7 +525,7 @@ export default {
             // vm.recorderWorkletNode.port.start(); # TODO do I need this for ping/pong ?
             // send the mic to the recorderNode --> recorderWorklet
             vm.mediaStreamSource.connect(vm.recorderWorkletNode);
-            // vm.workerPlayer = new Tone.Player().toDestination();
+            // vm.agentPlayer = new Tone.Player().toDestination();
         }
         vm.audioContext.resume(); // ?
         /*
@@ -562,7 +561,7 @@ export default {
             const newNoteEvent = new NoteEvent();
             newNoteEvent.player = vm.playerType.HUMAN;
             newNoteEvent.instrument = vm.instrumentType.PIANO;
-            newNoteEvent.source = vm.eventSourceType.KEYBOARD;
+            newNoteEvent.eventSource = vm.eventSourceType.KEYBOARD;
             newNoteEvent.name = noteName;
             newNoteEvent.type = vm.noteType.NOTE_ON;
             newNoteEvent.channel = 140; // this is channel midi channel 0
@@ -586,7 +585,7 @@ export default {
             const newNoteEvent = new NoteEvent();
             newNoteEvent.player = vm.playerType.HUMAN;
             newNoteEvent.instrument = vm.instrumentType.PIANO;
-            newNoteEvent.source = vm.eventSourceType.KEYBOARD;
+            newNoteEvent.eventSource = vm.eventSourceType.KEYBOARD;
             newNoteEvent.name = noteName;
             newNoteEvent.type = vm.noteType.NOTE_OFF;
             newNoteEvent.channel = 140; // this is channel midi channel 0
@@ -643,29 +642,33 @@ export default {
                 // Trigger the metronome only if there is a "metronome" entry in config_players.yaml
                 if (vm.config.players.metronome)
                     vm.metronomeTrigger();
+                
+                vm.calculateMaxBPM();
 
-                // in grid-based mode, the worker's sampler is triggered in sync with the clock
-                vm.triggerWorkerSamplerSync(); // UNCOMMENT
+                // in grid-based mode, the agent's sampler is triggered in sync with the clock
+                vm.triggerAgentSamplerSync(); // UNCOMMENT
 
 
-                // run the worker with a small delay of tick/4 in order to include 
+                // run the agent with a small delay of tick/4 in order to include 
                 // any notes that the user played very close to the tick change.
                 // this makes the grid a bit more flexible, and the human input is correctly parsed
                 // In terms of playability, the human finds it much more easy to play along the metronome on the grid
                 // TUTOR: have a flag for that in config named delayedExecution
                 if (vm.config.noteModeSettings.gridBased.status) {
                     if (vm.config.noteModeSettings.gridBased.delayedExecution) {
-                        console.log("delayedExecution");
+                        // console.log("delayedExecution");
                         vm.timeout_IDS_live.push(setTimeout(function () {
-                            vm.runTheWorker();
+                                vm.estimateHumanQuantizedNote();
+                            vm.runTheAgent();
                         }, parseInt(vm.$store.getters.getClockPeriod / 4))
                         );
                     } else {
-                        vm.runTheWorker();
+                        vm.estimateHumanQuantizedNote();
+                        vm.runTheAgent();
                     }
                 } else {
-                    // inside runTheWorker we increment the "delayed" tick number.
-                    // If we don't run the worker, we still want to increment the "delayed" tick number
+                    // inside runTheAgent we increment the "delayed" tick number.
+                    // If we don't run the agent, we still want to increment the "delayed" tick number
                     // because other parts of the code depend on it. In this case tick === delayedTick
                     vm.$store.commit("incrementTickDelayed");
                 }
@@ -774,7 +777,7 @@ export default {
                     seconds: 0
                 }
                 this.$store.dispatch("samplerOn", metronomeNote);
-                this.calculateMaxBPM();
+                
             }
         },
 
@@ -789,10 +792,12 @@ export default {
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteEvent.name] ? true : false;
             if (noteEvent.type == vm.noteType.NOTE_ON) {
                 // console.log("note on");
-                if (this.config.gui.pianoRoll.status) {
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.human) {
                     vm.$root.$refs.pianoRoll.keyDown(noteEvent);
                 }
+                vm.$store.dispatch("noteOn", noteEvent);
                 vm.$store.dispatch("samplerOn", noteEvent);
+                
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
@@ -801,10 +806,12 @@ export default {
                     }
                 }
             } else if (noteEvent.type == vm.noteType.NOTE_OFF) {
-                if (this.config.gui.pianoRoll.status) {
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.human) {
                     vm.$root.$refs.pianoRoll.keyUp(noteEvent);
                 }
+                vm.$store.dispatch("noteOff", noteEvent);
                 vm.$store.dispatch("samplerOff", noteEvent);
+                
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
@@ -816,36 +823,32 @@ export default {
 
             // If the clock is running, send the note to the piano roll
             if (vm.$store.getters.getClockStatus) {
-                // If eventBased mode, send an NOTE_EVENT MICP packet to the worker
+                // If eventBased mode, send an NOTE_EVENT MICP packet to the agent
                 // this packet will be sent to the processUserNoteEvent hook.
-                if (vm.config.noteModeSettings.eventBased) {
-                    vm.worker.postMessage({
-                        hookType: vm.workerHookType.NOTE_EVENT,
+                if (vm.config.noteModeSettings.eventBased.status) {
+                    vm.agent.postMessage({
+                        hookType: vm.agentHookType.NOTE_EVENT,
                         content: noteEvent,
                     });
                 }
             }
         },
 
-        /*
-        * neural network web worker's callback and worker call methods.
-        * Called every tick, and processes the AI's output.
-        */
+        
         // TODO : change the name : agent, clock event, tick etc
-        runTheWorker() {
+        runTheAgent() {
             const vm = this;
-            // For both GRID and CONTINUOUS modes, we also quantize the user input to the clock grid
-            // it's up to the worker to use it if it wants to.
-            this.estimateHumanQuantizedNote();
-
-            // remember, runTheWorker happens with a small delay of tick/4 after the tick
+            // console.log("runningTheagent");
+            // remember, runTheAgent happens with a small delay of tick/4 after the tick
             // here I just keep track of the 'delayed' tick
             this.$store.commit("incrementTickDelayed");
 
             // MAJOR TODO : draw should probably go before the delayedTickIncrement
-            // if (vm.config.gui.score.status) {
-            //     this.$root.$refs.score.draw();
-            // }
+            if (vm.config.gui.score.status) {
+                this.$root.$refs.score.draw();
+                let lastNote = this.$store.getters.getLastHumanNoteQuantized
+                console.log("startTick", lastNote.startTick, "midi", lastNote.midi, "duration", lastNote.dur);
+            }
             let messageContent = {
                 tick: this.$store.getters.getLocalTick,
                 globalTick: this.$store.getters.getGlobalTick,
@@ -854,8 +857,8 @@ export default {
                 messageContent['humanContinuousBuffer'] = this.$store.getters.getMidiEventBuffer;
             if (vm.config.noteModeSettings.gridBased.quantizedEvents)
                 messageContent['humanQuantizedInput'] = this.$store.getters.getHumanInputFor(this.$store.getters.getLocalTick);
-            this.worker.postMessage({
-                hookType: vm.workerHookType.CLOCK_EVENT,
+            this.agent.postMessage({
+                hookType: vm.agentHookType.CLOCK_EVENT,
                 content: messageContent,
             })
         },
@@ -869,27 +872,73 @@ export default {
             */
 
             const bufferEvent = this.$store.getters.getMidiEventBuffer;
-            // activePianoNotes are sorted by their "on" timestamp (newest to oldest)
-            const activePianoNotes = this.$store.getters.getActivePianoNotes;
+            // A this is the noteOff for a note from the previous tick that was too short to be quantized
+            if (vm.noteOffEventForNextTick){
+                bufferEvent.push(vm.noteOffEventForNextTick);
+            }
+
+            // console.log("bufferEvent", bufferEvent.length);
+            if (bufferEvent.length > 1){
+                console.log("bufferEvent", bufferEvent);
+            }
+            // a COPY activePianoNotes are sorted by their "on" timestamp (newest to oldest)
+            let activePianoNotes =[...this.$store.getters.getActivePianoNotes];
             let currentQuantizedEvents = [];
 
             // 2) preprocess them before quantization
             //     a) In bufferEvent, we can remove the notes whose duration is less than the tick duration 
             // TODO : move this to utilities or smth
             let indexesToRemove = []; // the indexes of the events to be removed
+            // for (let i = bufferEvent.length - 1; i >= 0; i--) {
+            //     let elem = bufferEvent[i];
+            //     if (elem.type === vm.noteType.NOTE_OFF) {
+            //         const matchingIndexes = bufferEvent
+            //             .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
+            //             .filter(index => index !== -1);
+            //         if (matchingIndexes.length > 0) {
+            //             indexesToRemove.push(i);
+            //             indexesToRemove.push(Math.max(...matchingIndexes));
+            //         }
+            //     }
+            // }
+            let forgivenNoteOnIndex = -1;
+            vm.noteOffEventForNextTick = null;
             for (let i = bufferEvent.length - 1; i >= 0; i--) {
                 let elem = bufferEvent[i];
                 if (elem.type === vm.noteType.NOTE_OFF) {
-                    const matchingIndexes = bufferEvent
-                        .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
-                        .filter(index => index !== -1);
-                    if (matchingIndexes.length > 0) {
-                        indexesToRemove.push(i);
-                        indexesToRemove.push(Math.max(...matchingIndexes));
-                    }
+                        const matchingIndexes = bufferEvent
+                            .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
+                            .filter(index => index !== -1);
+                        if (matchingIndexes.length > 0) {
+                            indexesToRemove.push(i);
+                            forgivenNoteOnIndex = Math.max(...matchingIndexes);
+                        // indexesToRemove.push(Math.max(...matchingIndexes));
+                        }
                 }
             }
+
             indexesToRemove = Array.from(new Set([...indexesToRemove]));
+            if (indexesToRemove.length > 0) {
+                if (indexesToRemove.length > 1) {
+                    console.warn("indexesToRemove", indexesToRemove);
+                    // TODO : this can happen when playing a whole chord with duration
+                    // less than the tick.
+                }
+                if (forgivenNoteOnIndex == -1){
+                    console.error("forgivenNoteOnIndex", forgivenNoteOnIndex);
+                }
+                vm.noteOffEventForNextTick = bufferEvent[indexesToRemove[0]];
+                let forgivenNoteOn = bufferEvent[forgivenNoteOnIndex];
+                
+                activePianoNotes.push({
+                    midi: forgivenNoteOn.midi,
+                    createdAt: {
+                        seconds: forgivenNoteOn.createdAt.seconds,
+                        tick: forgivenNoteOn.createdAt.tick,
+                    }
+                })
+            }
+
             const cleanedEventBuffer = bufferEvent.filter((el, index) => !indexesToRemove.includes(index));
             // console.log(`bufferEvent ${bufferEvent.length} cleanedEventBuffer ${cleanedEventBuffer.length} activePianoNotes ${activePianoNotes.length}`);
             // iterate over the active notes. If the note exists in the bufferEvent as an "on" event, then we have a note on
@@ -913,6 +962,7 @@ export default {
                     currentQuantizedEvents.push(noteHoldEvent);
                 }
             }
+            // console.log("currentQuantEvents", currentQuantizedEvents);
             // TODO : it seems I ignore rests. If no active notes, then currentQuantizedEvents will be empty
 
             // now iterate over the bufferEvent and find all the noteOff notes and push them to currentQuantizedEvents as off events
@@ -939,7 +989,7 @@ export default {
             // let offEvents = currentQuantizedEvents.filter(elem => elem.type === "off");
             if (onHoldEvents.length > vm.config.noteModeSettings.gridBased.polyphony.input) {
                 // let onHoldEventsToRemove = onHoldEvents.slice(polyphony);
-                let onHoldEventsToKeep = onHoldEvents.slice(0, vm.config.polyphony.input);
+                let onHoldEventsToKeep = onHoldEvents.slice(0, vm.config.noteModeSettings.gridBased.polyphony.input);
                 // let offEventsToAdd = onHoldEventsToRemove.map(elem => {
                 //   return {
                 //     type: "off",
@@ -951,7 +1001,8 @@ export default {
             else {
                 constrainedCurrentQuantizedEvents = [...currentQuantizedEvents];
             }
-
+            // console.log("currentQuantEvents", currentQuantizedEvents);
+            // console.log("CONSTRAINTQuantEvents", constrainedCurrentQuantizedEvents);
             this.$store.dispatch("storeHumanQuantizedInput", constrainedCurrentQuantizedEvents);
 
             this.$store.commit("clearContinuousBuffers");
@@ -960,45 +1011,56 @@ export default {
             // TODO : and modify the logic accordingly.
         },
 
-        workerParameterObserver() {
-            let newParameterWorker = { index: null, value: null };
-            if (this.paramReader.dequeue_change(newParameterWorker)) {
-                this.dataForMonitoring[newParameterWorker.index] = newParameterWorker.value;
-                if (newParameterWorker.index == 4) {
+        agentParameterObserver() {
+            let newParameterAgent = { index: null, value: null };
+            if (this.paramReader.dequeue_change(newParameterAgent)) {
+                this.dataForMonitoring[newParameterAgent.index] = newParameterAgent.value;
+                if (newParameterAgent.index == 4) {
                 }
             }
         },
 
-        triggerWorkerSamplerSync() {
+        triggerAgentSamplerSync() {
             var vm = this;
-            const workerNotesToBePlayed = this.$store.getters.popWorkerNotesToBePlayedAt(
+            const agentNotesToBePlayed = this.$store.getters.popAgentNotesToBePlayedAt(
                 this.$store.getters.getGlobalTickDelayed
             );
-            if (workerNotesToBePlayed.length > 0) {
-                workerNotesToBePlayed.forEach((noteEvent) => {
-                    vm.processWorkerNoteEvent(noteEvent);
+            if (agentNotesToBePlayed.length > 0) {
+                // This guy here should update the lastNoteAI for the score to get
+                // naively choose the first note only. ScoreUI only supports monophonic
+                this.$store.dispatch("updateLastAgentNote", agentNotesToBePlayed[0]);
+
+                agentNotesToBePlayed.forEach((noteEvent) => {
+                    vm.processAgentNoteEvent(noteEvent);
                 });
             }
         },
 
-        async workerCallback(e) {
+        async agentCallback(e) {
             const vm = this;
             let hookType = parseInt(e.data.hookType);
             let message = e.data.message;
-            if (hookType == vm.workerHookType.CLOCK_EVENT) {
-                // Look for the CLOCK_TIME message
-                // The worker should always include a message of type CLOCK_TIME
-                // when posting from the CLOCK_EVENT hook
-                let workerPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
-                if ((workerPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
-                    this.$toasted.show(
-                        "Network tick misalignment: expecting " +
-                        this.$store.getters.getLocalTickDelayed +
-                        ", got " +
-                        workerPredictionTick
-                    );
-                    this.misalignErrCount += 1;
+            // TODO move CLOCK_TIME and INFERENCE_TIME in the case/switch
+            // TODO that will make those 2 optional in the agent hook.
+            if (hookType == vm.agentHookType.CLOCK_EVENT) {
+                // Look for the CLOCK_TIME and INFERENCE_TIME messages
+                // The agent should always include two messages of type CLOCK_TIME and INFERENCE_TIME
+                // when posting from the CLOCK_EVENT hook (processClockEvent())
+                let agentPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
+                if ((agentPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
+                        this.$toasted.show(
+                            "Network tick misalignment: expecting " +
+                            this.$store.getters.getLocalTickDelayed +
+                            ", got " +
+                            agentPredictionTick
+                        );
+                        this.misalignErrCount += 1;
                 }
+                let agentInferenceTime = e.data.message[vm.messageType.INFERENCE_TIME];
+                vm.modelInferenceTimes.push(agentInferenceTime);
+                // console.log("just pushed ", agentInferenceTime, " to modelInferenceTimes")
+                
+
             }
 
             for (let messageTypeStr in message) {
@@ -1017,13 +1079,14 @@ export default {
                     case vm.messageType.NOTE_LIST: {
                         const noteEventsList = messageValue;
                         noteEventsList.forEach((noteEventPlain) => {
-                            // The noteEvents received from the worker are serialized
+                            // The noteEvents received from the agent are serialized
                             // we need to deserialize them before using them
                             let noteEvent = NoteEvent.fromPlain(noteEventPlain);
                             if (noteEvent.playAfter.tick > 0) {
-                                this.$store.dispatch("storeWorkerQuantizedOutput", noteEvent);
+                                // console.log("NAI NAI NAI NIA NIA NIA ");
+                                this.$store.dispatch("storeAgentQuantizedOutput", noteEvent);
                             } else {
-                                vm.processWorkerNoteEvent(noteEvent);
+                                vm.processAgentNoteEvent(noteEvent);
                             }
                         });
                         break;
@@ -1039,15 +1102,17 @@ export default {
                         this.textBoxText = messageValue;
                         break;
                     case vm.messageType.TEXT:
-                        if (hookType == vm.workerHookType.INIT_WORKER) {
-                            const workerStatus = vm.$refs.workerStatus;
-                            workerStatus.innerHTML = messageValue;
+                        if (hookType == vm.agentHookType.INIT_AGENT) {
+                            const agentStatus = vm.$refs.agentStatus;
+                            agentStatus.innerHTML = messageValue;
                         }
                         else {
                             this.textBoxText = messageValue;
                         }
                         break;
                     case vm.messageType.CLOCK_TIME:
+                        break;
+                    case vm.messageType.INFERENCE_TIME:
                         break;
                     default:
                         console.log("Unknown message type: ", messageType);
@@ -1056,23 +1121,24 @@ export default {
             }
         },
 
-        uiNoteOnWorker(noteEvent) {
+        uiNoteOnAgent(noteEvent) {
             let vm = this;
             // set a timeout to call keyDown based on noteEvent.timestamp.seconds
-            // TODO : the worker should do that
+            // TODO : the agent should do that
             let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
             let whiteKey = noteName.includes('#') ? false : true;
             // Check if the current on-screen key is within the current screen view
             // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is null then the key is not on screen
             let keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
             vm.timeout_IDS_kill.push(setTimeout(() => {
-                if (this.config.gui.pianoRoll.status)
+                // if (this.config.gui.pianoRoll.status)
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent)
                     this.$root.$refs.pianoRoll.keyDown(noteEvent);
                 if (keyOnScreenRange) {
                     if (whiteKey) {
-                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-white-key-agent');
                     } else {
-                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.add('active-black-key-agent');
                     }
                 }
             }, noteEvent.playAfter.seconds * 1000)
@@ -1081,7 +1147,7 @@ export default {
 
         // TODO : refactor this one. choose which option
         // to use and remove the other one
-        processWorkerNoteEvent(noteEvent) {
+        processAgentNoteEvent(noteEvent) {
             let vm = this;
             // The noteEvents that arrive here, have already waited for playAfter.tick ticks (if any)
             // so we can only care about playAfter.seconds here. 
@@ -1117,7 +1183,7 @@ export default {
                         if (vm.config.custom.useTriggerRelease) {
                             noteEventOff.custom = true;
                         }
-                        this.$store.dispatch("storeWorkerQuantizedOutput", noteEventOff);
+                        this.$store.dispatch("storeAgentQuantizedOutput", noteEventOff);
                         // }
 
                     } else if (noteEvent.duration.tick == 0) {
@@ -1126,7 +1192,7 @@ export default {
                                 // console.log("about to send samplerOnOff ", noteEvent.midi);
                                 this.$store.dispatch("samplerOnOff", noteEvent);
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                    this.uiNoteOffWorker(noteEvent);
+                                    this.uiNoteOffAgent(noteEvent);
                                 }, noteEvent.duration.seconds * 1000)
                                 );
 
@@ -1136,17 +1202,17 @@ export default {
                                 console.log("option1 ")
                                 // if I want option1 when duration is 0ticks and >0seconds
                                 // I need to create a new noteOff event, and send it after >0seconds
-                                // to a new method  that will call samplerOff and uiNoteOffWorker. TODO
+                                // to a new method  that will call samplerOff and uiNoteOffAgent. TODO
                                 // For now, I just use option2
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                    this.uiNoteOffWorker(noteEvent);
+                                    this.uiNoteOffAgent(noteEvent);
                                     this.$store.dispatch("samplerOff", noteEvent)
                                 }, noteEvent.duration.seconds * 1000)
                                 );
                             }
                         } else {
-                            // throw error, worker generated note with duration 0ticks and 0seconds
-                            console.error("Worker generated note with duration 0 ticks and 0 seconds")
+                            // throw error, agent generated note with duration 0ticks and 0seconds
+                            console.error("Agent generated note with duration 0 ticks and 0 seconds")
                         }
                     }
 
@@ -1155,20 +1221,20 @@ export default {
                     this.$store.dispatch("samplerOn", noteEvent);
                 }
                 // this.$store.dispatch("samplerOn", noteEvent);
-                this.uiNoteOnWorker(noteEvent);
+                this.uiNoteOnAgent(noteEvent);
             } else if (noteEvent.type === vm.noteType.NOTE_OFF) {
                 if (!noteEvent.hasOwnProperty('custom')) {
                     this.$store.dispatch("samplerOff", noteEvent);
                 }
-                // console.log("about to call uiNoteOffWorker");
-                this.uiNoteOffWorker(noteEvent);
+                // console.log("about to call uiNoteOffAgent");
+                this.uiNoteOffAgent(noteEvent);
             }
         },
 
-        uiNoteOffWorker(noteEvent) {
+        uiNoteOffWorker(noteEvent){
             let vm = this;
-            // console.log("uiNoteOffWorker")
-            // TODO : the worker should do that
+            // console.log("uiNoteOffAgent")
+            // TODO : the agent should do that
             let noteName = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
             // If '#' in noteName then whiteKey is false else true
             let whiteKey = noteName.includes('#') ? false : true;
@@ -1180,13 +1246,14 @@ export default {
                 if (keyOnScreenRange) {
                     if (whiteKey) {
                         // console.log("released white key ", noteName)
-                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-white-key-agent');
                     } else {
                         // console.log("released black key ", noteName)
-                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-worker');
+                        this.$root.$refs.keyboard.$refs[noteName][0].classList.remove('active-black-key-agent');
                     }
                 }
-                if (this.config.gui.pianoRoll.status)
+                // if (this.config.gui.pianoRoll.status)
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.human) 
                     this.$root.$refs.pianoRoll.keyUp(noteEvent);
             }, noteEvent.playAfter.seconds * 1000)
             );
@@ -1227,7 +1294,7 @@ export default {
                 newNoteEvent.player = vm.playerType.HUMAN;
                 newNoteEvent.instrument = vm.instrumentType.PIANO;
                 newNoteEvent.name = message.note.identifier;
-                newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
+                newNoteEvent.eventSource = vm.eventSourceType.MIDI_KEYBOARD;
                 newNoteEvent.type = vm.noteType.NOTE_ON;
                 newNoteEvent.channel = message.data[0];
                 newNoteEvent.midi = message.data[1];
@@ -1250,7 +1317,7 @@ export default {
                 newNoteEvent.player = vm.playerType.HUMAN;
                 newNoteEvent.instrument = vm.instrumentType.PIANO;
                 newNoteEvent.name = message.note.identifier;
-                newNoteEvent.source = vm.eventSourceType.MIDI_KEYBOARD;
+                newNoteEvent.eventSource = vm.eventSourceType.MIDI_KEYBOARD;
                 newNoteEvent.type = vm.noteType.NOTE_OFF;
                 newNoteEvent.channel = message.data[0];
                 newNoteEvent.midi = message.data[1];
@@ -1334,7 +1401,7 @@ export default {
         },
 
         buttonAction(buttonId) {
-            // use paramWriter to write a parameter to the worker
+            // use paramWriter to write a parameter to the agent
             const buttonPropertyName = `BUTTON_${buttonId}`;
             if (this.paramWriter != null &&
                 !this.paramWriter.enqueue_change(this.uiParameterType[buttonPropertyName], 1.0)) {
@@ -1377,7 +1444,7 @@ export default {
 
             // First, load all the configs files and merge them into one
             let configFilesURL = this.configFiles.map((file) => {
-                return `/workers/${this.workerName}/${file}`;
+                return `/agents/${this.agentName}/${file}`;
             });
             // get all files using xhr
             let xhrs = configFilesURL.map((url) => {
@@ -1528,6 +1595,197 @@ export default {
 }
 
 </script>
+
+<template>
+    <!-- main.vue, the application's main UI file.-->
+    <div>
+        <div ref="mainLoadingScreen" id="mainLoadingScreen">
+            <div id="loadingScreenInjection" class="center">
+                <h1 class="loadingTitle">
+                {{ config.title }}
+                </h1>
+                <h3 class="loadingSubtitle"> {{ config.subtitle }}</h3>
+                <p ref="agentStatus" class="loadingStatus">
+                Loading the Agent...
+                </p>
+                <div id="entryBtnContainer" style="width:100%;height:60px;">
+                    <button @click="entryProgram" ref="entryBtn" class="entryBtn" style="visibility: hidden;">
+                        <span style="width:100%;text-align:center;">Play</span>
+                    </button>
+                </div>
+                <p v-if="isNotChrome">
+                We highly recommend using Chrome for better user experience.
+                </p>
+                <p v-if="isMobile">
+                The model may not perform normally on mobile devices. We recommend
+                using Desktop computers.
+                </p>
+            </div>
+        </div>
+        <div ref="mainContent" id="mainContent"  style="justify-content: center; align-items: center;">
+            <div style="
+                background-color: rgb(0, 0, 0);
+                opacity: 0.5;
+                display: fixed;
+                top: 0;
+                right: 0;
+                z-index: 999;
+                ">
+            </div>
+            <!-- Intro Modal -->
+            <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+                <div class="modalDiv">
+                <p class="modalTitle">
+                    Introduction
+                </p>
+                <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon class="modalIcon">close</md-icon></button>
+                </div>
+                <div class="modalContent">
+                <p v-for="(content, index) in config.introModalContent" :key="index">
+                    {{ content }}
+                    <br />
+                </p>
+                </div>
+            </modal>
+
+            <div v-if="config.gui.pianoRoll.status">
+                <PianoRoll id="pianoRoll" style="position:absolute; z-index:0; top:0; left:0;" />
+            </div>
+
+            <div v-if="config.gui.keyboard.status">
+                <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
+                :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
+            </div>
+            
+            <Mixer @newEventSignal="handleMixerUpdate"/>
+
+            <!-- <div v-if="config.gui.monitor.status"> -->
+            <Monitor :dataFromParent="dataForMonitoring"/>
+            <!-- </div> -->
+
+            <div v-if="config.gui.score.status">
+                <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
+            </div>
+
+            <div v-if="audioAndMeter">
+                <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
+                style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
+            </div>
+            
+            <!-- <VectorBar ref="vectorBar" :width=300 :height="100" :num_bars="12" orientation="top"
+                style="position:absolute; z-index:0; top:0px; right:0px; background-color:transparent" /> -->
+            <div v-if="audioAndChroma">
+                <ChromaChart  />
+            </div>
+            <div v-if="textBoxStatus">
+                <TextBox :height=100 :width=180 :title="textBoxTitle" :text="textBoxText" 
+                    style="position: absolute; bottom: 300px; right: 20px; z-index:8" />
+            </div>
+            
+
+            <!-- On-screen buttons -->
+            <div style="position: absolute; bottom: 230px; right: 11px">
+                <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
+                <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
+                </md-button>
+                <md-button class="controlBtn" @click="showSettingsModal">
+                <md-icon>settings</md-icon>
+                </md-button>
+                <md-button class="controlBtn" @click="toggleMixer">
+                <md-icon>tune</md-icon>
+                </md-button>
+                <md-button class="controlBtn" @click="toggleMonitor">
+                <i class="material-symbols-outlined">monitoring</i>
+                </md-button>
+            </div>
+            <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
+                style="position: absolute; right: 20px; bottom: 100px">
+                <md-icon>arrow_forward</md-icon>
+            </md-button>
+            <md-button v-if="keyboardoctaveStart !== 0" @click="transposeOctDown" class="md-icon-button md-raised"
+                style="position: absolute; left: 20px; bottom: 100px">
+                <md-icon>arrow_back</md-icon>
+            </md-button>
+
+
+            <!-- Settings Modal -->
+            <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+                <!-- overflow-y: scroll; -->
+                <div style="padding:0; margin: 0; ">
+                <div class="modalDiv">
+                    <p class="modalTitle">
+                    Settings
+                    </p>
+                    <button class="modalBtn" @click="$modal.hide('settingsModal')"><md-icon
+                        class="modalIcon">close</md-icon></button>
+                </div>
+                <div class="modalContent" style="overflow-y: scroll; height:600px">
+                    <p class="settingsSubtitle">Clock</p>
+                    <div class="md-layout md-gutter md-alignment-center">
+                    <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+                        <div class="settingsDiv">
+                        <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
+                        <div style="padding-top: 14px">
+                            <p class="settingsValue">{{ localBPM }}</p>
+                            <vue-slider v-model="localBPM" :lazy="true" :min="60" :max="120" class="settingsSlider"></vue-slider>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                    <p class="settingsSubtitle">MIDI</p>
+                    <div class="MIDIInput" v-if="WebMIDISupport">
+                        <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
+                            placeholder="Type here to search for MIDI device">
+                        </Dropdown>
+                    </div>
+                    <span v-else>
+                        Currently, Using MIDI devices in browser is only supported by Google
+                        Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
+                        one of those browsers if you want to use Web MIDI
+                        functionalities.</span>
+                    <p class="settingsSubtitle">Agent Parameters</p>
+                    <div class="md-layout md-gutter md-alignment-center">
+                    <div class="md-layout-item md-large-size-50 md-small-size-100">
+                        <div class="md-layout md-gutter md-alignment-center">
+                        <!-- Sliders for agent parameters -->
+                        <div v-for="sliderItem in sliders" :key="sliderItem.id"
+                            class="md-layout-item md-large-size-25 md-alignment-center">
+                            <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
+                            :label="sliderItem.label" />
+                        </div>
+                        </div>
+                    </div>
+                    <div class="md-layout-item md-large-size-50 md-small-size-100">
+                        <div class="md-layout md-gutter md-alignment-center">
+                        <!-- Buttons for agent parameters -->
+                        <div v-for="buttonItem in buttons" :key="buttonItem.id" class="md-layout-item md-large-size-100">
+                            <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
+                            <span class="forceTextColor">{{ buttonItem.label }}</span>
+                            </md-button>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="md-layout md-gutter md-alignment-center">
+                    <div class="md-layout-item md-large-size-100">
+                        <div class="md-layout md-gutter md-alignment-center">
+                        <!-- Switches for agent parameters -->
+                        <div v-for="swi in switches" :key="swi.id" class="md-layout-item md-large-size-25 md-medium-size-50">
+                            <div style="display:block; min-width:60px; padding-top:17px">
+                            <span style="padding:0; margin:0;">{{ swi.label }}</span>
+                            <toggle-button color="#74601c" v-model="swi.status" style="transform: scale(0.9);" />
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </modal>
+        </div>
+    </div>
+</template>
+
 <style>
 @media (min-width: 1024px) {
     .main {
