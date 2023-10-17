@@ -610,4 +610,4 @@ class RingBuffer {
 // exports.deinterleave = deinterleave;
 // exports.interleave = interleave;
 //# sourceMappingURL=libraries/index.js.map
-// export {AudioReader, AudioWriter, ParameterReader, ParameterWriter, RingBuffer, deinterleave, interleave};
+export {AudioReader, AudioWriter, ParameterReader, ParameterWriter, RingBuffer, deinterleave, interleave};

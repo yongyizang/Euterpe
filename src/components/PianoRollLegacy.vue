@@ -121,12 +121,7 @@ export default {
       this.renderer.setSize(
         this.$refs.canvas.clientWidth,
         this.$refs.canvas.clientHeight - keyboardHeight
-        // 1341, 950
       );
-      console.log("after resizing")
-      console.log("size of canvas is ", this.$refs.canvas.clientWidth, this.$refs.canvas.clientHeight);
-      console.log("size of window is ", window.innerWidth, window.innerHeight);
-      // console.log("size of renderer is ", this.renderer.getSize);
     },
 
     animate() {
@@ -138,7 +133,7 @@ export default {
         if (this.$store.getters.getClockStatus) {
           // Update camera position.
           // Camera moves down to give the illusion that every noteblock goes up.
-          this.camera.position.y += (1 / 10) * delta;
+          this.camera.position.y += (1 / 10) * delta * 3;
         }
         // Tell renderer to re-render.
         this.renderer.render(this.scene, this.camera);

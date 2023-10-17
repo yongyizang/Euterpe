@@ -40,11 +40,11 @@ export default {
   props: {
     scrollStatus: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     scoreShown: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
 
@@ -264,7 +264,7 @@ export default {
     enableScrolling() {
       setInterval(() => {
         if (this.$store.getters.getClockStatus && this.scrollEnabled) {
-          console.log("scrolling score")
+          // console.log("scrolling score")
           this.scrollScore(1);
           this.scrollsCounter += 1;
           this.scrollsNumberPerMeasure =
@@ -481,6 +481,7 @@ export default {
     draw() {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
+      console.log("TO DRAW ", aiQuantNoteDict.midi);
 
       if (aiQuantNoteDict.startTick == -1){
         aiQuantNoteDict.dur = this.preDur

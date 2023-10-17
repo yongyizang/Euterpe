@@ -9,16 +9,24 @@
 
     Currently you can use up to 4 sliders and 4 switches.
     You can delete the ones you don't need.
+
+    NOTE: You should use the 'self' keyword to define the parameters
+        e.g. self.gain = 0.5;
+        that way, they will be accessible from the other hooks and the agent.js
 */
-let temperature = null;
+
+
+// Global ui-parameters shared with the other hooks and the agent.js
+self.temperature = 0.25;
+self.bypass = 0;
+
+// Neural Network related variables
+self.genie = null;
 const totalNotes = 88; 
-let keyWhitelist = Array(totalNotes).fill().map((x,i) => {
+self.keyWhitelist = Array(totalNotes).fill().map((x,i) => {
     return i;
 });
 const GENIE_CHECKPOINT = 'https://storage.googleapis.com/magentadata/js/checkpoints/piano_genie/model/epiano/stp_iq_auto_contour_dt_166006'; 
-
-
-
 
 /*
     This function is invoked every time there is a change in the UI parameters. 
@@ -47,6 +55,10 @@ function updateParameter(newUpdate){
             self.temperature = newUpdate.value;
             console.log("temperature is " + self.temperature);
             break;
+        case self.uiParameterType.SWITCH_1:
+            self.bypass = newUpdate.value;
+            console.log("bypass is " + self.bypass);
+            break;
         default:
             console.warn("Invalid parameter type");
             break;
@@ -64,7 +76,7 @@ function updateParameter(newUpdate){
     });
     
     You can always import external *js files using importScripts()
-    at the top of worker.js
+    at the top of agent.js
 */
 async function loadExternalFiles(content) {
     // Put your code here
@@ -104,8 +116,7 @@ async function loadAlgorithm(content) {
     for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
         let start = performance.now();
 
-        const note = self.genie.nextFromKeyList(0, keyWhitelist, 0.25);
-        
+        let note = self.genie.nextFromKeyList(0, keyWhitelist, self.temperature);
 
         let inferenceTime = performance.now() - start;
         inferenceTimes.push(inferenceTime);
@@ -122,10 +133,9 @@ async function loadAlgorithm(content) {
             },
         })
     }
-    genie.resetState();
+    self.genie.resetState();
 
     console.log("Average inference time: " + inferenceTimes.reduce((a, b) => a + b, 0) / inferenceTimes.length);
-    console.log("SKATAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     postMessage({
         hookType: self.agentHookType.INIT_AGENT,
         message:{

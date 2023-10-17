@@ -6,7 +6,7 @@ gui:
     title: "Last Note"
   pianoRoll:
     status: true
-    human: true
+    human: false
     agent: true
   keyboard:
     status: true # not used (always true)

@@ -1,3 +1,19 @@
+<!-- <template>
+    <div
+        :ref="ref_c"
+        :id="id_c"
+        :style="{
+        position: `${position}`,
+        top: `${top}px`,
+        right: `${right}px`,
+        zIndex: 100,
+        width: `auto`, 
+        height: `auto`,
+        // ...styles,
+        }"
+        @mousedown="startDrag"
+    ></div>
+</template> -->
 <template>
     <div
         :ref="ref_c"
@@ -8,7 +24,7 @@
         right: `${right}px`,
         zIndex: 100,
         width: `${width}px`, 
-        height: `${height}px`,
+        height: `auto`,
         // ...styles,
         }"
         @mousedown="startDrag"
@@ -39,7 +55,7 @@ export default {
         },
         top: {
             type: Number,
-            default: 135
+            default: 311
         },
         right: {
             type: Number,
@@ -49,10 +65,10 @@ export default {
             type: Number,
             default: 300
         },
-        height: {
-            type: Number,
-            default: 400
-        },
+        // height: {
+        //     type: Number,
+        //     default: 400
+        // },
         // cssClasses: {
         //   default: '',
         //   type: String
