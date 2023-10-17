@@ -6,7 +6,8 @@ import Keyboard from "@/components/Keyboard.vue";
 import PianoRoll from "@/components/PianoRollLegacy.vue";
 import Score from "@/components/Score.vue";
 import VerticalSlider from '@/components/VerticalSlider.vue'
-import HorizontalSlider from '@/components/HorizontalSlider.vue'
+// import HorizontalSlider from '@/components/HorizontalSlider.vue'
+import BPMSlider from '@/components/BPMSlider.vue'
 import AudioMeter from "@/components/AudioMeter.vue";
 // import VectorBar from "../components/VectorBar.vue";
 import ChromaChart from "@/components/ChromaChart.vue";
@@ -43,7 +44,8 @@ export default {
         Score,
         PianoRoll,
         VerticalSlider,
-        HorizontalSlider,
+        // HorizontalSlider,
+        BPMSlider,
         Dropdown,
         AudioMeter,
         TextBox,
@@ -1485,77 +1487,91 @@ export default {
 
 
             <!-- Settings Modal -->
-            <modal name="settingsModal" :minHeight=600 :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+            <modal name="settingsModal" :minWidth=700 :minHeight=600 :adaptive="true" @opened="modalCallback"
+                @closed="modalCallback">
                 <!-- overflow-y: scroll; -->
                 <div style="padding:0; margin: 0; ">
-                <div class="modalDiv">
-                    <p class="modalTitle">
-                    Settings
-                    </p>
-                    <button class="modalBtn" @click="$modal.hide('settingsModal')"><md-icon
-                        class="modalIcon">close</md-icon></button>
-                </div>
-                <div class="modalContent" style="overflow-y: scroll; height:600px">
-                    <p class="settingsSubtitle">Clock</p>
-                    <div class="md-layout md-gutter md-alignment-center">
-                    <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
-                        <div class="settingsDiv">
-                        <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
-                        <div style="padding-top: 14px">
-                            <p class="settingsValue">{{ localBPM }}</p>
-                            <vue-slider v-model="localBPM" :lazy="true" :min="60" :max="120" class="settingsSlider"></vue-slider>
-                        </div>
-                        </div>
+                    <div class="modalDiv">
+                        <p class="modalTitle">
+                            Settings
+                        </p>
+                        <button class="modalBtn" @click="$modal.hide('settingsModal')"><md-icon class="modalIcon"
+                                style="padding:0;margin:0;height:24px">close</md-icon></button>
                     </div>
-                    </div>
-                    <p class="settingsSubtitle">MIDI</p>
-                    <div class="MIDIInput" v-if="WebMIDISupport">
-                        <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
-                            placeholder="Type here to search for MIDI device">
-                        </Dropdown>
-                    </div>
-                    <span v-else>
-                        Currently, Using MIDI devices in browser is only supported by Google
-                        Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
-                        one of those browsers if you want to use Web MIDI
-                        functionalities.</span>
-                    <p class="settingsSubtitle">Agent Parameters</p>
-                    <div class="md-layout md-gutter md-alignment-center">
-                    <div class="md-layout-item md-large-size-50 md-small-size-100">
-                        <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Sliders for agent parameters -->
-                        <div v-for="sliderItem in sliders" :key="sliderItem.id"
-                            class="md-layout-item md-large-size-25 md-alignment-center">
-                            <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
-                            :label="sliderItem.label" />
-                        </div>
-                        </div>
-                    </div>
-                    <div class="md-layout-item md-large-size-50 md-small-size-100">
-                        <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Buttons for agent parameters -->
-                        <div v-for="buttonItem in buttons" :key="buttonItem.id" class="md-layout-item md-large-size-100">
-                            <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
-                            <span class="forceTextColor">{{ buttonItem.label }}</span>
-                            </md-button>
-                        </div>
-                        </div>
-                    </div>
-                    </div>
-                    <div class="md-layout md-gutter md-alignment-center">
-                    <div class="md-layout-item md-large-size-100">
-                        <div class="md-layout md-gutter md-alignment-center">
-                        <!-- Switches for agent parameters -->
-                        <div v-for="swi in switches" :key="swi.id" class="md-layout-item md-large-size-25 md-medium-size-50">
-                            <div style="display:block; min-width:60px; padding-top:17px">
-                            <span style="padding:0; margin:0;">{{ swi.label }}</span>
-                            <toggle-button color="#74601c" v-model="swi.status" style="transform: scale(0.9);" />
+                    <div class="modalContent" style="overflow-y: scroll; height:600px">
+                        <div id="ClockSection" class="settingsBorderedTitle" style="display:flex;justify-content:start;align-items:center">
+                            <p class="settingsSubtitle" style="padding:0; margin-right:50px">
+                                <md-icon
+                            class="modalIcon">history_toggle_off</md-icon> <br />
+                            <span style="line-height:36px">Clock</span></p>
+                            <div class="md-layout md-gutter md-alignment-left settingsBordered">
+                                <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
+                                    <div class="settingsDiv">
+                                        <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
+                                        <div style="padding-top: 14px">
+                                            <BPMSlider v-model="localBPM" :min="60" :max="120" :label="localBPM" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <div id="MIDISection" style="display:flex;justify-content:start;align-items:center;margin-top:50px">
+                            <p class="settingsSubtitle settingsBorderedTitle" style="padding:0">
+                                <md-icon
+                            class="modalIcon" style="font-weight:400">piano</md-icon> <br />
+                            <span style="line-height:36px">MIDI</span></p>
+                            <div class="MIDIInput" style="padding-left: 8px" v-if="WebMIDISupport">
+                                <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
+                                    placeholder="Type here to search for MIDI device">
+                                </Dropdown>
+                            </div>
+                            <span v-else>
+                                Currently, Using MIDI devices in browser is only supported by Google
+                                Chrome v43+, Opera v30+ and Microsoft Edge v79+. Please update to
+                                one of those browsers if you want to use Web MIDI
+                                functionalities.</span>
+                        </div>
+                        <p class="settingsSubtitle">Worker Parameters</p>
+                        <div class="md-layout md-gutter md-alignment-center">
+                            <div class="md-layout-item md-large-size-50 md-small-size-100">
+                                <div class="md-layout md-gutter md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
+                                    <!-- Sliders for worker parameters -->
+                                    <div v-for="sliderItem in sliders" :key="sliderItem.id"
+                                        class="md-layout-item md-large-size-25 md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
+                                        <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
+                                            :label="sliderItem.label" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md-layout-item md-large-size-50 md-small-size-100">
+                                <div class="md-layout md-gutter md-alignment-center">
+                                    <!-- Buttons for worker parameters -->
+                                    <div v-for="buttonItem in buttons" :key="buttonItem.id"
+                                        class="md-layout-item md-large-size-100">
+                                        <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
+                                            <span class="forceTextColor">{{ buttonItem.label }}</span>
+                                        </md-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md-layout md-gutter md-alignment-center">
+                            <div class="md-layout-item md-large-size-100">
+                                <div class="md-layout md-gutter md-alignment-center">
+                                    <!-- Switches for worker parameters -->
+                                    <div v-for="swi in switches" :key="swi.id"
+                                        class="md-layout-item md-large-size-25 md-medium-size-50"
+                                        style="display:flex;align-items:center;justify-content:center;padding-top:17px">
+                                        <span style="padding:0; margin:0;">{{ swi.label }}</span>
+                                        <div style="display:block; min-width:30px;">
+                                            <toggle-button color="#74601c" v-model="swi.status"
+                                                style="transform: scale(0.9);" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    </div>
-                </div>
                 </div>
             </modal>
         </div>
