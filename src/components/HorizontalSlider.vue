@@ -31,6 +31,10 @@ export default {
         updateValue(value) {
             // When the slider value changes, emit the 'input' event
             this.$emit('input', Number(value));
+            // Update the background image for the slider
+            let percent100 = (value - this.min) / (this.max - this.min) * 100;
+            let bg = `linear-gradient(90deg, var(--bg-value-color) 0%, var(--bg-value-color) ${percent100}%, var(--bg-range-color) ${percent100}%, var(--bg-range-color) 100%)`;
+            this.$el.querySelector('input').style.backgroundImage = bg;
         }
     }
 }
