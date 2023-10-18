@@ -3,40 +3,18 @@ gui:
     status: false
   textBox:
     status: true
-    title: "Title"
+    title: "Note"
   pianoRoll:
     status: true
     human: true
     agent: true
   keyboard:
-    status: true # not used (always true)
+    status: true
   chromaChart:
     status: false
   audioMeter: 
     status: false
-  monitor:
-    status: true # not used (always true)
-    title: "Monitor"
-    structure:
-      - label: "Debugging"
-        parameters:
-          # The 'id' for each parameter must be unique and is used
-          # in the hooks for adding new values for monitoring
-          # The 'label' is the parameter name that appears in the GUI.
-          # The 'interval' is the refresh rate of the parameter in ms.
-          # The 'graph' flag allows you to visualize the value as a time grpah.
-          # The 'min' and 'max' indicate the expected range of the parameter.
-          - id: 0 
-            label: "debug" 
-            interval: 50
-            graph: true
-            min: 0
-            max: 40
   settingsModal:
-    switches:
-      - id: 1 
-        label: "Switch 1"
-        status: false
     sliders:
         # You can create up to 4 sliders
         # The 'id' for each slider needs to be unique within sliders
@@ -44,11 +22,30 @@ gui:
         # The 'label' is the slider name that appears on the GUI.
         # The 'value' is the default value.
         # The 'min' and 'max' indicate the slider's range.
-      - id: 1 
-        label: "Slider 1"
-        value: 25
+    - id: 1
+      label: "Randomness"
+      value: 0
+      min: 0
+      max: 100
+    - id: 2
+      label: "Volume"
+      value: 0
+      min: 0
+      max: 100
+        
+    switches:
+    - id: 1
+      label: "Switch 1"
+      status: false
+  monitor:
+    status: true 
+    title: "Monitor"
+    structure:
+    - label: "Audio levels"
+      parameters:
+      - id: 0 # id's must be unique
+        label: "rms" 
+        interval: 50
+        graph: true
         min: 0
-        max: 100
-
-
-
+        max: 0.2   

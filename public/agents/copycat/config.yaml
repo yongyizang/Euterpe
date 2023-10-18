@@ -1,6 +1,6 @@
 ---
 # The name of your system
-title: "Empty Agent Template"
+title: "CopyCat"
 subtitle: "Using Euterpe"
 
 # Set the correct flags based on the type of your music interaction algorithm
@@ -12,7 +12,7 @@ noteModeSettings:
   eventBased:
     # If eventBased.status: true, then the worker's processNoteEvent() hook is active
     # for instant processing of each user's MIDI event.
-    status: false
+    status: true
   gridBased:
     # If gridBased.status: true, then the worker's processClockEvent() hook is active
     # for processing raw and quantized MIDI events buffers at every "clock-tick"

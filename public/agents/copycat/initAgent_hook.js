@@ -14,8 +14,7 @@
         e.g. self.gain = 0.5;
         that way, they will be accessible from the other hooks and the agent.js
 */
-self.slider1 = null;
-self.switch1 = null;
+self.randomness = 0.0;
 
 /*
     This function is invoked every time there is a change in the UI parameters. 
@@ -41,10 +40,7 @@ function updateParameter(newUpdate){
     
     switch(newUpdate.index){
         case self.uiParameterType.SLIDER_1:
-            self.slider1 = newUpdate.value;
-            break;
-        case self.uiParameterType.SWITCH_1:
-            self.switch1 = newUpdate.value;
+            self.randomness = newUpdate.value;
             break;
         default:
             console.warn("Invalid parameter type");
