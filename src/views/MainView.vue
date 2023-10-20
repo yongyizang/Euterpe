@@ -60,13 +60,13 @@ export default {
             // Choose the agent. 
             // This string should be one of
             // dir names inside public/agents/
-            agentName: "pianoGenie", 
+            agentName: "pianoGenie",
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
-            configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'], 
+            configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'],
 
             config: null,
-                    
+
             playerType,
             instrumentType,
             eventSourceType,
@@ -75,7 +75,7 @@ export default {
             noteType,
             uiParameterType,
             agentHookType,
-                    
+
             // These need to be initialized here as empty arrays (computed properties)
             // They'll be filled in the created() hook
             switches: [],
@@ -142,7 +142,7 @@ export default {
             // Keep track of all the timeouts ids to clear them when the the user pauses
             timeout_IDS_kill: [],// noteOn related events (keyDown, mouseDown, noteOn, trigerAttack etc)
             timeout_IDS_live: [],
-            
+
             mixer_data: null,
         };
     },
@@ -211,7 +211,7 @@ export default {
         vm.audioContext = new AudioContext();
         // Tone.setContext(vm.audioContext); // this cause huge latency
         Tone.context.lookAhead = 0; // increase it if you experience audio clicks
-        
+
         // SAB
         // get a memory region for the Audio ring buffer
         // length in time is 1 second of stereo audio
@@ -236,7 +236,7 @@ export default {
         // experiment with , { type : 'module' }
         // if agen'ts name is pianoGenie, then load the pianoGenie worker
         // if (vm.agentName == "pianoGenie") {
-        vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`, {type: 'module'});
+        vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`, { type: 'module' });
         // } else {
         //     vm.agent = new Worker(`/agents/${vm.agentName}/agent.js`);
         // }
@@ -425,7 +425,7 @@ export default {
         });
 
         vm.modelLoadTime = Date.now();
-        console.log("TONE TONE TONE ",Tone.now());
+        console.log("TONE TONE TONE ", Tone.now());
 
     },
     methods: {
@@ -439,7 +439,7 @@ export default {
                 // Trigger the metronome only if there is a "metronome" entry in config_players.yaml
                 if (vm.config.players.metronome)
                     vm.metronomeTrigger();
-                
+
                 vm.calculateMaxBPM();
 
                 // in grid-based mode, the agent's sampler is triggered in sync with the clock
@@ -455,7 +455,7 @@ export default {
                     if (vm.config.noteModeSettings.gridBased.delayedExecution) {
                         // console.log("delayedExecution");
                         vm.timeout_IDS_live.push(setTimeout(function () {
-                                vm.estimateHumanQuantizedNote();
+                            vm.estimateHumanQuantizedNote();
                             vm.runTheAgent();
                         }, parseInt(vm.$store.getters.getClockPeriod / 4))
                         );
@@ -574,7 +574,7 @@ export default {
                     seconds: 0
                 }
                 this.$store.dispatch("samplerOn", metronomeNote);
-                
+
             }
         },
 
@@ -594,7 +594,7 @@ export default {
                 }
                 vm.$store.dispatch("noteOn", noteEvent);
                 vm.$store.dispatch("samplerOn", noteEvent);
-                
+
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.add('active-white-key-human')
@@ -608,7 +608,7 @@ export default {
                 }
                 vm.$store.dispatch("noteOff", noteEvent);
                 vm.$store.dispatch("samplerOff", noteEvent);
-                
+
                 if (keyOnScreenRange && !onScreenKeyboard) {
                     if (whiteKey) {
                         this.$root.$refs.keyboard.$refs[noteEvent.name][0].classList.remove('active-white-key-human')
@@ -631,7 +631,7 @@ export default {
             }
         },
 
-        
+
         // TODO : change the name : agent, clock event, tick etc
         runTheAgent() {
             const vm = this;
@@ -670,16 +670,16 @@ export default {
 
             const bufferEvent = this.$store.getters.getMidiEventBuffer;
             // A this is the noteOff for a note from the previous tick that was too short to be quantized
-            if (vm.noteOffEventForNextTick){
+            if (vm.noteOffEventForNextTick) {
                 bufferEvent.push(vm.noteOffEventForNextTick);
             }
 
             // console.log("bufferEvent", bufferEvent.length);
-            if (bufferEvent.length > 1){
+            if (bufferEvent.length > 1) {
                 console.log("bufferEvent", bufferEvent);
             }
             // a COPY activePianoNotes are sorted by their "on" timestamp (newest to oldest)
-            let activePianoNotes =[...this.$store.getters.getActivePianoNotes];
+            let activePianoNotes = [...this.$store.getters.getActivePianoNotes];
             let currentQuantizedEvents = [];
 
             // 2) preprocess them before quantization
@@ -703,14 +703,14 @@ export default {
             for (let i = bufferEvent.length - 1; i >= 0; i--) {
                 let elem = bufferEvent[i];
                 if (elem.type === vm.noteType.NOTE_OFF) {
-                        const matchingIndexes = bufferEvent
-                            .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
-                            .filter(index => index !== -1);
-                        if (matchingIndexes.length > 0) {
-                            indexesToRemove.push(i);
-                            forgivenNoteOnIndex = Math.max(...matchingIndexes);
+                    const matchingIndexes = bufferEvent
+                        .map((e, i) => (e.type === vm.noteType.NOTE_ON && e.midi === elem.midi && e.createdAt.seconds < elem.createdAt.seconds) ? i : -1)
+                        .filter(index => index !== -1);
+                    if (matchingIndexes.length > 0) {
+                        indexesToRemove.push(i);
+                        forgivenNoteOnIndex = Math.max(...matchingIndexes);
                         // indexesToRemove.push(Math.max(...matchingIndexes));
-                        }
+                    }
                 }
             }
 
@@ -721,12 +721,12 @@ export default {
                     // TODO : this can happen when playing a whole chord with duration
                     // less than the tick.
                 }
-                if (forgivenNoteOnIndex == -1){
+                if (forgivenNoteOnIndex == -1) {
                     console.error("forgivenNoteOnIndex", forgivenNoteOnIndex);
                 }
                 vm.noteOffEventForNextTick = bufferEvent[indexesToRemove[0]];
                 let forgivenNoteOn = bufferEvent[forgivenNoteOnIndex];
-                
+
                 activePianoNotes.push({
                     midi: forgivenNoteOn.midi,
                     createdAt: {
@@ -829,7 +829,7 @@ export default {
             // naively choose the first note only. ScoreUI only supports monophonic
             this.$store.dispatch("updateLastAgentNote", agentNotesToBePlayed);
             if (agentNotesToBePlayed.length > 0) {
-                
+
 
                 agentNotesToBePlayed.forEach((noteEvent) => {
                     vm.processAgentNoteEvent(noteEvent);
@@ -851,18 +851,18 @@ export default {
                 // when posting from the CLOCK_EVENT hook (processClockEvent())
                 let agentPredictionTick = e.data.message[vm.messageType.CLOCK_TIME];
                 if ((agentPredictionTick !== this.$store.getters.getLocalTickDelayed) && (this.$store.getters.getGlobalTick > 2)) {
-                        this.$toasted.show(
-                            "Network tick misalignment: expecting " +
-                            this.$store.getters.getLocalTickDelayed +
-                            ", got " +
-                            agentPredictionTick
-                        );
-                        this.misalignErrCount += 1;
+                    this.$toasted.show(
+                        "Network tick misalignment: expecting " +
+                        this.$store.getters.getLocalTickDelayed +
+                        ", got " +
+                        agentPredictionTick
+                    );
+                    this.misalignErrCount += 1;
                 }
                 let agentInferenceTime = e.data.message[vm.messageType.INFERENCE_TIME];
                 vm.modelInferenceTimes.push(agentInferenceTime);
                 // console.log("just pushed ", agentInferenceTime, " to modelInferenceTimes")
-                
+
 
             }
 
@@ -997,8 +997,8 @@ export default {
                                 // console.log("about to send samplerOnOff ", noteEvent.midi);
                                 this.$store.dispatch("samplerOnOff", noteEvent);
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                        this.uiNoteOffAgent(noteEvent);
-                                    }, noteEvent.duration.seconds * 1000)
+                                    this.uiNoteOffAgent(noteEvent);
+                                }, noteEvent.duration.seconds * 1000)
                                 );
 
                                 // console.log("option2  ")
@@ -1033,12 +1033,12 @@ export default {
                 }
                 // console.log("about to call uiNoteOffAgent");
                 this.uiNoteOffAgent(noteEvent);
-            } else if (noteEvent.type === vm.noteType.NOTE_HOLD){
+            } else if (noteEvent.type === vm.noteType.NOTE_HOLD) {
                 console.log("HOLD event received from agent");
             }
         },
 
-        uiNoteOffAgent(noteEvent){
+        uiNoteOffAgent(noteEvent) {
             let vm = this;
             // console.log("uiNoteOffAgent")
             // TODO : the agent should do that
@@ -1060,7 +1060,7 @@ export default {
                     }
                 }
                 // if (this.config.gui.pianoRoll.status)
-                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent) 
+                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent)
                     this.$root.$refs.pianoRoll.keyUp(noteEvent);
             }, noteEvent.playAfter.seconds * 1000)
             );
@@ -1174,7 +1174,7 @@ export default {
             vm.$refs.mainLoadingScreen.style.display = "none";
             vm.$refs.mainContent.style.display = "block";
             vm.$modal.show("introModal");
-            console.log("TONE ENTRY ",Tone.now());
+            console.log("TONE ENTRY ", Tone.now());
         },
 
         showSettingsModal() {
@@ -1196,6 +1196,15 @@ export default {
         transposeOctDown() {
             this.keyboardoctaveStart -= 1;
             this.keyboardoctaveEnd -= 1;
+        },
+
+        zoomInOct() {
+            this.keyboardoctaveStart += 1;
+            this.keyboardoctaveEnd -= 1;
+        },
+        zoomOutOct() {
+            this.keyboardoctaveStart -= 1;
+            this.keyboardoctaveEnd += 1;
         },
 
         modalCallback() {
@@ -1410,11 +1419,11 @@ export default {
         <div ref="mainLoadingScreen" id="mainLoadingScreen">
             <div id="loadingScreenInjection" class="center">
                 <h1 class="loadingTitle">
-                {{ config.title }}
+                    {{ config.title }}
                 </h1>
                 <h3 class="loadingSubtitle"> {{ config.subtitle }}</h3>
                 <p ref="agentStatus" class="loadingStatus">
-                Loading the Agent...
+                    Loading the Agent...
                 </p>
                 <div id="entryBtnContainer" style="width:100%;height:60px;">
                     <button @click="entryProgram" ref="entryBtn" class="entryBtn" style="visibility: hidden;">
@@ -1422,15 +1431,15 @@ export default {
                     </button>
                 </div>
                 <p v-if="isNotChrome">
-                We highly recommend using Chrome for better user experience.
+                    We highly recommend using Chrome for better user experience.
                 </p>
                 <p v-if="isMobile">
-                The model may not perform normally on mobile devices. We recommend
-                using Desktop computers.
+                    The model may not perform normally on mobile devices. We recommend
+                    using Desktop computers.
                 </p>
             </div>
         </div>
-        <div ref="mainContent" id="mainContent"  style="justify-content: center; align-items: center;">
+        <div ref="mainContent" id="mainContent" style="justify-content: center; align-items: center;">
             <div style="
                 background-color: rgb(0, 0, 0);
                 opacity: 0.5;
@@ -1441,18 +1450,20 @@ export default {
                 ">
             </div>
             <!-- Intro Modal -->
-            <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback" @closed="modalCallback">
+            <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback"
+                @closed="modalCallback">
                 <div class="modalDiv">
-                <p class="modalTitle">
-                    Introduction
-                </p>
-                <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon class="modalIcon">close</md-icon></button>
+                    <p class="modalTitle">
+                        Introduction
+                    </p>
+                    <button class="modalBtn" @click="$modal.hide('introModal')"><md-icon
+                            class="modalIcon">close</md-icon></button>
                 </div>
                 <div class="modalContent">
-                <p v-for="(content, index) in config.introModalContent" :key="index">
-                    {{ content }}
-                    <br />
-                </p>
+                    <p v-for="(content, index) in config.introModalContent" :key="index">
+                        {{ content }}
+                        <br />
+                    </p>
                 </div>
             </modal>
 
@@ -1462,48 +1473,54 @@ export default {
 
             <div v-if="config.gui.keyboard.status">
                 <Keyboard id="pianoKeyboard" class="pianoKeyboard" ref="keyboard" :key="keyboardKey"
-                :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
+                    :octave-start="keyboardoctaveStart" :octave-end="keyboardoctaveEnd" />
             </div>
-            
-            <Mixer @newEventSignal="handleMixerUpdate"/>
+
+            <Mixer @newEventSignal="handleMixerUpdate" />
 
             <!-- <div v-if="config.gui.monitor.status"> -->
-            <Monitor :dataFromParent="dataForMonitoring"/>
+            <Monitor :dataFromParent="dataForMonitoring" />
             <!-- </div> -->
 
             <div v-if="config.gui.score.status">
-                <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus"/>
+                <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus" />
             </div>
 
             <div v-if="audioAndMeter">
                 <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
-                style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
+                    style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
             </div>
-            
+
             <!-- <VectorBar ref="vectorBar" :width=300 :height="100" :num_bars="12" orientation="top"
                 style="position:absolute; z-index:0; top:0px; right:0px; background-color:transparent" /> -->
             <div v-if="audioAndChroma">
-                <ChromaChart  />
+                <ChromaChart />
             </div>
             <div v-if="textBoxStatus">
-                <TextBox :height=100 :width=180 :title="textBoxTitle" :text="textBoxText" 
+                <TextBox :height=100 :width=180 :title="textBoxTitle" :text="textBoxText"
                     style="position: absolute; bottom: 300px; right: 20px; z-index:8" />
             </div>
-            
+
 
             <!-- On-screen buttons -->
             <div style="position: absolute; bottom: 230px; right: 11px">
                 <md-button class="controlBtn" @click="toggleClock" style="width: 40px">
-                <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
+                    <md-icon>{{ localSyncClockStatus ? "pause" : "play_arrow" }}</md-icon>
                 </md-button>
                 <md-button class="controlBtn" @click="showSettingsModal">
-                <md-icon>settings</md-icon>
+                    <md-icon>settings</md-icon>
                 </md-button>
                 <md-button class="controlBtn" @click="toggleMixer">
-                <md-icon>tune</md-icon>
+                    <md-icon>tune</md-icon>
                 </md-button>
                 <md-button class="controlBtn" @click="toggleMonitor">
-                <i class="material-symbols-outlined">monitoring</i>
+                    <i class="material-symbols-outlined">monitoring</i>
+                </md-button>
+                <md-button class="controlBtn" @click="zoomInOct">
+                    <i class="material-symbols-outlined">zoom_in</i>
+                </md-button>
+                <md-button class="controlBtn" @click="zoomOutOct">
+                    <i class="material-symbols-outlined">zoom_out</i>
                 </md-button>
             </div>
             <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
@@ -1529,11 +1546,12 @@ export default {
                                 style="padding:0;margin:0;height:24px">close</md-icon></button>
                     </div>
                     <div class="modalContent" style="overflow-y: scroll; height:600px">
-                        <div id="ClockSection" class="settingsBorderedTitle" style="display:flex;justify-content:start;align-items:center">
+                        <div id="ClockSection" class="settingsBorderedTitle"
+                            style="display:flex;justify-content:start;align-items:center">
                             <p class="settingsSubtitle" style="padding:0; margin-right:50px">
-                                <md-icon
-                            class="modalIcon">history_toggle_off</md-icon> <br />
-                            <span style="line-height:36px">Clock</span></p>
+                                <md-icon class="modalIcon">history_toggle_off</md-icon> <br />
+                                <span style="line-height:36px">Clock</span>
+                            </p>
                             <div class="md-layout md-gutter md-alignment-left settingsBordered">
                                 <div class="md-layout-item md-small-size-50 md-xsmall-size-100">
                                     <div class="settingsDiv">
@@ -1547,9 +1565,9 @@ export default {
                         </div>
                         <div id="MIDISection" style="display:flex;justify-content:start;align-items:center;margin-top:50px">
                             <p class="settingsSubtitle settingsBorderedTitle" style="padding:0">
-                                <md-icon
-                            class="modalIcon" style="font-weight:400">piano</md-icon> <br />
-                            <span style="line-height:36px">MIDI</span></p>
+                                <md-icon class="modalIcon" style="font-weight:400">piano</md-icon> <br />
+                                <span style="line-height:36px">MIDI</span>
+                            </p>
                             <div class="MIDIInput" style="padding-left: 8px" v-if="WebMIDISupport">
                                 <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
                                     placeholder="Type here to search for MIDI device">
@@ -1564,10 +1582,12 @@ export default {
                         <p class="settingsSubtitle">Agent Parameters</p>
                         <div class="md-layout md-gutter md-alignment-center">
                             <div class="md-layout-item md-large-size-50 md-small-size-100">
-                                <div class="md-layout md-gutter md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
+                                <div class="md-layout md-gutter md-alignment-center"
+                                    style="display:flex;align-items:center;justify-content:center;">
                                     <!-- Sliders for agent Parameters -->
                                     <div v-for="sliderItem in sliders" :key="sliderItem.id"
-                                        class="md-layout-item md-large-size-25 md-alignment-center" style="display:flex;align-items:center;justify-content:center;">
+                                        class="md-layout-item md-large-size-25 md-alignment-center"
+                                        style="display:flex;align-items:center;justify-content:center;">
                                         <VerticalSlider v-model="sliderItem.value" :min="sliderItem.min" :max=sliderItem.max
                                             :label="sliderItem.label" />
                                     </div>
