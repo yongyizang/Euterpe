@@ -103,8 +103,10 @@ export default {
             screenWidth: document.body.clientWidth,
             screenHeight: document.body.clientHeight,
             keyboardKey: 0,
-            keyboardoctaveStart: 2,
-            keyboardoctaveEnd: 6,
+            keyboardoctaveStart: 0,
+            keyboardoctaveEnd: 8,
+            keyboardMaxRangeDisplayed: false,
+            keyboardMinRangeDisplayed: false,
 
             // audioContext: null,
             mediaStreamSource: null,
@@ -169,6 +171,10 @@ export default {
         // this.scrollEnabled = this.config.gui.score;
         // Set the textBox title
         this.textBoxTitle = this.config.gui.textBox.title;
+
+        // Set the octave range for the on-screen keyboard
+        this.keyboardoctaveStart = this.config.gui.keyboard.octaveStart;
+        this.keyboardoctaveEnd = this.config.gui.keyboard.octaveEnd;
 
         // Widgets configurations are stored and can be modified
         // in utils/widgets_config.js
@@ -1198,13 +1204,49 @@ export default {
             this.keyboardoctaveEnd -= 1;
         },
 
+        
         zoomInOct() {
-            this.keyboardoctaveStart += 1;
-            this.keyboardoctaveEnd -= 1;
+            // ugly code to prevent the user from zooming in too much
+            console.log("range before was ", this.keyboardoctaveEnd - this.keyboardoctaveStart)
+            if (this.keyboardoctaveEnd - this.keyboardoctaveStart <= 1){
+                console.log("MIN was reched before")
+                this.keyboardMinRangeDisplayed = true;
+            } else {
+                if (this.keyboardoctaveEnd - this.keyboardoctaveStart == 2){
+                    this.keyboardoctaveStart = Math.max(0, this.keyboardoctaveStart + 1);
+                } else{
+                    this.keyboardoctaveStart = Math.max(0, this.keyboardoctaveStart + 1);
+                    this.keyboardoctaveEnd = Math.min(8, this.keyboardoctaveEnd - 1);
+                }
+                console.log("this.keyboardoctaveEnd - this.keyboardoctaveStart != 1")
+                if (this.keyboardoctaveEnd - this.keyboardoctaveStart <= 1){
+                    console.log("MIN range reached")
+                    this.keyboardMinRangeDisplayed = true;
+                } else {
+                    this.keyboardMinRangeDisplayed = false;
+                }
+            }   
+            this.keyboardMaxRangeDisplayed = false;
         },
+
         zoomOutOct() {
-            this.keyboardoctaveStart -= 1;
-            this.keyboardoctaveEnd += 1;
+            console.log("range before was ", this.keyboardoctaveEnd - this.keyboardoctaveStart)
+            if (this.keyboardoctaveEnd - this.keyboardoctaveStart >= 8){
+                console.log("MAX was reched before")
+                this.keyboardMaxRangeDisplayed = true;
+            } else {
+                this.keyboardoctaveStart = Math.max(0, this.keyboardoctaveStart - 1);
+                this.keyboardoctaveEnd = Math.min(8, this.keyboardoctaveEnd + 1);
+                console.log("this.keyboardoctaveEnd - this.keyboardoctaveStart != 8")
+                if (this.keyboardoctaveEnd - this.keyboardoctaveStart >= 8){
+                    console.log("MAX range reached")
+                    this.keyboardMaxRangeDisplayed = true;
+                } else {
+                    this.keyboardMaxRangeDisplayed = false;
+                }
+                
+            } 
+            this.keyboardMinRangeDisplayed = false; 
         },
 
         modalCallback() {
@@ -1310,30 +1352,30 @@ export default {
     },
 
     watch: {
-        screenWidth: {
-            // At every screenWidth data change, this would automatically change the keyboard's octave number.
-            immediate: true,
-            handler(newValue) {
-                let octaves;
-                if (newValue <= 750) {
-                    octaves = 2;
-                } else if (newValue <= 1024) {
-                    // for iPads. 1024 * 768.
-                    octaves = 3;
-                } else if (newValue <= 1366) {
-                    // for iPad Pros. 1366 * 1024.
-                    octaves = 4;
-                } else if (newValue <= 1920) {
-                    // for 1920 * 1080 screens.
-                    octaves = 5;
-                } else {
-                    octaves = 6;
-                }
-                this.keyboardoctaveEnd = this.keyboardoctaveStart + octaves;
-                // A trick, to force keyboard re-render itself.
-                this.keyboardKey += 1;
-            },
-        },
+        // screenWidth: {
+        //     // At every screenWidth data change, this would automatically change the keyboard's octave number.
+        //     immediate: true,
+        //     handler(newValue) {
+        //         let octaves;
+        //         if (newValue <= 750) {
+        //             octaves = 2;
+        //         } else if (newValue <= 1024) {
+        //             // for iPads. 1024 * 768.
+        //             octaves = 3;
+        //         } else if (newValue <= 1366) {
+        //             // for iPad Pros. 1366 * 1024.
+        //             octaves = 4;
+        //         } else if (newValue <= 1920) {
+        //             // for 1920 * 1080 screens.
+        //             octaves = 5;
+        //         } else {
+        //             octaves = 6;
+        //         }
+        //         this.keyboardoctaveEnd = this.keyboardoctaveStart + octaves;
+        //         // A trick, to force keyboard re-render itself.
+        //         this.keyboardKey += 1;
+        //     },
+        // },
 
         misalignErrCount: {
             immediate: true,
@@ -1516,12 +1558,12 @@ export default {
                 <md-button class="controlBtn" @click="toggleMonitor">
                     <i class="material-symbols-outlined">monitoring</i>
                 </md-button>
-                <md-button class="controlBtn" @click="zoomInOct">
+                <!-- <md-button class="controlBtn" @click="zoomInOct">
                     <i class="material-symbols-outlined">zoom_in</i>
                 </md-button>
                 <md-button class="controlBtn" @click="zoomOutOct">
                     <i class="material-symbols-outlined">zoom_out</i>
-                </md-button>
+                </md-button> -->
             </div>
             <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
                 style="position: absolute; right: 20px; bottom: 100px">
@@ -1530,6 +1572,16 @@ export default {
             <md-button v-if="keyboardoctaveStart !== 0" @click="transposeOctDown" class="md-icon-button md-raised"
                 style="position: absolute; left: 20px; bottom: 100px">
                 <md-icon>arrow_back</md-icon>
+            </md-button>
+            <md-button v-if="!keyboardMinRangeDisplayed" @click="zoomInOct" class="md-icon-button md-raised"
+                style="position: absolute; right: 20px; bottom: 50px">
+                <!-- <md-icon>arrow_forward</md-icon> -->
+                <i class="material-symbols-outlined">zoom_in</i>
+            </md-button>
+            <md-button v-if="!keyboardMaxRangeDisplayed" @click="zoomOutOct" class="md-icon-button md-raised"
+                style="position: absolute; left: 20px; bottom: 50px">
+                <!-- <md-icon>arrow_forward</md-icon> -->
+                <i class="material-symbols-outlined">zoom_out</i>
             </md-button>
 
 
