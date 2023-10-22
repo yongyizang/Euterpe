@@ -9,7 +9,10 @@ gui:
     human: true
     agent: true
   keyboard:
-    status: true
+    status: true # not used (always true)
+    # set the visible octaves. Max range [0,8]
+    octaveStart: 0
+    octaveEnd: 8 
   chromaChart:
     status: false
   audioMeter: 
