@@ -1270,6 +1270,11 @@ export default {
             vm.maxBPM = Math.round(1000 * 60 / dt / vm.$store.getters.getTicksPerBeat);
         },
 
+        bpmValueChanged(value) {
+            console.log(value);
+            this.localBPM = value;
+        },
+
         buttonAction(buttonId) {
             // use paramWriter to write a parameter to the agent
             const buttonPropertyName = `BUTTON_${buttonId}`;
@@ -1621,7 +1626,8 @@ export default {
                                     <div class="settingsDiv">
                                         <p class="settingsOptionTitle">BPM (Max: {{ maxBPM }})</p>
                                         <div style="padding-top: 14px">
-                                            <BPMSlider v-model="localBPM" :min="60" :max="120" :label="localBPM" />
+                                            <BPMSlider v-model="localBPM" :min="60" :max="120" @bpmChangeEvent="bpmValueChanged"/> 
+                                            <!-- @bpmChangeEvent="bpmValueChanged" -->
                                         </div>
                                     </div>
                                 </div>
