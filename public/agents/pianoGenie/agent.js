@@ -21,9 +21,11 @@ import { LIFOQueue, FIFOQueue,
 
 // import Meyda from 'meyda';
 
-// Global variables shared between the agent.js and the hooks
-// need to be declared using the self keyword
-// Local variables can be declared using the let keyword (or const)
+/* 
+    - Global variables shared between the agent.js and the hooks
+    need to be declared using the self keyword
+    - Local variables can be declared using the let keyword (or const)
+*/
 self.config = null;
 self.playerType = null;
 self.instrumentType = null;  
@@ -51,18 +53,18 @@ let uiParameterIntervalID = null;
 
 self.param_reader = null;
 self.param_writer = null;
-// let newParameterUI = null;
 
-// let prevTime = performance.now();
-
-// let temperature = null;
-// const totalNotes = 88; 
-// let keyWhitelist = Array(totalNotes).fill().map((x,i) => {
-//     return i;
-// });
-// const GENIE_CHECKPOINT = 'https://storage.googleapis.com/magentadata/js/checkpoints/piano_genie/model/epiano/stp_iq_auto_contour_dt_166006'; 
-
-
+/*
+    This is a dictionary that maps the midi numbers of the notes
+    the user played, to the notes the agent responded for that
+    particular note.
+    Then, when the agent receives a note-off event, it can use
+    this dictionary to know which note(s) to turn off.
+    To be used by the processNoteEvent() hook.
+    An example of how to use it can be found 
+    in public/agents/pianoGenie/processNoteEvent_hook.js
+*/
+self.userToAgentNoteMapping = {};
 
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize

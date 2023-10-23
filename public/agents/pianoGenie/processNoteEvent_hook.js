@@ -61,17 +61,39 @@ function processNoteEvent(noteEvent){
                 tick: 0,
                 seconds: 0 ,
             },
-            arp_note.duration = {
-                tick: 0,
-                seconds: 0.5
-            }
+            // arp_note.duration = {
+            //     tick: 0,
+            //     seconds: 0.5
+            // }
             // Push the note to the list of notes to be sent to the UI
             noteList.push(arp_note);
         }
+        // We store the mapping of the user's note to the agent's note
+        // in the userToAgentNoteMapping dictionary (defined in agent.js)
+        // Later, when we receive the note-off event, we can use this mapping
+        // to know which note to turn off
+        self.userToAgentNoteMapping[noteEvent.midi] = [lastMidi];
     } 
     else {
-        // TODO
-        // console.log("lastMidi was ", lastMidi);
+        // Use the noteOffMemory to turn off the notes
+        let midisToTurnOff = self.userToAgentNoteMapping[noteEvent.midi];
+        for (let midiOff of midisToTurnOff){
+            let noteOff = new NoteEvent();
+            noteOff.player = self.playerType.AGENT;
+            // The instrument is required for playback
+            noteOff.instrument = self.instrumentType.PIANO;
+            // The type of the note is the same as the user's input (note on)
+            noteOff.type = noteEvent.type;
+            noteOff.midi = midiOff;
+            // The velocity is the same as the user's input
+            noteOff.velocity = noteEvent.velocity;
+            // Play it instantly
+            noteOff.playAfter = {
+                tick: 0,
+                seconds: 0
+            }
+            noteList.push(noteOff);
+        }
     }
 
     /* 
