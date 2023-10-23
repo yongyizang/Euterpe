@@ -60,7 +60,7 @@ export default {
             // Choose the agent. 
             // This string should be one of
             // dir names inside public/agents/
-            agentName: "pianoGenie",
+            agentName: "demo",
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'],
@@ -291,7 +291,7 @@ export default {
         // Initialize Clock Worker (module)
         vm.clockWorker = new Worker("/clock.js", { type: "module" });
         vm.clockWorker.onmessage = vm.tickBehavior;
-        vm.clockWorker.postMessage({ action: 'setBpm', bpm: vm.localBPM });
+        vm.clockWorker.postMessage({ action: 'setBPM', bpm: vm.localBPM });
         vm.$store.commit("initializeClock");
 
         if (vm.config.interactionMode.audioMode) {
@@ -501,78 +501,25 @@ export default {
                 vm.clockWorker.postMessage({ action: 'stopClock' });
             }
             vm.localSyncClockStatus = !vm.localSyncClockStatus;
-            // Allowing tickNumber to add to itself.
             vm.$store.commit("changeClockStatus");
-            // clear pianoState
             vm.$store.commit("clearPianoState");
             // vm.manuallyUpdateData();
+        },
 
-            // If the clock is not yet initialized...
-            // if (!vm.$store.getters.getClockInitialized) {
-            //     // Then set it to intialized
-            //     vm.$store.commit("initializeClock");
-            //     // And intialized it.
-            //     // An infinite recursion that implements the clock. 
+        stopClock() {
+            this.stopRecording();
+            this.clockWorker.postMessage({ action: 'stopClock' });
+            this.localSyncClockStatus = false;
+            this.$store.commit("setClockStatus", false);
+            this.$store.commit("clearPianoState");
+        },
 
-            //     // 1st Option - using setTimeout -- variable clock speed
-            //     // function sendOutTicks() {
-            //     //   tickBehavior();
-            //     //   vm.timeout_IDS_live.push(setTimeout(sendOutTicks, vm.$store.getters.getClockPeriod));
-            //     // }
-            //     // sendOutTicks();
-
-            //     // 2nd OPTION - using setInterval -- constant clock speed
-            //     // setInterval(tickBehavior, vm.$store.getters.getClockPeriod);
-
-            //     // 3rd OPTION - using requestAnimationFrame -- variable clock speed
-            //     //   let lastTime = 0;
-            //     //   function sendOutTicks(timestamp) {
-            //     //     let interval = vm.$store.getters.getClockPeriod;
-            //     //     if (timestamp - lastTime >= interval) {
-            //     //       tickBehavior();
-            //     //       lastTime = timestamp;
-            //     //     }
-
-            //     //     requestAnimationFrame(sendOutTicks);
-            //     //   }
-            //     //   sendOutTicks();
-            //     /*
-            //     4th OPTION - webWorker and setTimeout -- variable clock speed
-            //     */
-            //     // TUTOR this should be initialized in mounted. Here we should just toggle the begining of setInterval
-            //     // TOTOR also add a stopClock method
-            //     // const blob = new Blob([
-            //     //     /* javascript */`
-            //     //     // the initial timeout time
-            //     //     let bpm = ${vm.$store.getters.getBPM};
-            //     //     let timeoutTime =  1000*60/bpm/4;//vm.$store.getters.getClockPeriod;
-            //     //     let aa = 0;
-            //     //     // onmessage callback
-            //     //     self.onmessage = function(msg){
-            //     //     timeoutTime = parseInt(msg.data);
-            //     //     };
-            //     //     // the tick function which posts a message
-            //     //     // and schedules a new tick
-            //     //     function tick(){
-
-            //     //     self.postMessage('tick');
-            //     //     per = performance.now() - aa;
-            //     //     // console.log("ClockWorker ",  Math.round(this.per), " bpm ", Math.round(60000/this.per/4));
-            //     //     aa = performance.now()
-            //     //     //   setTimeout(tick, timeoutTime);
-            //     //     }
-            //     //     // call tick initially
-            //     //     aa = performance.now()
-            //     //     // tick();
-            //     //     setInterval(tick, timeoutTime);
-            //     //     `
-            //     // ], { type: "text/javascript" });
-            //     // const blobUrl = URL.createObjectURL(blob);
-            //     // const worker = new Worker(blobUrl);
-            //     // // worker.onmessage = vm.runTheWorker;//.bind(this);
-            //     // vm.clockWorker = worker;
-            //     // worker.onmessage = vm.tickBehavior;//.bind(this);
-            // }
+        startClock() {
+            this.startRecording();
+            this.clockWorker.postMessage({ action: 'startClock' });
+            this.localSyncClockStatus = true;
+            this.$store.commit("setClockStatus", true);
+            this.$store.commit("clearPianoState");
         },
 
         metronomeTrigger() {
@@ -1273,6 +1220,13 @@ export default {
         bpmValueChanged(value) {
             console.log(value);
             this.localBPM = value;
+            let revertToDefault = false;
+            if (this.localSyncClockStatus)
+                this.stopClock();
+                revertToDefault = true;
+            this.clockWorker.postMessage({ action: "setBPM", bpm: value });
+            if (revertToDefault)
+                this.startClock();
         },
 
         buttonAction(buttonId) {
