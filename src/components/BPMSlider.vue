@@ -31,23 +31,30 @@ export default {
             default: 120
         },
     },
+    
     data() {
         return {
             internalValue: this.value
         }
     },
+
     watch: {
         value(newVal) {
             this.internalValue = newVal;
         },
     },
+
+    mounted() {
+        this.handleSliderDrag(this.internalValue);
+    },
+
     methods: {
         handleSliderChange(value) {
             // When the slider value changes, emit the 'input' event
             this.$emit('bpmChangeEvent', Number(value));
             this.handleSliderDrag(value);
         },
-        
+
         handleSliderDrag(value) {
             // Update the background image for the slider
             let percent100 = (value - this.min) / (this.max - this.min) * 100;
