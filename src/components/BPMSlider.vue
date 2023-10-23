@@ -1,9 +1,11 @@
 <template>
     <div class="bpm-slider">
-        <span class="label">{{ label }}</span>
+        <span class="label">{{ internalValue }}</span>
         <div class="range">
-            <input class="horizontal slider" type="range" :min="min" :max="max" :value="value"
-                @input="updateValue($event.target.value)" />
+            <input class="horizontal slider" type="range" :min="min" :max="max" v-model="internalValue"
+                @change="handleSliderChange($event.target.value)" 
+                @input="handleSliderDrag($event.target.value)"
+            />
         </div>
     </div>
 </template>
@@ -17,26 +19,43 @@ export default {
     props: {
         value: {
             type: Number,
-            required: true
+            required: true,
+            default: 80
         },
         min: {
             type: Number,
-            default: 1
+            default: 60
         },
         max: {
             type: Number,
             default: 120
         },
-        label: {
-            type: String | Number,
-            default: ""
+    },
+    
+    data() {
+        return {
+            internalValue: this.value
         }
     },
-    methods: {
-        updateValue(value) {
-            // When the slider value changes, emit the 'input' event
-            this.$emit('input', Number(value));
 
+    watch: {
+        value(newVal) {
+            this.internalValue = newVal;
+        },
+    },
+
+    mounted() {
+        this.handleSliderDrag(this.internalValue);
+    },
+
+    methods: {
+        handleSliderChange(value) {
+            // When the slider value changes, emit the 'input' event
+            this.$emit('bpmChangeEvent', Number(value));
+            this.handleSliderDrag(value);
+        },
+
+        handleSliderDrag(value) {
             // Update the background image for the slider
             let percent100 = (value - this.min) / (this.max - this.min) * 100;
             let bg = `linear-gradient(90deg, var(--bg-value-color) 0%, var(--bg-value-color) ${percent100}%, var(--bg-range-color) ${percent100}%, var(--bg-range-color) 100%)`;
