@@ -50,6 +50,18 @@ let uiParameterIntervalID = null;
 self.param_reader = null;
 self.param_writer = null;
 
+/*
+    This is a dictionary that maps the midi numbers of the notes
+    the user played, to the notes the agent responded for that
+    particular note.
+    Then, when the agent receives a note-off event, it can use
+    this dictionary to know which note(s) to turn off.
+    To be used by the processNoteEvent() hook.
+    An example of how to use it can be found 
+    in public/agents/pianoGenie/processNoteEvent_hook.js
+*/
+self.userToAgentNoteMapping = {};
+
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize
 // and we send them for processing in the processAudioBuffer() hook

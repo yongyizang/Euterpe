@@ -13,45 +13,89 @@ import {NoteEvent } from './../../utils_module.js';
 
 function processNoteEvent(noteEvent){
     // Euterpe expects a note list, even if it's a single note
-    
-    // if (noteEvent.type == self.noteType.NOTE_ON) {
     let noteList = [];
-    // First we get the midi value of the note the user played
-    let inputMidi = noteEvent.midi;
-    // Then we estimate the midi the copycat will play
-    let outputMidi = inputMidi - 12;
-    
-    // Set the range of outputMidi to be 21-108 (piano range)
-    outputMidi = Math.max(21, Math.min(outputMidi, 108))
+    let label = "";
 
-    // Set the text for the TextBox widget
-    let label = outputMidi.toString();
+    if (noteEvent.type == self.noteType.NOTE_ON) {
+        
+        // First we get the midi value of the note the user played
+        let inputMidi = noteEvent.midi;
+        // Then we estimate the midi the copycat will play
+        let outputMidi = null;
+        if (self.randomness == 0.0){
+            // If 0.0, then it just copies one octave lower
+            outputMidi = inputMidi - 12;
+        } else{
+            // If not, then it copies one octave lower with some randomness
+            // that is controlled by the slider
+            outputMidi = inputMidi - 12 + Math.floor(Math.random() * self.randomness/10);
+        }
+        // Set the range of outputMidi to be 21-108 (piano range)
+        outputMidi = Math.max(21, Math.min(outputMidi, 108))
 
-    // Construct a new NoteEvent object
-    let copycatNote = new NoteEvent();
+        // Set the text for the TextBox widget
+        label = outputMidi.toString();
 
-    // The player is the agent
-    copycatNote.player = self.playerType.AGENT;
+        // Construct a new NoteEvent object
+        let copycatNote = new NoteEvent();
 
-    // The instrument is required for playback
-    copycatNote.instrument = self.instrumentType.PIANO;
+        // The player is the agent
+        copycatNote.player = self.playerType.AGENT;
 
-    // The type of the note is the same as the user's input (note_on or note_off)
-    copycatNote.type = noteEvent.type;
+        // The instrument is required for playback
+        copycatNote.instrument = self.instrumentType.PIANO;
 
-    // The midi value is the one we estimated
-    copycatNote.midi = outputMidi;
+        // The type of the note is the same as the user's input (note_on or note_off)
+        copycatNote.type = noteEvent.type;
 
-    // The velocity is the same as the user's input
-    copycatNote.velocity = noteEvent.velocity;
-    // Play it instantly
-    copycatNote.playAfter = {
-        tick: 0,
-        seconds: 0,
-    },
+        // The midi value is the one we estimated
+        copycatNote.midi = outputMidi;
 
-    // Push the note to the list of notes to be sent to the UI
-    noteList.push(copycatNote);
+        // The velocity is the same as the user's input
+        copycatNote.velocity = noteEvent.velocity;
+        // Play it instantly
+        copycatNote.playAfter = {
+            tick: 0,
+            seconds: 0,
+        },
+
+        // Push the note to the list of notes to be sent to the UI
+        noteList.push(copycatNote);
+        
+        // We store the mapping of the user's note to the agent's note
+        // in the userToAgentNoteMapping dictionary (defined in agent.js)
+        // Later, when we receive the note-off event, we can use this mapping
+        // to know which note to turn off
+        self.userToAgentNoteMapping[noteEvent.midi] = [outputMidi];
+
+    } else {
+        let midisToTurnOff = self.userToAgentNoteMapping[noteEvent.midi];
+        for (let midiOff of midisToTurnOff){
+            // Construct a new NoteEvent object
+            let copycatNote = new NoteEvent();
+
+            // The player is the agent
+            copycatNote.player = self.playerType.AGENT;
+
+            // The instrument is required for playback
+            copycatNote.instrument = self.instrumentType.PIANO;
+
+            // The type of the note is the same as the user's input (note_on or note_off)
+            copycatNote.type = noteEvent.type;
+
+            // The midi value is the one we estimated
+            copycatNote.midi = midiOff;
+
+            // The velocity is the same as the user's input
+            copycatNote.velocity = noteEvent.velocity;
+            // Play it instantly
+            copycatNote.playAfter = {
+                tick: 0,
+                seconds: 0,
+            }
+            noteList.push(copycatNote);
+        }
+    }
 
     /* 
     At this stage, the worker has finished processing the note event
