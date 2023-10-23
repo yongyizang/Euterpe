@@ -133,12 +133,12 @@ export default {
         loadMonitorConfig(monitorConfig) {
             let vm = this;
             vm.structure = monitorConfig.structure;
-            vm.title = monitorConfig.title;
-
+            vm.title = monitorConfig.title ?? "Monitor";
             vm.pane = new Pane({
                 container: vm.$refs.monitor,
                 title: vm.title,
             })
+            
             // vm.data = data;
             // const f = vm.pane.addFolder({
             //     title: vm.title,
@@ -152,25 +152,29 @@ export default {
             // });
 
             // Iterate over the structure in the config file
-            vm.structure.forEach((tab) => {
-            // Create a folder for each tab
-                const folder = vm.pane.addFolder({
-                    title: tab.label,
-                    expanded: true,
-                });
-
-                // Iterate over the parameters in each tab
-                tab.parameters.forEach((parameter) => {
-                    // Add a monitor for each parameter
-                    folder.addMonitor(vm.$props.dataFromParent, parameter.id, {
-                        label: parameter.label,
-                        interval: parameter.interval,
-                        view: parameter.graph ? 'graph' : 'text',
-                        min: parameter.min,
-                        max: parameter.max,
+            if (vm.structure)
+                vm.structure.forEach((tab) => {
+                // Create a folder for each tab
+                    console.log("tab ", tab);
+                    const folder = vm.pane.addFolder({
+                        title: tab.label,
+                        expanded: true,
+                    });
+                    console.log("tab.label ", tab.label)
+                    console.log("tab.parameters ", tab.parameters)
+                    console.log("dataFromParent ", vm.$props.dataFromParent)
+                    // Iterate over the parameters in each tab
+                    tab.parameters.forEach((parameter) => {
+                        // Add a monitor for each parameter
+                        folder.addMonitor(vm.$props.dataFromParent, parameter.id, {
+                            label: parameter.label,
+                            interval: parameter.interval,
+                            view: parameter.graph ? 'graph' : 'text',
+                            min: parameter.min,
+                            max: parameter.max,
+                        });
                     });
                 });
-            });
         },
     },
 
