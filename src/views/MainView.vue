@@ -178,18 +178,24 @@ export default {
 
         // Widgets configurations are stored and can be modified
         // in utils/widgets_config.js
-        this.switches = this.config.gui.settingsModal.switches;
-        this.sliders = this.config.gui.settingsModal.sliders;
-        this.buttons = this.config.gui.settingsModal.buttons;
-        this.players = this.config.players;
+        if (this.config.gui.settingsModal) {
+            this.switches = this.config.gui.settingsModal.switches ?? this.switches;
+            this.sliders = this.config.gui.settingsModal.sliders ?? this.sliders;
+            this.buttons = this.config.gui.settingsModal.buttons ?? this.buttons;
+        }
 
-        this.monitorObserverInterval = 10;
-        this.dataForMonitoring = {},
-            this.config.gui.monitor.structure.forEach((tab) => {
-                tab.parameters.forEach((parameter) => {
-                    vm.dataForMonitoring[parameter.id] = 0;
+        this.players = this.config.players;
+        
+        // if (vm.config.gui.monitor && this.config.gui.monitor.status){
+        if (this.showMonitor){
+            this.monitorObserverInterval = 10;
+            if (this.config.gui.monitor.structure)
+                this.config.gui.monitor.structure.forEach((tab) => {
+                    tab.parameters.forEach((parameter) => {
+                        vm.dataForMonitoring[parameter.id] = 0;
+                    });
                 });
-            });
+        }
         console.log("created localBPM set to defaultBPM from config ", this.config.clockSettings.defaultBPM);
         this.localBPM = this.config.clockSettings.defaultBPM;
         console.log("created main end")
@@ -204,8 +210,10 @@ export default {
     async mounted() {
         console.log("main mounted");
         var vm = this;
-
-        vm.$root.$refs.monitor.loadMonitorConfig(vm.config.gui.monitor);
+        if (vm.showMonitor){
+            console.log("MA DEN EPREPE")
+            vm.$root.$refs.monitor.loadMonitorConfig(vm.config.gui.monitor);
+        }
         vm.$root.$refs.mixer.loadMixerConfig(vm.config.players);
 
         /*
@@ -272,7 +280,12 @@ export default {
                 sampleRate: vm.audioContext.sampleRate
             }
         });
-        vm.timeout_IDS_live.push(setInterval(vm.agentParameterObserver, vm.monitorObserverInterval));
+
+        if (vm.showMonitor){
+            if (vm.config.gui.monitor.structure){
+                vm.timeout_IDS_live.push(setInterval(vm.agentParameterObserver, vm.monitorObserverInterval));
+            }
+        }
 
 
         // Initialize Clock Worker (module)
@@ -821,8 +834,6 @@ export default {
             let newParameterAgent = { index: null, value: null };
             if (this.paramReader.dequeue_change(newParameterAgent)) {
                 this.dataForMonitoring[newParameterAgent.index] = newParameterAgent.value;
-                if (newParameterAgent.index == 4) {
-                }
             }
         },
 
@@ -1348,6 +1359,12 @@ export default {
         },
         audioAndChroma: function () {
             return this.config.gui.chromaChart.status && this.config.interactionMode.audioMode;
+        },
+        showMonitor: function () {
+            if (this.config.gui.monitor)
+                if (this.config.gui.monitor.status)
+                    return true;
+            return false;
         }
     },
 
@@ -1520,9 +1537,9 @@ export default {
 
             <Mixer @newEventSignal="handleMixerUpdate" />
 
-            <!-- <div v-if="config.gui.monitor.status"> -->
-            <Monitor :dataFromParent="dataForMonitoring" />
-            <!-- </div> -->
+            <div v-if="showMonitor">
+                <Monitor :dataFromParent="dataForMonitoring" />
+            </div>
 
             <div v-if="config.gui.score.status">
                 <Score :scoreShown="scoreShown" :scrollStatus="scrollStatus" />
@@ -1555,16 +1572,11 @@ export default {
                 <md-button class="controlBtn" @click="toggleMixer">
                     <md-icon>tune</md-icon>
                 </md-button>
-                <md-button class="controlBtn" @click="toggleMonitor">
+                <md-button v-if="showMonitor" class="controlBtn" @click="toggleMonitor">
                     <i class="material-symbols-outlined">monitoring</i>
                 </md-button>
-                <!-- <md-button class="controlBtn" @click="zoomInOct">
-                    <i class="material-symbols-outlined">zoom_in</i>
-                </md-button>
-                <md-button class="controlBtn" @click="zoomOutOct">
-                    <i class="material-symbols-outlined">zoom_out</i>
-                </md-button> -->
             </div>
+            
             <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
                 style="position: absolute; right: 20px; bottom: 100px">
                 <md-icon>arrow_forward</md-icon>
