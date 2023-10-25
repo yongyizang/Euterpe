@@ -602,7 +602,7 @@ export default {
         runTheAgent() {
             const vm = this;
             // console.log("runningTheagent");
-            // remember, runTheAgent happens with a small delay of tick/4 after the tick
+            // remember, runTheAgent might happen with a small delay of tick/4 after the tick
             // here I just keep track of the 'delayed' tick
             this.$store.commit("incrementTickDelayed");
 
@@ -610,7 +610,7 @@ export default {
             if (vm.config.gui.score.status) {
                 this.$root.$refs.score.draw();
                 let lastNote = this.$store.getters.getLastHumanNoteQuantized
-                console.log("startTick", lastNote.startTick, "midi", lastNote.midi, "duration", lastNote.dur);
+                // console.log("startTick", lastNote.startTick, "midi", lastNote.midi, "duration", lastNote.dur);
             }
             let messageContent = {
                 tick: this.$store.getters.getLocalTick,

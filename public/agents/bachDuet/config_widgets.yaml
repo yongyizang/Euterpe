@@ -50,8 +50,8 @@ gui:
       - id: 1 
         label: "Temperature"
         value: 25
-        min: 0
-        max: 100
+        min: 1
+        max: 300
     buttons:
       - id: 1
         label: "Reset"

@@ -1,44 +1,35 @@
-/*
-    First, you should set the Agent parameters that are controllable
-    by UI elements. Those UI elements are defined in config_widgets.yaml
-    under the settingsModal section.
+// import { resetBachDuetState } from './processClockEvent_hook.js';
+// import { resetBachDuetState } from './bachDuetUtils.js';
+/**
+ * Even though you can initialize variables outside of any function,
+ * you can use initAgentVariables() to initialize variables that are
+ * dependent on either the config file or any of the external files
+ * that you load using loadExternalFiles() hook.
+ * This happens because in agent.js this hook is invoked after both
+ * loadConfig(content);
+ * loadExternalFiles(content); 
+ */
+function initAgentVariables() {
+    console.log("just entered initAgentVariables")
+    // GUI controleld parameters
+    self.temperature = 0.1;
 
-    You should change their names to match your worker's parameters,
-    e.g. slider1 --> gain, slider2 --> randomness etc
-         switch1 --> arpeggioType
+    // Other variables necessary for BachDuet
+    let restMidi = 0;
+    let restArtic = 1;
+    let restCpc = 12;
+    let restMidiArtic = restMidi.toString() + '_' + restArtic.toString();
+    let restMidiArticInd = self.tokenIndexDict.midiArtic.token2index[restMidiArtic];
+    // restNote needs to be accessed from processClockEvent_hook.js
+    // so we need to declare it as a agent-global variable (using self)
+    self.restNote = {midi: restMidi,
+                    artic: restArtic,
+                    midiArticInd: restMidiArticInd,
+                    cpc: restCpc};
+    self.lastBachDuetNote = self.restNote;
 
-    Currently you can use up to 4 sliders and 4 switches.
-    You can delete the ones you don't need.
+}
 
-    NOTE: You should use the 'self' keyword to define the parameters
-        e.g. self.gain = 0.5;
-        that way, they will be accessible from the other hooks and the agent.js
-*/
-self.temperature = 0.1;
-self.resetState = 0;
-
-const CHECKPOINT_BASE_URL = "/checkpoints/"
-
-/*
-    This function is invoked every time there is a change in the UI parameters. 
-    This is where the mapping of the UI widgets to the worker parameters happens
-    Following the exmaples above you can change the code below like this:
-    switch(newUpdate.index){
-        case self.uiParameterType.SLIDER_1:
-            self.gain = newUpdate.value;
-            break;
-        case self.uiParameterType.SLIDER_2:
-            self.randomness = newUpdate.value;
-            break;
-        case self.uiParameterType.SWITCH_1:
-            self.arpeggioType = newUpdate.value;
-            break;
-
-    NOTE: The number that comes after 'self.uiParameterType.SLIDER_' or 'self.uiParameterType.SWITCH_'
-          need to match the id of the sliders and switches defined in config_widgets.yaml
-
-    Again, feel free to delete the 'cases' you don't use. 
-*/
 function updateParameter(newUpdate){
     
     switch(newUpdate.index){
@@ -46,7 +37,8 @@ function updateParameter(newUpdate){
             self.temperature = newUpdate.value;
             break;
         case self.uiParameterType.BUTTON_1:
-            self.resetState = newUpdate.value;
+            // button 1 is the reset button
+            resetBachDuetState();
             break;
         default:
             console.warn("Invalid parameter type");
@@ -54,36 +46,17 @@ function updateParameter(newUpdate){
     }
 }
 
-/*
-    If you have any external JSON files, you can load them here. 
-    For exmaple :
-
-    await fetch('extraData.json').then(response => {
-        return response.json();
-    }).then(data => {
-        self.extraData = data;
-    });
-    
-    You can always import external *js files using importScripts()
-    at the top of agent.js
-*/
 async function loadExternalFiles(content) {
     // Put your code here
     await fetch('globalTokenIndexDict.json').then(response => {
         return response.json();
     }).then(data => {
         self.tokenIndexDict = data;
+        console.log("just loaded tokenIndexDict");
+        initAgentVariables();
     });
 }
 
-/*
-    In this hook, you can load/initialize your core algorithm/model.
-    For example, if your agent is a neural network, you can load the model here.
-    
-    This is also a good place to warm up your model, if needed.
-    Don't forget to send messages to the UI to let it know of the progress. Those 
-    progress messages will be shown in the intro screen while the agent is loading.
-*/
 async function loadAlgorithm(content) {
     
     // A simple example of loading a model with tensorflow.js : 
@@ -102,11 +75,6 @@ async function loadAlgorithm(content) {
     self.states1B = tf.zeros([1,600]);
     self.states2A = tf.zeros([1,600]);
     self.states2B = tf.zeros([1,600]);
-    self.first1A = self.states1A;
-    self.first1B = self.states1B;
-    self.first2A = self.states2A;
-    self.first2B = self.states2B;
-
     let inferenceTimes = [];
     for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
         let start = performance.now();
@@ -158,4 +126,9 @@ async function loadAlgorithm(content) {
     })
 }
 
-export { updateParameter, loadAlgorithm, loadExternalFiles};
+export { 
+        initAgentVariables,
+        updateParameter, 
+        loadAlgorithm, 
+        loadExternalFiles, 
+    };

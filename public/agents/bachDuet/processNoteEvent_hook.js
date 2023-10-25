@@ -8,7 +8,7 @@
         interactionMode.noteMode : true
         nodeModeSettings.gridBased.status: true
 */
-import {NoteEvent } from '../../utils_module.js';
+import {NoteEvent } from './../../../src/utils/NoteEvent.js';
 
 
 function processNoteEvent(noteEvent){
