@@ -8,7 +8,6 @@ import {
 
 export function processClockEvent(content) {
     
-    
     let numUserNotes = content.humanQuantizedInput.length;
     if (numUserNotes > 1) {
         console.error("BachDuet can only handle monophonic input. Make sure to set polyphony.input:1 in config.yaml");

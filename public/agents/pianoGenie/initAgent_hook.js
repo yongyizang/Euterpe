@@ -1,19 +1,26 @@
-/*
-    First, you should set the Agent parameters that are controllable
-    by UI elements. Those UI elements are defined in config_widgets.yaml
-    under the settingsModal section.
+/**
+ * This file contains variable initializations as well as 
+ * the first set of hook functions that are invoked by 
+ * the UI to initialize the agent.
+ */
 
-    You should change their names to match your worker's parameters,
-    e.g. slider1 --> gain, slider2 --> randomness etc
-         switch1 --> arpeggioType
+/* Variable initialization */
 
-    Currently you can use up to 4 sliders and 4 switches.
-    You can delete the ones you don't need.
-
-    NOTE: You should use the 'self' keyword to define the parameters
-        e.g. self.gain = 0.5;
-        that way, they will be accessible from the other hooks and the agent.js
-*/
+/**
+ * NOTE: 
+ * - Global variables shared between the agent.js and the hooks
+ *   need to be declared using the self keyword
+ * - Local variables can be declared using the let keyword (or const)
+ *
+ * You should also initialize the Agent parameters that are controllable
+ * by UI elements. Those UI elements are defined in config_widgets.yaml
+ * under the settingsModal section.
+ *
+ * You can change their names to match your agent's parameters,
+ * e.g.: slider1 --> randomness, 
+ *      switch1 --> arpeggioType
+ *      e.t.c
+ */
 
 
 // Global ui-parameters shared with the other hooks and the agent.js
@@ -28,27 +35,32 @@ self.keyWhitelist = Array(totalNotes).fill().map((x,i) => {
 });
 const GENIE_CHECKPOINT = 'https://storage.googleapis.com/magentadata/js/checkpoints/piano_genie/model/epiano/stp_iq_auto_contour_dt_166006'; 
 
-/*
-    This function is invoked every time there is a change in the UI parameters. 
-    This is where the mapping of the UI widgets to the worker parameters happens
-    Following the exmaples above you can change the code below like this:
-    switch(newUpdate.index){
-        case self.uiParameterType.SLIDER_1:
-            self.gain = newUpdate.value;
-            break;
-        case self.uiParameterType.SLIDER_2:
-            self.randomness = newUpdate.value;
-            break;
-        case self.uiParameterType.SWITCH_1:
-            self.arpeggioType = newUpdate.value;
-            break;
-
-    NOTE: The number that comes after 'self.uiParameterType.SLIDER_' or 'self.uiParameterType.SWITCH_'
-          need to match the id of the sliders and switches defined in config_widgets.yaml
-
-    Again, feel free to delete the 'cases' you don't use. 
-*/
-function updateParameter(newUpdate){
+/**
+ * This function is invoked every time there is a change in the UI parameters.
+ * This is where the mapping of the UI widgets to the worker parameters happens.
+ * Following the examples above, you can change the code below like this:
+ * switch (newUpdate.index) {
+ *     case self.uiParameterType.SLIDER_1:
+ *         self.slider1 = newUpdate.value;
+ *         break;
+ *     case self.uiParameterType.SWITCH_1:
+ *         self.switch1 = newUpdate.value;
+ *         break;
+ *     case self.uiParameterType.BUTTON_1:
+ *         // call the reset function
+ *         resetAgent();
+ *         break;
+ *
+ * NOTE: The number that comes after 'self.uiParameterType.SLIDER_', 
+ * 'self.uiParameterType.SWITCH_' or 'self.uiParameterType.BUTTON_' 
+ * should match the id of the sliders, switches, and buttons
+ * defined in config_widgets.yaml.
+ *
+ * Again, feel free to delete the 'cases' you don't use.
+ *
+ * @param {object} newUpdate - An object containing information about the UI parameter update.
+ */
+export function updateParameter(newUpdate){
     
     switch(newUpdate.index){
         case self.uiParameterType.SLIDER_1:
@@ -65,45 +77,31 @@ function updateParameter(newUpdate){
     }
 }
 
-/*
-    If you have any external JSON files, you can load them here. 
-    For exmaple :
-
-    await fetch('extraData.json').then(response => {
-        return response.json();
-    }).then(data => {
-        self.extraData = data;
-    });
-    
-    You can always import external *js files using importScripts()
-    at the top of agent.js
-*/
-async function loadExternalFiles(content) {
-    // Put your code here
+/**
+ * If you have any external JSON files, you can load them here.
+ * 
+ */
+export async function loadExternalFiles() {
+    // For example:
+    // await fetch('extraData.json').then(response => {
+    //     return response.json();
+    // }).then(data => {
+    //     self.externalData = data;
+    // }); 
 }
 
-/*
-    In this hook, you can load/initialize your core algorithm/model.
-    For example, if your agent is a neural network, you can load the model here.
+/**
+ * In this hook, you can load/initialize your core algorithm/model.
+ * For example, if your agent is a neural network, you can load the model here.
+ * 
+ * This is also a good place to warm up your model if needed.
+ * Don't forget to send messages to the UI to let it know of the progress. Those 
+ * progress messages will be shown in the intro screen while the agent is loading.
+ * 
+ */
+export async function loadAlgorithm(content) {
     
-    This is also a good place to warm up your model, if needed.
-    Don't forget to send messages to the UI to let it know of the progress. Those 
-    progress messages will be shown in the intro screen while the agent is loading.
-*/
-async function loadAlgorithm(content) {
-    
-    // A simple example of loading a model with tensorflow.js : 
-    // tf.setBackend('webgl');
-    // try {
-    //     self.model = await tf.loadLayersModel('Checkpoints/model.json');
-    // } catch (error) {
-    //     console.error(error);
-    // }
-    // const mvae = new mm.music_vae.MusicVAE('https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_2bar_small');
-    // await mvae.initialize();
-    // self.genie = new piano_genie.PianoGenie(GENIE_CHECKPOINT);
-    // await self.genie.initialize();
-
+    tf.setBackend('webgl');
     try {
         self.genie = new piano_genie.PianoGenie(GENIE_CHECKPOINT);
         await self.genie.initialize();
@@ -111,6 +109,17 @@ async function loadAlgorithm(content) {
         console.error(error);
     }
     
+    // Optional message for the Euterpe/UI
+    postMessage({
+        hookType: self.agentHookType.INIT_AGENT,
+        message:{
+            [self.messageType.STATUS]: 
+                    self.statusType.LOADED,
+            [self.messageType.TEXT]: 
+                    "Checkpoint is loaded",
+        },
+    })
+
     // Warm up the model
     let inferenceTimes = [];
     for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
@@ -136,16 +145,6 @@ async function loadAlgorithm(content) {
     self.genie.resetState();
 
     console.log("Average inference time: " + inferenceTimes.reduce((a, b) => a + b, 0) / inferenceTimes.length);
-    postMessage({
-        hookType: self.agentHookType.INIT_AGENT,
-        message:{
-            [self.messageType.STATUS]: 
-                    self.statusType.LOADED,
-            [self.messageType.TEXT]: 
-                    "Core algorithm is loaded",
-        },
-    })
-
     
     // Once your model/agent is ready to play, 
     // UI expects a success message, don't forget to send it.
@@ -155,9 +154,8 @@ async function loadAlgorithm(content) {
             [self.messageType.STATUS]: 
                     self.statusType.SUCCESS,
             [self.messageType.TEXT]: 
-                    "The Agent is ready to interact with you!",
+                    "PianoGenie is ready to interact with you!",
         },
     })
 }
 
-export { updateParameter, loadAlgorithm, loadExternalFiles};

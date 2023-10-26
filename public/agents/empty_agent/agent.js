@@ -55,6 +55,7 @@ self.param_writer = null;
     To be used by the processNoteEvent() hook.
     An example of how to use it can be found 
     in public/agents/pianoGenie/processNoteEvent_hook.js
+    and public/agents/copycat/processNoteEvent_hook.js
 */
 self.userToAgentNoteMapping = {};
 

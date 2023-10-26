@@ -56,7 +56,6 @@ export async function loadExternalFiles(content) {
 
 export async function loadAlgorithm(content) {
     
-    // A simple example of loading a model with tensorflow.js : 
     tf.setBackend('webgl');
     try {
         self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
@@ -74,7 +73,7 @@ export async function loadAlgorithm(content) {
         },
     })
 
-    // Warm up the model if needed
+    // Warm up the model
     resetBachDuetState();
     let midiInp = tf.tensor2d([[96, 96]]);
     let cpcInp = tf.tensor2d([[12, 12]]); 

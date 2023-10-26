@@ -1,6 +1,6 @@
 players:
   human:
-    label: 'User' # player labels must be unique
+    label: 'User'
     mute: true
     volume: 5
     instruments: 

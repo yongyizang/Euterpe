@@ -201,20 +201,7 @@ const actions = {
             state.lastAgentNote.dur = 1;
             state.lastAgentNote.startTick = getters.getGlobalTick;
         } else if (noteOnEvents.length == 0 && noteOffEvents.length == 0){
-            console.log("nothing received from agent")
-            if (state.lastAgentNote.midi == 0)
-                {
-                // for rests, we just keep the lastAgentNote as a rest
-                // without increasing its duration
-                state.lastAgentNote.dur += 1;
-                console.log("increased dur of prev rest")
-                }
-            else
-                {
-                // state.lastAgentNote.midi = 0;
-                state.lastAgentNote.dur += 1;
-                // state.lastAgentNote.startTick = getters.getGlobalTick;
-                }
+            state.lastAgentNote.dur += 1;
 
         } else if (noteOnEvents.length == 0 && noteOffEvents.length > 0){
             if (noteOffEvents[0].midi == state.lastAgentNote.midi){
@@ -226,7 +213,7 @@ const actions = {
                 console.error("Agent's output is not monophonic, score can't work properly (2)");
             }
         }
-        console.log("lastAgentNote midi ", state.lastAgentNote.midi, " dur ", state.lastAgentNote.dur, " startTick ", state.lastAgentNote.startTick);
+        // console.log("lastAgentNote midi ", state.lastAgentNote.midi, " dur ", state.lastAgentNote.dur, " startTick ", state.lastAgentNote.startTick);
 
     },
     updateLastAgentNote2 ({ commit, state, getters }, workerNoteEvents) {

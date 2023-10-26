@@ -1,16 +1,6 @@
-/*
-    Hook for processing single user note events.
-    This hook is invoked every time a note/midi event
-    is received by the user.
+import {NoteEvent } from './../../../src/utils/NoteEvent.js';
 
-    For this hook to be invoked, make sure that in config.yaml
-    the following flags are set to true:
-        interactionMode.noteMode : true
-        nodeModeSettings.gridBased.status: true
-*/
-import {NoteEvent } from './../../utils_module.js';
-
-// Local variable to this hook
+// Local variable to this hook/file
 let lastMidi = null;
 
 // Create a mapping for the pianoGenie buttons
@@ -27,13 +17,30 @@ let buttonMap = {
     72: 7
 }
 
-function processNoteEvent(noteEvent){
+/**
+ * Hook for processing single user note events.
+ * This hook is invoked every time a note/midi 
+ * event is received by the user.
+ *
+ * For this hook to be invoked, make sure that in `config.yaml`, 
+ * the following flags are set to true:
+ * - `interactionMode.noteMode: true`
+ * - `nodeModeSettings.gridBased.status: true`
+ *
+ * @param {NoteEvent} noteEvent - A `NoteEvent` object representing 
+ * the note/midi event received by the user.
+ *
+ * @returns {Object=} - An optional object containing output messages, if any,
+ * to be sent to the user interface. If there is some output that needs to be 
+ * sent to the UI (e.g., a list of notes to be played), you can add it to a
+ * dictionary and return it. If not, it's fine to not return anything.
+ */
+export function processNoteEvent(noteEvent){
     // Put your code here
     let noteList = []
-    if (noteEvent.type == self.noteType.NOTE_ON){
-        // Check if midi is in the buttonMap
-        console.log("noteEvent.midi is ", noteEvent.midi, noteEvent.midi in buttonMap);
-        if (noteEvent.midi in buttonMap){
+    if (noteEvent.midi in buttonMap){
+        if (noteEvent.type == self.noteType.NOTE_ON){
+            // Check if midi is in the buttonMap
             let button = buttonMap[noteEvent.midi];
             let outputMidi = noteEvent.midi;
             let start = performance.now()
@@ -41,7 +48,6 @@ function processNoteEvent(noteEvent){
             if (self.bypass == 0) {
                 outputMidi = self.genie.nextFromKeyList(button, self.keyWhitelist, self.temperature/100) + 21;
             } 
-            
             let inferenceTime = performance.now() - start;
             self.param_writer.enqueue_change(0, inferenceTime);
             lastMidi = outputMidi;
@@ -59,43 +65,37 @@ function processNoteEvent(noteEvent){
             // Play it instantly
             arp_note.playAfter = {
                 tick: 0,
-                seconds: 0 ,
+                seconds: 0
             },
-            // arp_note.duration = {
-            //     tick: 0,
-            //     seconds: 0.5
-            // }
             // Push the note to the list of notes to be sent to the UI
             noteList.push(arp_note);
-        }
-        // We store the mapping of the user's note to the agent's note
-        // in the userToAgentNoteMapping dictionary (defined in agent.js)
-        // Later, when we receive the note-off event, we can use this mapping
-        // to know which note to turn off
-        self.userToAgentNoteMapping[noteEvent.midi] = [lastMidi];
-    } 
-    else {
-        // Use the noteOffMemory to turn off the notes
-        let midisToTurnOff = self.userToAgentNoteMapping[noteEvent.midi];
-        for (let midiOff of midisToTurnOff){
-            let noteOff = new NoteEvent();
-            noteOff.player = self.playerType.AGENT;
-            // The instrument is required for playback
-            noteOff.instrument = self.instrumentType.PIANO;
-            // The type of the note is the same as the user's input (note on)
-            noteOff.type = noteEvent.type;
-            noteOff.midi = midiOff;
-            // The velocity is the same as the user's input
-            noteOff.velocity = noteEvent.velocity;
-            // Play it instantly
-            noteOff.playAfter = {
-                tick: 0,
-                seconds: 0
+            // We store the mapping of the user's note to the agent's note
+            // in the userToAgentNoteMapping dictionary (defined in agent.js)
+            // Later, when we receive the note-off event, we can use this mapping
+            // to know which note to turn off
+            self.userToAgentNoteMapping[noteEvent.midi] = [lastMidi];
+        } else {
+            // Use the noteOffMemory to turn off the notes
+            let midisToTurnOff = self.userToAgentNoteMapping[noteEvent.midi];
+            for (let midiOff of midisToTurnOff){
+                let noteOff = new NoteEvent();
+                noteOff.player = self.playerType.AGENT;
+                // The instrument is required for playback
+                noteOff.instrument = self.instrumentType.PIANO;
+                // The type of the note is the same as the user's input (note on)
+                noteOff.type = noteEvent.type;
+                noteOff.midi = midiOff;
+                // The velocity is the same as the user's input
+                noteOff.velocity = noteEvent.velocity;
+                // Play it instantly
+                noteOff.playAfter = {
+                    tick: 0,
+                    seconds: 0
+                }
+                noteList.push(noteOff);
             }
-            noteList.push(noteOff);
         }
     }
-
     /* 
     At this stage, the worker has finished processing the note event
     If there is some output that needs to be sent to the UI
@@ -104,16 +104,9 @@ function processNoteEvent(noteEvent){
     always postMessage to the UI. You can do it only when you have
     something to send.
     */
-    // console.log("processNoteEvent", self.agentHookType);
-    postMessage({
-        hookType: self.agentHookType.NOTE_EVENT, // Do not modify
-        message:{
-            // add your messages here
-            // For example:
-            [self.messageType.NOTE_LIST]: noteList,
-        }
-    });
+    let message = {
+        // add your messages here
+        [self.messageType.NOTE_LIST]: noteList,
+    }
+    return message;
 }
-
-// Very important, don't delete
-export {processNoteEvent};

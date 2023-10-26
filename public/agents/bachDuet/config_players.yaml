@@ -1,13 +1,11 @@
 players:
   human:
-    label: 'User' # player labels must be unique
+    label: 'User'
     mute: false
     volume: 8
     instruments: 
-        # it must be one of the available instrument ids in audio/samples
-        # you can't have two instruments with the same id in the same player 
       - id: "piano" 
-        label: "Piano" # can be anything
+        label: "Piano" 
         mute: false
         volume: 8
         default: true
