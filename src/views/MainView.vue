@@ -60,7 +60,7 @@ export default {
             // Choose the agent. 
             // This string should be one of
             // dir names inside public/agents/
-            agentName: "copycat",
+            agentName: "bachDuet",
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml', 'config_widgets.yaml', 'config_players.yaml'],
@@ -602,7 +602,7 @@ export default {
         runTheAgent() {
             const vm = this;
             // console.log("runningTheagent");
-            // remember, runTheAgent happens with a small delay of tick/4 after the tick
+            // remember, runTheAgent might happen with a small delay of tick/4 after the tick
             // here I just keep track of the 'delayed' tick
             this.$store.commit("incrementTickDelayed");
 
@@ -610,7 +610,7 @@ export default {
             if (vm.config.gui.score.status) {
                 this.$root.$refs.score.draw();
                 let lastNote = this.$store.getters.getLastHumanNoteQuantized
-                console.log("startTick", lastNote.startTick, "midi", lastNote.midi, "duration", lastNote.dur);
+                // console.log("startTick", lastNote.startTick, "midi", lastNote.midi, "duration", lastNote.dur);
             }
             let messageContent = {
                 tick: this.$store.getters.getLocalTick,
@@ -641,9 +641,9 @@ export default {
             }
 
             // console.log("bufferEvent", bufferEvent.length);
-            if (bufferEvent.length > 1) {
-                console.log("bufferEvent", bufferEvent);
-            }
+            // if (bufferEvent.length > 1) {
+            //     console.log("bufferEvent", bufferEvent);
+            // }
             // a COPY activePianoNotes are sorted by their "on" timestamp (newest to oldest)
             let activePianoNotes = [...this.$store.getters.getActivePianoNotes];
             let currentQuantizedEvents = [];
@@ -793,8 +793,6 @@ export default {
             // naively choose the first note only. ScoreUI only supports monophonic
             this.$store.dispatch("updateLastAgentNote", agentNotesToBePlayed);
             if (agentNotesToBePlayed.length > 0) {
-
-
                 agentNotesToBePlayed.forEach((noteEvent) => {
                     vm.processAgentNoteEvent(noteEvent);
                 });
@@ -826,8 +824,6 @@ export default {
                 let agentInferenceTime = e.data.message[vm.messageType.INFERENCE_TIME];
                 vm.modelInferenceTimes.push(agentInferenceTime);
                 // console.log("just pushed ", agentInferenceTime, " to modelInferenceTimes")
-
-
             }
 
             for (let messageTypeStr in message) {
@@ -879,6 +875,7 @@ export default {
                             this.textBoxText = messageValue;
                         }
                         break;
+                    // TODO : 
                     case vm.messageType.CLOCK_TIME:
                         break;
                     case vm.messageType.INFERENCE_TIME:

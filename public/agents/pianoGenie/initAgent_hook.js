@@ -124,7 +124,7 @@ async function loadAlgorithm(content) {
         // you can sent WARMUP status messages to the UI if you want.
         // these will appear in the intro screen
         postMessage({
-            hookType: self.agentHookType.INIT_WORKER,
+            hookType: self.agentHookType.INIT_AGENT,
             message:{
                 [self.messageType.STATUS]: 
                         self.statusType.WARMUP,

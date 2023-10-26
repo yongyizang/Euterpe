@@ -481,7 +481,7 @@ export default {
     draw() {
       var humanQuantNoteDict = this.$store.getters.getLastHumanNoteQuantized;
       var aiQuantNoteDict = this.$store.getters.getLastAINoteQuantized;
-      console.log("TO DRAW ", aiQuantNoteDict.midi);
+      // console.log("TO DRAW ", aiQuantNoteDict.midi);
 
       if (aiQuantNoteDict.startTick == -1){
         aiQuantNoteDict.dur = this.preDur

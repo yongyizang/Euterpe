@@ -1,3 +1,19 @@
+export function shiftRight(arr) {
+  const lastElement = arr.pop();
+  arr.unshift(lastElement);
+}
+
+export function average2d(arr) {
+  let suma = new Array(arr[0].length).fill(0);
+
+  for (let i = 0; i < arr.length; i++) {
+      for (let j = 0; j < arr[i].length; j++) {
+          suma[j] += arr[i][j];
+      }
+  }
+  return suma.map((sum) => sum / arr.length);
+}
+
 /*
   Clamp a number to a range.
 */
