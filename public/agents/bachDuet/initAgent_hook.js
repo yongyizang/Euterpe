@@ -1,5 +1,4 @@
-// import { resetBachDuetState } from './processClockEvent_hook.js';
-// import { resetBachDuetState } from './bachDuetUtils.js';
+import { resetBachDuetState } from './bachDuetUtils.js';
 /**
  * Even though you can initialize variables outside of any function,
  * you can use initAgentVariables() to initialize variables that are
@@ -68,13 +67,10 @@ async function loadAlgorithm(content) {
         console.error(error);
     }
     // Warm up the model if needed
+    resetBachDuetState();
     let midiInp = tf.tensor2d([[96, 96]]);
     let cpcInp = tf.tensor2d([[12, 12]]); 
     let rhyInp = tf.tensor2d([[4]]);
-    self.states1A = tf.zeros([1,600]);
-    self.states1B = tf.zeros([1,600]);
-    self.states2A = tf.zeros([1,600]);
-    self.states2B = tf.zeros([1,600]);
     let inferenceTimes = [];
     for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
         let start = performance.now();
@@ -102,6 +98,7 @@ async function loadAlgorithm(content) {
             },
         })
     }
+    resetBachDuetState();
     
     postMessage({
         hookType: self.agentHookType.INIT_AGENT,

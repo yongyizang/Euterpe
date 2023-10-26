@@ -641,9 +641,9 @@ export default {
             }
 
             // console.log("bufferEvent", bufferEvent.length);
-            if (bufferEvent.length > 1) {
-                console.log("bufferEvent", bufferEvent);
-            }
+            // if (bufferEvent.length > 1) {
+            //     console.log("bufferEvent", bufferEvent);
+            // }
             // a COPY activePianoNotes are sorted by their "on" timestamp (newest to oldest)
             let activePianoNotes = [...this.$store.getters.getActivePianoNotes];
             let currentQuantizedEvents = [];
@@ -793,8 +793,6 @@ export default {
             // naively choose the first note only. ScoreUI only supports monophonic
             this.$store.dispatch("updateLastAgentNote", agentNotesToBePlayed);
             if (agentNotesToBePlayed.length > 0) {
-
-
                 agentNotesToBePlayed.forEach((noteEvent) => {
                     vm.processAgentNoteEvent(noteEvent);
                 });
@@ -826,8 +824,6 @@ export default {
                 let agentInferenceTime = e.data.message[vm.messageType.INFERENCE_TIME];
                 vm.modelInferenceTimes.push(agentInferenceTime);
                 // console.log("just pushed ", agentInferenceTime, " to modelInferenceTimes")
-
-
             }
 
             for (let messageTypeStr in message) {

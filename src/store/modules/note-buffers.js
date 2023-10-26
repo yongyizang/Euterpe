@@ -188,6 +188,48 @@ const getters = {
 
 const actions = {
     updateLastAgentNote ({ commit, state, getters }, workerNoteEvents) {
+        let noteOnEvents = workerNoteEvents.filter((event) => 
+                    event.type === state.noteType.NOTE_ON);
+        let noteOffEvents = workerNoteEvents.filter((event) => 
+                    event.type === state.noteType.NOTE_OFF);
+        
+        if (noteOnEvents.length > 0){
+            // console.error("Agent's output is not monophonic, score can't work properly");
+            // console.log("noteOnEvents", noteOnEvents);
+            state.lastAgentNote.midi = noteOnEvents[0].midi;
+            // state.lastAgentNote.cpc = 
+            state.lastAgentNote.dur = 1;
+            state.lastAgentNote.startTick = getters.getGlobalTick;
+        } else if (noteOnEvents.length == 0 && noteOffEvents.length == 0){
+            console.log("nothing received from agent")
+            if (state.lastAgentNote.midi == 0)
+                {
+                // for rests, we just keep the lastAgentNote as a rest
+                // without increasing its duration
+                state.lastAgentNote.dur += 1;
+                console.log("increased dur of prev rest")
+                }
+            else
+                {
+                // state.lastAgentNote.midi = 0;
+                state.lastAgentNote.dur += 1;
+                // state.lastAgentNote.startTick = getters.getGlobalTick;
+                }
+
+        } else if (noteOnEvents.length == 0 && noteOffEvents.length > 0){
+            if (noteOffEvents[0].midi == state.lastAgentNote.midi){
+                state.lastAgentNote.midi = 0;
+                state.lastAgentNote.dur = 1;
+                state.lastAgentNote.startTick = getters.getGlobalTick;
+            }
+            else {
+                console.error("Agent's output is not monophonic, score can't work properly (2)");
+            }
+        }
+        console.log("lastAgentNote midi ", state.lastAgentNote.midi, " dur ", state.lastAgentNote.dur, " startTick ", state.lastAgentNote.startTick);
+
+    },
+    updateLastAgentNote2 ({ commit, state, getters }, workerNoteEvents) {
         // now update the lastAgentNote
         // this is only used in score.js to display the notes
         // so maybe it should go there
@@ -238,19 +280,19 @@ const actions = {
             }
         }
     },
-    storeAgentQuantizedOutput ({ commit, state, getters }, workerNoteEvent) {
 
+    storeAgentQuantizedOutput ({ commit, state, getters }, workerNoteEvent) {
         // set the playAt to noteEvent.playAfter.tick + state.globalTick
         // this will be its actual tick when it's supposed to be played
         // and the SortedArray will use that to sort the notes correctly based on their globalTick
         // console.log("inside storeAgentQuantizedOutput", workerNoteEvent)
         workerNoteEvent._playAt = {
-            tick: workerNoteEvent.playAfter.tick + getters.getGlobalTickDelayed,
+            tick: workerNoteEvent.playAfter.tick + getters.getGlobalTickDelayed - 1,
             seconds: workerNoteEvent.playAfter.seconds
         }
         state.agentNotesToBePlayed.insert(workerNoteEvent);
-        console.log("pushed to agentNotesToBePlayed", workerNoteEvent);
-        const nextTick = getters.getNextLocalTick;//(noteEvent.tick);
+        // console.log("pushed to agentNotesToBePlayed", workerNoteEvent);
+        // const nextTick = getters.getNextLocalTick;//(noteEvent.tick);
         // store the predicted note in the quantizedBufferAgent 
         // state.quantizedBufferAgent[nextTick] = workerNoteEvent
 

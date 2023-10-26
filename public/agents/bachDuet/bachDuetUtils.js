@@ -41,7 +41,7 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
             prevNoteOff.midi = self.lastBachDuetNote.midi;
             prevNoteOff.velocity = 127;
             prevNoteOff.playAfter = {
-                tick: 0,
+                tick: 1,
                 seconds: 0,
             }
             noteList.push(prevNoteOff);
@@ -56,7 +56,7 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
             newNoteOn.midi = bachDuetNote.midi;
             newNoteOn.velocity = 127;
             newNoteOn.playAfter = {
-                tick: 0,
+                tick: 1,
                 seconds: 0,
             }
             noteList.push(newNoteOn);
@@ -76,7 +76,7 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
             prevNoteOff.midi = self.lastBachDuetNote.midi;
             prevNoteOff.velocity = 127;
             prevNoteOff.playAfter = {
-                tick: 0,
+                tick: 1,
                 seconds: 0,
             }
             noteList.push(prevNoteOff);
@@ -89,7 +89,7 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
             newNoteOn.midi = bachDuetNote.midi;
             newNoteOn.velocity = 127;
             newNoteOn.playAfter = {
-                tick: 0,
+                tick: 1,
                 seconds: 0,
             }
             noteList.push(newNoteOn);
@@ -131,10 +131,16 @@ function bachDuetInference(midiInput_t, cpcInput_t, rhythmInput_t){
 
 function resetBachDuetState(){
     console.log("reseting state");
-    self.states1A = tf.zeros([1,600]);
-    self.states1B = tf.zeros([1,600]);
-    self.states2A = tf.zeros([1,600]);
-    self.states2B = tf.zeros([1,600]);
+    // self.states1A = tf.zeros([1,600]);
+    // self.states1B = tf.zeros([1,600]);
+    // self.states2A = tf.zeros([1,600]);
+    // self.states2B = tf.zeros([1,600]);
+    self.states1A = tf.randomNormal([1,600]);
+    self.states1B = tf.randomNormal([1,600]);
+    self.states2A = tf.randomNormal([1,600]);
+    self.states2B = tf.randomNormal([1,600]);
+
+
 }
 
 export {euterpeTickToBachDuetTick,
