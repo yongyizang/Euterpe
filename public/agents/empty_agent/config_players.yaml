@@ -1,7 +1,7 @@
 players:
   human:
     label: 'User' # player labels must be unique
-    mute: true
+    mute: false
     volume: 7
     instruments: 
         # it must be one of the available instrument ids in audio/samples
@@ -21,12 +21,12 @@ players:
         mute: false
         volume: 7
         default: true
-  metronome:
-    label: 'Metronome'
-    mute: true
-    volume: 5
-    instruments:
-      - id: "click"
-        label: "Click"
-        mute: false
-        volume: 5
+  # metronome:
+  #   label: 'Metronome'
+  #   mute: true
+  #   volume: 5
+  #   instruments:
+  #     - id: "click"
+  #       label: "Click"
+  #       mute: false
+  #       volume: 5

@@ -6,8 +6,9 @@
     You should change their names to match your worker's parameters,
     e.g. slider1 --> gain, slider2 --> randomness etc
          switch1 --> arpeggioType
+         button1 --> resetAgent
 
-    Currently you can use up to 4 sliders and 4 switches.
+    Currently you can use up to 4 sliders and 4 switches and 4 buttons.
     You can delete the ones you don't need.
 
     NOTE: You should use the 'self' keyword to define the parameters
@@ -16,6 +17,7 @@
 */
 self.slider1 = null;
 self.switch1 = null;
+self.button1 = null;
 
 /*
     This function is invoked every time there is a change in the UI parameters. 
@@ -23,21 +25,24 @@ self.switch1 = null;
     Following the exmaples above you can change the code below like this:
     switch(newUpdate.index){
         case self.uiParameterType.SLIDER_1:
-            self.gain = newUpdate.value;
-            break;
-        case self.uiParameterType.SLIDER_2:
             self.randomness = newUpdate.value;
             break;
         case self.uiParameterType.SWITCH_1:
             self.arpeggioType = newUpdate.value;
             break;
+        case self.uiParameterType.BUTTON_1:
+            // call the reset function
+            resetAgent();
+            break;
 
-    NOTE: The number that comes after 'self.uiParameterType.SLIDER_' or 'self.uiParameterType.SWITCH_'
-          need to match the id of the sliders and switches defined in config_widgets.yaml
+    NOTE: The number that comes after 'self.uiParameterType.SLIDER_', 
+    'self.uiParameterType.SWITCH_' or 'self.uiParameterType.BUTTON_' 
+    should match the id of the sliders switches and buttons
+    defined in config_widgets.yaml
 
     Again, feel free to delete the 'cases' you don't use. 
 */
-function updateParameter(newUpdate){
+export function updateParameter(newUpdate){
     
     switch(newUpdate.index){
         case self.uiParameterType.SLIDER_1:
@@ -45,6 +50,9 @@ function updateParameter(newUpdate){
             break;
         case self.uiParameterType.SWITCH_1:
             self.switch1 = newUpdate.value;
+            break;
+        case self.uiParameterType.BUTTON_1:
+            // Call a function here
             break;
         default:
             console.warn("Invalid parameter type");
@@ -61,11 +69,8 @@ function updateParameter(newUpdate){
     }).then(data => {
         self.extraData = data;
     });
-    
-    You can always import external *js files using importScripts()
-    at the top of agent.js
 */
-async function loadExternalFiles(content) {
+export async function loadExternalFiles(content) {
     // Put your code here
 }
 
@@ -77,7 +82,7 @@ async function loadExternalFiles(content) {
     Don't forget to send messages to the UI to let it know of the progress. Those 
     progress messages will be shown in the intro screen while the agent is loading.
 */
-async function loadAlgorithm(content) {
+export async function loadAlgorithm(content) {
     
     // A simple example of loading a model with tensorflow.js : 
     // tf.setBackend('webgl');
@@ -91,17 +96,34 @@ async function loadAlgorithm(content) {
     // self.genie = new piano_genie.PianoGenie(GENIE_CHECKPOINT);
     // await self.genie.initialize();
 
+    // Optional message for the Euterpe/UI
+    // postMessage({
+    //     hookType: self.agentHookType.INIT_AGENT,
+    //     message:{
+    //         [self.messageType.STATUS]: 
+    //                 self.statusType.LOADED,
+    //         [self.messageType.TEXT]: 
+    //                 "Core algorithm is loaded",
+    //     },
+    // })
+
     // Warm up the model if needed
+    // for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
+    //     // Put your code here for warming up the model
+
+    //     // Optional message for the Euterpe/UI
+    //     postMessage({
+    //         hookType: self.agentHookType.INIT_AGENT,
+    //         message:{
+    //             [self.messageType.STATUS]: 
+    //                     self.statusType.WARMUP,
+    //             [self.messageType.TEXT]: 
+    //                     "Agent is warming up: " + (i + 1) + "/" + 
+    //                     self.config.agentSettings.warmupRounds,
+    //         },
+    //     })
+    // }
     
-    postMessage({
-        hookType: self.agentHookType.INIT_AGENT,
-        message:{
-            [self.messageType.STATUS]: 
-                    self.statusType.LOADED,
-            [self.messageType.TEXT]: 
-                    "Core algorithm is loaded",
-        },
-    })
     
     // Once your model/agent is ready to play, 
     // UI expects a success message, don't forget to send it.
@@ -115,5 +137,3 @@ async function loadAlgorithm(content) {
         },
     })
 }
-
-export { updateParameter, loadAlgorithm, loadExternalFiles};

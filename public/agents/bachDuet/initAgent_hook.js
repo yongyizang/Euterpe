@@ -1,12 +1,11 @@
 import { resetBachDuetState } from './bachDuetUtils.js';
+
 /**
  * Even though you can initialize variables outside of any function,
- * you can use initAgentVariables() to initialize variables that are
- * dependent on either the config file or any of the external files
- * that you load using loadExternalFiles() hook.
- * This happens because in agent.js this hook is invoked after both
- * loadConfig(content);
- * loadExternalFiles(content); 
+ * here we use initAgentVariables() to initialize variables that are
+ * dependent information that exist on an external json file.
+ * Check the definition of loadExternalFiles(), to see how we 
+ * call initAgentVariables() after loading the json file.
  */
 export function initAgentVariables() {
     console.log("just entered initAgentVariables")

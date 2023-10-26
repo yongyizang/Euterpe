@@ -216,6 +216,8 @@ async function onMessageFunction (obj) {
             let startTime = performance.now();
             let message = processClockEvent(content);
             let endTime = performance.now();
+            if (typeof message === 'undefined')
+                message = {};
             message[self.messageType.INFERENCE_TIME] = endTime - startTime;
             message[self.messageType.CLOCK_TIME] = content.tick;
             postMessage({
@@ -227,10 +229,11 @@ async function onMessageFunction (obj) {
             // We need to deserialize them
             let noteEvent = NoteEvent.fromPlain(obj.data.content);
             let message = processNoteEvent(noteEvent);
-            postMessage({
-                hookType: self.agentHookType.NOTE_EVENT, // Do not modify
-                message: message
-            });
+            if (typeof message !== 'undefined')
+                postMessage({
+                    hookType: self.agentHookType.NOTE_EVENT, // Do not modify
+                    message: message
+                });
         }
     }
     return;
