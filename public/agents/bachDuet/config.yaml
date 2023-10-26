@@ -60,7 +60,7 @@ clockSettings:
 # Agent related settings.
 agentSettings:
   # For Agents that require warmup (such as neural networks)
-  warmupRounds: 2
+  warmupRounds: 100
 
 # Choose the text to be displayed in the splash screen animation
 introModal: true

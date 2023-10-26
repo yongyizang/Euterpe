@@ -85,11 +85,11 @@ async function loadAlgorithm(content) {
 
         let inferenceTime = performance.now() - start;
         inferenceTimes.push(inferenceTime);
-        console.log(inferenceTime);
+        // console.log(inferenceTime);
         // you can sent WARMUP status messages to the UI if you want.
         // these will appear in the intro screen
         postMessage({
-            hookType: self.agentHookType.INIT_WORKER,
+            hookType: self.agentHookType.INIT_AGENT,
             message:{
                 [self.messageType.STATUS]: 
                         self.statusType.WARMUP,
@@ -99,16 +99,16 @@ async function loadAlgorithm(content) {
         })
     }
     resetBachDuetState();
-    
-    postMessage({
-        hookType: self.agentHookType.INIT_AGENT,
-        message:{
-            [self.messageType.STATUS]: 
-                    self.statusType.LOADED,
-            [self.messageType.TEXT]: 
-                    "Core algorithm is loaded",
-        },
-    })
+
+    // postMessage({
+    //     hookType: self.agentHookType.INIT_AGENT,
+    //     message:{
+    //         [self.messageType.STATUS]: 
+    //                 self.statusType.LOADED,
+    //         [self.messageType.TEXT]: 
+    //                 "Core algorithm is loaded",
+    //     },
+    // })
     
     // Once your model/agent is ready to play, 
     // UI expects a success message, don't forget to send it.
