@@ -11,7 +11,7 @@
 import {NoteEvent } from './../../../src/utils/NoteEvent.js';
 
 
-function processNoteEvent(noteEvent){
+export function processNoteEvent(noteEvent){
     // Put your code here
 
 
@@ -23,15 +23,11 @@ function processNoteEvent(noteEvent){
     always postMessage to the UI. You can do it only when you have
     something to send.
     */
-    postMessage({
-        hookType: self.agentHookType.NOTE_EVENT, // Do not modify
-        message:{
+   
+    let message = {
             // add your messages here
             // For example:
             [self.messageType.NOTE_LIST]: noteList,
-        }
-    });
+    }
+    return message;
 }
-
-// Very important, don't delete
-export {processNoteEvent};

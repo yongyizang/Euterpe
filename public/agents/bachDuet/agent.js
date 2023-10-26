@@ -1,6 +1,5 @@
 // Import tensorflow.js
 import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.7.0/dist/tf.min.js';
-
 import { 
     updateParameter, 
     loadAlgorithm, 
@@ -8,7 +7,6 @@ import {
 import { processClockEvent } from './processClockEvent_hook.js';
 import { processNoteEvent } from './processNoteEvent_hook.js';
 import { processAudioBuffer } from './processAudioBuffer_hook.js';
-console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 import { deinterleave_custom } from './../../../src/utils/helpers.js';
 import { LIFOQueue } from './../../../src/utils/dataStructures.js';
 import { NoteEvent } from './../../../src/utils/NoteEvent.js';
@@ -215,12 +213,24 @@ async function onMessageFunction (obj) {
                     content.humanQuantizedInput.map(
                         serializedNoteEvent => NoteEvent.fromPlain(serializedNoteEvent));
             }
-            processClockEvent(content);
+            let startTime = performance.now();
+            let message = processClockEvent(content);
+            let endTime = performance.now();
+            message[self.messageType.INFERENCE_TIME] = endTime - startTime;
+            message[self.messageType.CLOCK_TIME] = content.tick;
+            postMessage({
+                hookType: self.agentHookType.CLOCK_EVENT, // Do not modify
+                message: message
+            });
         } else if (obj.data.hookType == self.agentHookType.NOTE_EVENT){
             // The NoteEvents we receive from the UI are serialized
             // We need to deserialize them
             let noteEvent = NoteEvent.fromPlain(obj.data.content);
-            processNoteEvent(noteEvent);
+            let message = processNoteEvent(noteEvent);
+            postMessage({
+                hookType: self.agentHookType.NOTE_EVENT, // Do not modify
+                message: message
+            });
         }
     }
     return;

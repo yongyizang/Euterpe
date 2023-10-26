@@ -6,8 +6,6 @@
         interactionMode.audioMode: true
     
 */
-function processAudioBuffer(buffer) {
+export function processAudioBuffer(buffer) {
     // Put your code here
 }
-
-export {processAudioBuffer};

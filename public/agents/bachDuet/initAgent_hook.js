@@ -8,7 +8,7 @@ import { resetBachDuetState } from './bachDuetUtils.js';
  * loadConfig(content);
  * loadExternalFiles(content); 
  */
-function initAgentVariables() {
+export function initAgentVariables() {
     console.log("just entered initAgentVariables")
     // GUI controleld parameters
     self.temperature = 0.1;
@@ -26,10 +26,9 @@ function initAgentVariables() {
                     midiArticInd: restMidiArticInd,
                     cpc: restCpc};
     self.lastBachDuetNote = self.restNote;
-
 }
 
-function updateParameter(newUpdate){
+export function updateParameter(newUpdate){
     
     switch(newUpdate.index){
         case self.uiParameterType.SLIDER_1:
@@ -45,7 +44,7 @@ function updateParameter(newUpdate){
     }
 }
 
-async function loadExternalFiles(content) {
+export async function loadExternalFiles(content) {
     // Put your code here
     await fetch('globalTokenIndexDict.json').then(response => {
         return response.json();
@@ -56,7 +55,7 @@ async function loadExternalFiles(content) {
     });
 }
 
-async function loadAlgorithm(content) {
+export async function loadAlgorithm(content) {
     
     // A simple example of loading a model with tensorflow.js : 
     tf.setBackend('webgl');
@@ -66,6 +65,16 @@ async function loadAlgorithm(content) {
     } catch (error) {
         console.error(error);
     }
+    postMessage({
+        hookType: self.agentHookType.INIT_AGENT,
+        message:{
+            [self.messageType.STATUS]: 
+                    self.statusType.LOADED,
+            [self.messageType.TEXT]: 
+                    "Core algorithm is loaded",
+        },
+    })
+
     // Warm up the model if needed
     resetBachDuetState();
     let midiInp = tf.tensor2d([[96, 96]]);
@@ -100,16 +109,6 @@ async function loadAlgorithm(content) {
     }
     resetBachDuetState();
 
-    // postMessage({
-    //     hookType: self.agentHookType.INIT_AGENT,
-    //     message:{
-    //         [self.messageType.STATUS]: 
-    //                 self.statusType.LOADED,
-    //         [self.messageType.TEXT]: 
-    //                 "Core algorithm is loaded",
-    //     },
-    // })
-    
     // Once your model/agent is ready to play, 
     // UI expects a success message, don't forget to send it.
     postMessage({
@@ -122,10 +121,3 @@ async function loadAlgorithm(content) {
         },
     })
 }
-
-export { 
-        initAgentVariables,
-        updateParameter, 
-        loadAlgorithm, 
-        loadExternalFiles, 
-    };

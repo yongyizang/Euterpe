@@ -6,9 +6,9 @@ import {
     resetBachDuetState
     } from './bachDuetUtils.js';
 
-function processClockEvent(content) {
+export function processClockEvent(content) {
     
-    let startTime = performance.now(); // Do not remove
+    
     let numUserNotes = content.humanQuantizedInput.length;
     if (numUserNotes > 1) {
         console.error("BachDuet can only handle monophonic input. Make sure to set polyphony.input:1 in config.yaml");
@@ -37,18 +37,10 @@ function processClockEvent(content) {
     // Update the last note (it'll be used in the next tick)
     self.lastBachDuetNote = currentBachDuetNote;
 
-    let endTime = performance.now(); // Do not remove
-    postMessage({
-        hookType: self.agentHookType.CLOCK_EVENT, // Do not modify
-        message:{
-            [self.messageType.CLOCK_TIME]: content.tick, // Do not modify
-            [self.messageType.INFERENCE_TIME]: endTime - startTime, // Do not modify
-            // Add your messages here
-            [self.messageType.NOTE_LIST]: agentOutputNoteList
-        },
-    })
-}
+    // Add your messages to Euterpe here
+    let message = {
+        [self.messageType.NOTE_LIST]: agentOutputNoteList
+    }
 
-// Here add any other functions that you need
-// to be accessible from other files i.e. initAgent_hook.js
-export {processClockEvent, resetBachDuetState};
+    return message;
+}
