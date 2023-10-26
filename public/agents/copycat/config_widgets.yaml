@@ -9,46 +9,34 @@ gui:
     human: true
     agent: true
   keyboard:
-    status: true # not used (always true)
+    status: true 
     # set the visible octaves. Max range [0,8]
-    octaveStart: 0
-    octaveEnd: 8 
+    octaveStart: 2
+    octaveEnd: 6
   chromaChart:
     status: false
   audioMeter: 
     status: false
   settingsModal:
     sliders:
-        # You can create up to 4 sliders
-        # The 'id' for each slider needs to be unique within sliders
-        # and in an ascending order starting from 1.
-        # The 'label' is the slider name that appears on the GUI.
-        # The 'value' is the default value.
-        # The 'min' and 'max' indicate the slider's range.
-    - id: 1
-      label: "Randomness"
-      value: 0
-      min: 0
-      max: 100
-    - id: 2
-      label: "Volume"
-      value: 0
-      min: 0
-      max: 100
-        
-    switches:
-    - id: 1
-      label: "Switch 1"
-      status: false
-  monitor:
-    status: true 
-    title: "Monitor"
-    structure:
-    - label: "Audio levels"
-      parameters:
-      - id: 0 # id's must be unique
-        label: "rms" 
-        interval: 50
-        graph: true
+      # You can create up to 4 sliders
+      # The 'id' for each slider needs to be unique within sliders
+      # and in an ascending order starting from 1.
+      # The 'label' is the slider name that appears on the GUI.
+      # The 'value' is the default value.
+      # The 'min' and 'max' indicate the slider's range.
+      - id: 1
+        label: "Randomness"
+        value: 0
         min: 0
-        max: 0.2   
+        max: 100    
+      - id : 2
+        label: "Delay"
+        value: 0
+        min : 0
+        max : 200   
+      - id : 3
+        label: "Pitch Shift"
+        value: 0
+        min: 0
+        max: 24   

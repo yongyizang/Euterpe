@@ -1,17 +1,26 @@
-/*
-    Hook for processing single user note events.
-    This hook is invoked every time a note/midi event
-    is received by the user.
-
-    For this hook to be invoked, make sure that in config.yaml
-    the following flags are set to true:
-        interactionMode.noteMode : true
-        nodeModeSettings.gridBased.status: true
-*/
-import {NoteEvent } from './../../utils_module.js';
+import { NoteEvent } from './../../../src/utils/NoteEvent.js';
+import { clamp } from './../../../src/utils/math.js';
 
 
-function processNoteEvent(noteEvent){
+/**
+ * Hook for processing single user note events.
+ * This hook is invoked every time a note/midi 
+ * event is received by the user.
+ *
+ * For this hook to be invoked, make sure that in `config.yaml`, 
+ * the following flags are set to true:
+ * - `interactionMode.noteMode: true`
+ * - `nodeModeSettings.gridBased.status: true`
+ *
+ * @param {NoteEvent} noteEvent - A `NoteEvent` object representing 
+ * the note/midi event received by the user.
+ *
+ * @returns {Object=} - An optional object containing output messages, if any,
+ * to be sent to the user interface. If there is some output that needs to be 
+ * sent to the UI (e.g., a list of notes to be played), you can add it to a
+ * dictionary and return it. If not, it's fine to not return anything.
+ */
+export function processNoteEvent(noteEvent) {
     // Euterpe expects a note list, even if it's a single note
     let noteList = [];
     let label = "";
@@ -24,14 +33,14 @@ function processNoteEvent(noteEvent){
         let outputMidi = null;
         if (self.randomness == 0.0){
             // If 0.0, then it just copies one octave lower
-            outputMidi = inputMidi - 12;
+            outputMidi = inputMidi + self.pitchShift;
         } else{
             // If not, then it copies one octave lower with some randomness
             // that is controlled by the slider
-            outputMidi = inputMidi - 12 + Math.floor(Math.random() * self.randomness/10);
+            outputMidi = inputMidi - self.pitchShift + Math.floor(Math.random() * self.randomness/10);
         }
         // Set the range of outputMidi to be 21-108 (piano range)
-        outputMidi = Math.max(21, Math.min(outputMidi, 108))
+        outputMidi = clamp(outputMidi, 21, 108);
 
         // Set the text for the TextBox widget
         label = outputMidi.toString();
@@ -56,7 +65,7 @@ function processNoteEvent(noteEvent){
         // Play it instantly
         copycatNote.playAfter = {
             tick: 0,
-            seconds: 0,
+            seconds: self.delay,
         },
 
         // Push the note to the list of notes to be sent to the UI
@@ -91,33 +100,22 @@ function processNoteEvent(noteEvent){
             // Play it instantly
             copycatNote.playAfter = {
                 tick: 0,
-                seconds: 0,
+                seconds: self.delay,
             }
             noteList.push(copycatNote);
         }
     }
 
     /* 
-    At this stage, the worker has finished processing the note event
+    At this stage, the worker has finished processing the note event.
     If there is some output that needs to be sent to the UI
-    e.g a list of notes to be played, you can send here.
-    Contrary to the processClockEvent() hook, you don't need to
-    always postMessage to the UI. You can do it only when you have
-    something to send.
+    (e.g., a list of notes to be played), you can add it to a dictionary
+    and return it. If not, it's fine to not return anything.
     */
-    // console.log("processNoteEvent", self.agentHookType);
-    postMessage({
-        hookType: self.agentHookType.NOTE_EVENT, // Do not modify
-        message:{
-            // add your messages here
-            // For example:
-            [self.messageType.NOTE_LIST]: noteList,
-            [self.messageType.LABEL]: label,
-        }
-    });
+    let message = {};
+    message[self.messageType.NOTE_LIST] = noteList;
+    if (label !== ""){
+        message[self.messageType.LABEL] = label;
     }
-
-
-
-// Very important, don't delete
-export {processNoteEvent};
+    return message;
+}
