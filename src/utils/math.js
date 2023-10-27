@@ -3,6 +3,15 @@ export function shiftRight(arr) {
     arr.unshift(lastElement);
 }
 
+export function average1d(arr) {
+  if (arr.length === 0) {
+    return 0; // Handle the case of an empty array to avoid division by zero.
+  }
+
+  const sum = arr.reduce((acc, val) => acc + val, 0);
+  return sum / arr.length;
+}
+
 export function average2d(arr) {
     let suma = new Array(arr[0].length).fill(0);
 
