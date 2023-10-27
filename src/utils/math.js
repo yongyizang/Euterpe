@@ -1,24 +1,36 @@
 export function shiftRight(arr) {
-  const lastElement = arr.pop();
-  arr.unshift(lastElement);
+    const lastElement = arr.pop();
+    arr.unshift(lastElement);
 }
 
 export function average2d(arr) {
-  let suma = new Array(arr[0].length).fill(0);
+    let suma = new Array(arr[0].length).fill(0);
 
-  for (let i = 0; i < arr.length; i++) {
-      for (let j = 0; j < arr[i].length; j++) {
-          suma[j] += arr[i][j];
-      }
-  }
-  return suma.map((sum) => sum / arr.length);
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr[i].length; j++) {
+            suma[j] += arr[i][j];
+        }
+    }
+    return suma.map((sum) => sum / arr.length);
 }
 
 /*
   Clamp a number to a range.
 */
 export function clamp(num, min, max) {
-  return Math.max(min, Math.min(max, num))
+     return Math.max(min, Math.min(max, num))
+}
+
+/* Clamp a midi note to a range. */
+export function clampMidi(midi, min, max) {
+    let clipedMidi = midi
+    while (clipedMidi < min){
+        clipedMidi += 12;
+    }
+    while (clipedMidi > max){
+        clipedMidi -= 12;
+    }
+    return clipedMidi;
 }
 
 /*

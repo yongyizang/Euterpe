@@ -1,26 +1,19 @@
-// import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.7.0/dist/tf.min.js';
-// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/piano_genie.js';
-// import 'https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js'
-// import Meyda from 'https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/esm/main.js'
-// import * as aa from 'https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/esm/featureExtractors.js'
-// tf.disableDeprecationWarnings();
-// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/core.js'
-// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_vae.js';
-// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/music_rnn.js';
-// import 'https://cdn.jsdelivr.net/npm/@magenta/music@1.23.0/es6/protobuf.js';
-
-import { updateParameter, loadAlgorithm, loadExternalFiles} from './initAgent_hook.js';
+import { 
+    updateParameter, 
+    loadAlgorithm, 
+    loadExternalFiles} from './initAgent_hook.js';
 import { processClockEvent } from './processClockEvent_hook.js';
 import { processNoteEvent } from './processNoteEvent_hook.js';
 import { processAudioBuffer } from './processAudioBuffer_hook.js';
+import { deinterleave_custom } from './../../../src/utils/helpers.js';
+import { LIFOQueue } from './../../../src/utils/dataStructures.js';
+import { NoteEvent } from './../../../src/utils/NoteEvent.js';
 import {
-    AudioReader, AudioWriter,
-    ParameterReader,ParameterWriter,
+    AudioReader,
+    ParameterReader,
+    ParameterWriter,
     RingBuffer,
-  } from './../../libraries/index_rb_exports.js';
-import { LIFOQueue, FIFOQueue, 
-        deinterleave_custom, simulateBlockingOperation, 
-        shiftRight, average2d, NoteEvent } from './../../utils_module.js';
+  } from './../../libraries/ringbuffer/index_rb_exports.js';
 
 // Global variables shared between the agent.js and the hooks
 // need to be declared using the self keyword
@@ -33,7 +26,6 @@ self.statusType = null;
 self.noteType = null;
 self.parameterType = null;
 self.agentHookType = null;
-self.prevStartTime = performance.now();
 
 // Audio related variables
 self.channelCount = null;
@@ -53,6 +45,19 @@ let uiParameterIntervalID = null;
 
 self.param_reader = null;
 self.param_writer = null;
+
+/*
+    This is a dictionary that maps the midi numbers of the notes
+    the user played, to the notes the agent responded for that
+    particular note.
+    Then, when the agent receives a note-off event, it can use
+    this dictionary to know which note(s) to turn off.
+    To be used by the processNoteEvent() hook.
+    An example of how to use it can be found 
+    in public/agents/pianoGenie/processNoteEvent_hook.js
+    and public/agents/copycat/processNoteEvent_hook.js
+*/
+self.userToAgentNoteMapping = {};
 
 // Read some audio samples from queue, and process them
 // Here we create audio_frames based on windowSize and hopSize
@@ -206,12 +211,40 @@ async function onMessageFunction (obj) {
         }
     } else {
         if (obj.data.hookType == self.agentHookType.CLOCK_EVENT) {
-            processClockEvent(obj.data.content);
+            // The NoteEvents we receive from the UI are serialized
+            // We need to deserialize them
+            let content = obj.data.content;
+            if (content.humanContinuousBuffer) {
+                content.humanContinuousBuffer = 
+                    content.humanContinuousBuffer.map(
+                        serializedNoteEvent => NoteEvent.fromPlain(serializedNoteEvent));
+            }
+            if (content.humanQuantizedInput) {
+                content.humanQuantizedInput = 
+                    content.humanQuantizedInput.map(
+                        serializedNoteEvent => NoteEvent.fromPlain(serializedNoteEvent));
+            }
+            let startTime = performance.now();
+            let message = processClockEvent(content);
+            let endTime = performance.now();
+            if (typeof message === 'undefined')
+                message = {};
+            message[self.messageType.INFERENCE_TIME] = endTime - startTime;
+            message[self.messageType.CLOCK_TIME] = content.tick;
+            postMessage({
+                hookType: self.agentHookType.CLOCK_EVENT, // Do not modify
+                message: message
+            });
         } else if (obj.data.hookType == self.agentHookType.NOTE_EVENT){
-            // The NoteEvent we receive from the UI is serialized
-            // We need to deserialize it
+            // The NoteEvents we receive from the UI are serialized
+            // We need to deserialize them
             let noteEvent = NoteEvent.fromPlain(obj.data.content);
-            processNoteEvent(noteEvent);
+            let message = processNoteEvent(noteEvent);
+            if (typeof message !== 'undefined')
+                postMessage({
+                    hookType: self.agentHookType.NOTE_EVENT,
+                    message: message
+                });
         }
     }
     return;
@@ -222,8 +255,8 @@ async function initAgent(content) {
     console.log("inside initAgent");
     try {
         loadConfig(content);
-        loadExternalFiles(content);
-        loadAlgorithm(content);
+        loadExternalFiles();
+        loadAlgorithm();
         initAudio(content);
         initParameterSharing(content);
         console.log("Initialization complete");

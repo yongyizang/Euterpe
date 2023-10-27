@@ -31,9 +31,9 @@ players:
   metronome:
     label: 'Metronome'
     mute: false
-    volume: 5
+    volume: 7
     instruments:
       - id: "click"
         label: "Click"
         mute: false
-        volume: 5
+        volume: 7

@@ -1,4 +1,4 @@
-import { clamp } from './../../../src/utils/math.js';
+import { clampMidi } from './../../../src/utils/math.js';
 import { NoteEvent } from './../../../src/utils/NoteEvent.js'
 
 const BAR =  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1];
@@ -18,7 +18,7 @@ function euterpeNoteToBachDuetNote(noteEvent){
         artic = 0;
     else if (noteEvent.type == self.noteType.NOTE_ON) 
         artic = 1;
-    let midi = clamp(noteEvent.midi, 28, 94);
+    let midi = clampMidi(noteEvent.midi, 28, 94);
     let midiArtic = midi.toString() + '_' + artic.toString();
     let midiArticInd = self.tokenIndexDict.midiArtic.token2index[midiArtic];
     return {midi: midi, 

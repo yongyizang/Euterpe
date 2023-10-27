@@ -9,27 +9,20 @@ gui:
     human: true
     agent: true
   keyboard:
-    status: true # not used (always true)
-    # set the visible octaves. Max range [0,8]
-    octaveStart: 0
-    octaveEnd: 8 
+    status: true
+    octaveStart: 2
+    octaveEnd: 6
   chromaChart:
     status: true
   audioMeter: 
     status: true
   monitor:
-    status: true # not used (always true)
+    status: true
     title: "Monitor"
     structure:
       - label: "Audio levels"
         parameters:
-            # The 'id' for each parameter must be unique and is used
-            # in the hooks for adding new values for monitoring
-            # The 'label' is the parameter name that appears in the GUI.
-            # The 'interval' is the refresh rate of the parameter in ms.
-            # The 'graph' flag allows you to visualize the value as a time grpah.
-            # The 'min' and 'max' indicate the expected range of the parameter.
-          - id: 0 # id's must be unique
+          - id: 0 
             label: "rms" 
             interval: 50
             graph: true
@@ -43,49 +36,3 @@ gui:
             graph: true
             min: 80
             max: 130
-          # - id: 4
-          #   label: "Error BPM"
-          #   interval: 100
-          #   graph: false
-          #   min: -10
-          #   max: +10
-      
-  settingsModal:
-    sliders:
-        # You can create up to 4 sliders
-        # The 'id' for each slider needs to be unique within sliders
-        # and in an ascending order starting from 1.
-        # The 'label' is the slider name that appears on the GUI.
-        # The 'value' is the default value.
-        # The 'min' and 'max' indicate the slider's range.
-      - id: 1
-        label: "Slider 1"
-        value: 0
-        min: 0
-        max: 100
-      - id: 2
-        label: "Slider 2"
-        value: 0
-        min: 0
-        max: 100
-        
-    switches:
-        # You can create up to 4 switches
-        # The 'id' for each switch needs to be unique within switches
-        # and in an ascending order starting from 1.
-        # The 'label' is the switch name that appears on the GUI.
-        # The 'status' is the default state of the switch.
-      - id: 1
-        label: "Switch 1"
-        status: false
-      - id: 2
-        label: "Switch 2"
-        status: false
-
-    
-
-
-
-
-
-

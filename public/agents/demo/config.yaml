@@ -64,8 +64,8 @@ agentSettings:
 # Choose the text to be displayed in the splash screen animation
 introModal: false
 introModalContent:
-  - "Hi! This is Euterpe."
-  - "I am a web-framework for music interaction systems."
+  - "Hi! This is a Demo Agent."
+  - "A 16th-grid quantized monophonic interaction"
 
 custom:
   useTriggerRelease: true

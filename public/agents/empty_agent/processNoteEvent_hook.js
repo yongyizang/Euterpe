@@ -34,7 +34,3 @@ export function processNoteEvent(noteEvent) {
     }
     */
 }
-
-
-
-
