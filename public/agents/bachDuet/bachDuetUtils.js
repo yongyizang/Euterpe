@@ -68,19 +68,20 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
         // of the note without previously generating a 'note on' version.
         // In this case we send a 'note on' event to Euterpe
         if (self.lastBachDuetNote.midi != bachDuetNote.midi) {
-
-            let prevNoteOff = new NoteEvent();
-            prevNoteOff.player = self.playerType.AGENT;
-            prevNoteOff.instrument = self.instrumentType.PIANO;
-            prevNoteOff.type = self.noteType.NOTE_OFF;
-            prevNoteOff.midi = self.lastBachDuetNote.midi;
-            prevNoteOff.velocity = 127;
-            prevNoteOff.playAfter = {
-                tick: 1,
-                seconds: 0,
+            if (self.lastBachDuetNote.midi != 0) {
+                let prevNoteOff = new NoteEvent();
+                prevNoteOff.player = self.playerType.AGENT;
+                prevNoteOff.instrument = self.instrumentType.PIANO;
+                prevNoteOff.type = self.noteType.NOTE_OFF;
+                prevNoteOff.midi = self.lastBachDuetNote.midi;
+                prevNoteOff.velocity = 127;
+                prevNoteOff.playAfter = {
+                    tick: 1,
+                    seconds: 0,
+                }
+                noteList.push(prevNoteOff);
+                console.log("midi OFF (inhold)", prevNoteOff.midi);
             }
-            noteList.push(prevNoteOff);
-            console.log("midi OFF (inhold)", prevNoteOff.midi);
 
             let newNoteOn = new NoteEvent();
             newNoteOn.player = self.playerType.AGENT;
