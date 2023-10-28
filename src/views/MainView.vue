@@ -1483,7 +1483,8 @@ export default {
                     Loading the Agent...
                 </p>
                 <div id="entryBtnContainer" style="width:100%;height:60px;">
-                    <button @click="entryProgram" ref="entryBtn" class="entryBtn" style="visibility: hidden;">
+                    <button @click="entryProgram" ref="entryBtn"
+                        class="entryBtn" style="visibility: hidden;">
                         <span style="width:100%;text-align:center;">Play</span>
                     </button>
                 </div>
@@ -1496,7 +1497,8 @@ export default {
                 </p>
             </div>
         </div>
-        <div ref="mainContent" id="mainContent" style="justify-content: center; align-items: center;">
+        <div ref="mainContent" id="mainContent"
+            style="justify-content: center; align-items: center;">
             <div style="
                 background-color: rgb(0, 0, 0);
                 opacity: 0.5;
@@ -1507,7 +1509,8 @@ export default {
                 ">
             </div>
             <!-- Intro Modal -->
-            <modal v-if="config.introModal" name="introModal" :adaptive="true" @opened="modalCallback"
+            <modal v-if="config.introModal" name="introModal" :adaptive="true"
+                @opened="modalCallback"
                 @closed="modalCallback">
                 <div class="modalDiv">
                     <p class="modalTitle">
@@ -1544,12 +1547,16 @@ export default {
             </div>
 
             <div v-if="audioAndMeter">
-                <AudioMeter ref="audioMeter" :width=300 :height="100" :fft_bins="128" orientation="top"
-                    style="position:absolute; z-index:0; top:0px; left:0px; background-color:transparent" />
+                <AudioMeter ref="audioMeter" :width=300 :height="100"
+                    :fft_bins="128" orientation="top"
+                    style="position:absolute; z-index:0;
+                        top:0px; left:0px; background-color:transparent" />
             </div>
 
-            <!-- <VectorBar ref="vectorBar" :width=300 :height="100" :num_bars="12" orientation="top"
-                style="position:absolute; z-index:0; top:0px; right:0px; background-color:transparent" /> -->
+            <!-- <VectorBar ref="vectorBar" :width=300 :height="100"
+                    :num_bars="12" orientation="top"
+                    style="position:absolute; z-index:0; top:0px;
+                        right:0px; background-color:transparent" /> -->
             <div v-if="audioAndChroma">
                 <ChromaChart />
             </div>
@@ -1575,20 +1582,24 @@ export default {
                 </md-button>
             </div>
 
-            <md-button v-if="keyboardoctaveEnd !== 8" @click="transposeOctUp" class="md-icon-button md-raised"
+            <md-button v-if="keyboardoctaveEnd !== 8"
+                @click="transposeOctUp" class="md-icon-button md-raised"
                 style="position: absolute; right: 20px; bottom: 100px">
                 <md-icon>arrow_forward</md-icon>
             </md-button>
-            <md-button v-if="keyboardoctaveStart !== 0" @click="transposeOctDown" class="md-icon-button md-raised"
+            <md-button v-if="keyboardoctaveStart !== 0"
+                @click="transposeOctDown" class="md-icon-button md-raised"
                 style="position: absolute; left: 20px; bottom: 100px">
                 <md-icon>arrow_back</md-icon>
             </md-button>
-            <md-button v-if="!keyboardMinRangeDisplayed" @click="zoomInOct" class="md-icon-button md-raised"
+            <md-button v-if="!keyboardMinRangeDisplayed"
+                @click="zoomInOct" class="md-icon-button md-raised"
                 style="position: absolute; right: 20px; bottom: 50px">
                 <!-- <md-icon>arrow_forward</md-icon> -->
                 <i class="material-symbols-outlined">zoom_in</i>
             </md-button>
-            <md-button v-if="!keyboardMaxRangeDisplayed" @click="zoomOutOct" class="md-icon-button md-raised"
+            <md-button v-if="!keyboardMaxRangeDisplayed"
+                @click="zoomOutOct" class="md-icon-button md-raised"
                 style="position: absolute; left: 20px; bottom: 50px">
                 <!-- <md-icon>arrow_forward</md-icon> -->
                 <i class="material-symbols-outlined">zoom_out</i>
@@ -1596,7 +1607,8 @@ export default {
 
 
             <!-- Settings Modal -->
-            <modal name="settingsModal" :minWidth=700 :minHeight=600 :adaptive="true" @opened="modalCallback"
+            <modal name="settingsModal" :minWidth=700 :minHeight=600 :adaptive="true"
+                @opened="modalCallback"
                 @closed="modalCallback">
                 <!-- overflow-y: scroll; -->
                 <div style="padding:0; margin: 0; ">
@@ -1604,8 +1616,10 @@ export default {
                         <p class="modalTitle">
                             Settings
                         </p>
-                        <button class="modalBtn" @click="$modal.hide('settingsModal')"><md-icon class="modalIcon"
-                                style="padding:0;margin:0;height:24px">close</md-icon></button>
+                        <button class="modalBtn" @click="$modal.hide('settingsModal')">
+                            <md-icon class="modalIcon"
+                                style="padding:0;margin:0;height:24px">close</md-icon>
+                        </button>
                     </div>
                     <div class="modalContent" style="overflow-y: scroll; height:600px">
                         <div id="ClockSection" class="settingsBorderedTitle"
@@ -1630,11 +1644,13 @@ export default {
                         <div id="MIDISection" style="display:flex;
                                 justify-content:start;align-items:center;margin-top:50px">
                             <p class="settingsSubtitle settingsBorderedTitle" style="padding:0">
-                                <md-icon class="modalIcon" style="font-weight:400">piano</md-icon> <br />
+                                <md-icon class="modalIcon" style="font-weight:400">piano
+                                </md-icon> <br />
                                 <span style="line-height:36px">MIDI</span>
                             </p>
                             <div class="MIDIInput" style="padding-left: 8px" v-if="WebMIDISupport">
-                                <Dropdown :options="activeDevices" v-on:selected="onMIDIDeviceSelectedChange"
+                                <Dropdown :options="activeDevices"
+                                    v-on:selected="onMIDIDeviceSelectedChange"
                                     placeholder="Type here to search for MIDI device">
                                 </Dropdown>
                             </div>
@@ -1652,7 +1668,8 @@ export default {
                                     <!-- Sliders for agent Parameters -->
                                     <div v-for="sliderItem in sliders" :key="sliderItem.id"
                                         class="md-layout-item md-large-size-25 md-alignment-center"
-                                        style="display:flex;align-items:center;justify-content:center;">
+                                        style="display:flex;align-items:center;
+                                            justify-content:center;">
                                         <VerticalSlider v-model="sliderItem.value"
                                                         :min="sliderItem.min" :max=sliderItem.max
                                             :label="sliderItem.label" />
@@ -1664,8 +1681,11 @@ export default {
                                     <!-- Buttons for agent Parameters -->
                                     <div v-for="buttonItem in buttons" :key="buttonItem.id"
                                         class="md-layout-item md-large-size-100">
-                                        <md-button @click="buttonAction(buttonItem.id)" style="width: 100%">
-                                            <span class="forceTextColor">{{ buttonItem.label }}</span>
+                                        <md-button
+                                            @click="buttonAction(buttonItem.id)"
+                                            style="width: 100%">
+                                            <span class="forceTextColor">{{ buttonItem.label }}
+                                            </span>
                                         </md-button>
                                     </div>
                                 </div>
@@ -1677,7 +1697,8 @@ export default {
                                     <!-- Switches for agent Parameters -->
                                     <div v-for="swi in switches" :key="swi.id"
                                         class="md-layout-item md-large-size-25 md-medium-size-50"
-                                        style="display:flex;align-items:center;justify-content:center;padding-top:17px">
+                                        style="display:flex;align-items:center;
+                                            justify-content:center;padding-top:17px">
                                         <span style="padding:0; margin:0;">{{ swi.label }}</span>
                                         <div style="display:block; min-width:30px;">
                                             <toggle-button color="#74601c" v-model="swi.status"

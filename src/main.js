@@ -18,22 +18,22 @@ Vue.use(MdField);
 Vue.use(Dropdown);
 Vue.use(VModal);
 Vue.use(Toasted, {
-  duration: 1000,
+    duration: 1000,
 });
 Vue.use(ToggleButton);
 Vue.use(Vue2TouchEvents, {
-  disableClick: true,
-  touchClass: '',
-  tapTolerance: 10,
-  touchHoldTolerance: 400,
-  swipeTolerance: 30,
-  longTapTimeInterval: 400,
-  namespace: 'touch',
+    disableClick: true,
+    touchClass: '',
+    tapTolerance: 10,
+    touchHoldTolerance: 400,
+    swipeTolerance: 30,
+    longTapTimeInterval: 400,
+    namespace: 'touch',
 });
 Vue.config.productionTip = false;
 
 new Vue({
-  router,
-  store,
-  render: (h) => h(App),
+    router,
+    store,
+    render: (h) => h(App),
 }).$mount('#app');
