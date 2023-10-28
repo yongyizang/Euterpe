@@ -5,37 +5,37 @@
         <div class="label">{{ label }}</div>
     </div>
 </template>
-  
+
 <script>
 export default {
-    name: 'VerticalSlider',
-    props: {
-        value: {
-            type: Number,
-            required: true
-        },
-        min: {
-            type: Number,
-            default: 0
-        },
-        max: {
-            type: Number,
-            default: 100
-        },
-        label: {
-            type: String,
-            default: ""
-        }
+  name: 'VerticalSlider',
+  props: {
+    value: {
+      type: Number,
+      required: true,
     },
-    methods: {
-        updateValue(value) {
-            // When the slider value changes, emit the 'input' event
-            this.$emit('input', Number(value));
-        }
-    }
-}
+    min: {
+      type: Number,
+      default: 0,
+    },
+    max: {
+      type: Number,
+      default: 100,
+    },
+    label: {
+      type: String,
+      default: '',
+    },
+  },
+  methods: {
+    updateValue(value) {
+      // When the slider value changes, emit the 'input' event
+      this.$emit('input', Number(value));
+    },
+  },
+};
 </script>
-  
+
 <style scoped>
 .vertical-slider {
     height: 300px;
@@ -72,4 +72,4 @@ export default {
     opacity: 1;
 }
 </style>
-  
+

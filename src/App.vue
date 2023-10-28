@@ -14,7 +14,7 @@
   </div>
 </template>
 <script>
-import "./css/app.css"
+import './css/app.css';
 export default {
   watch: {
     $route() {
@@ -26,7 +26,7 @@ export default {
   },
   methods: {
     routeLoaded() {
-      this.$refs.LoadingScreen.style.display = "none";
+      this.$refs.LoadingScreen.style.display = 'none';
     },
   },
   mounted() {

@@ -1,14 +1,14 @@
 const exports = {};
 
 class RecorderWorklet extends AudioWorkletProcessor {
-  static get parameterDescriptors(){
+  static get parameterDescriptors() {
     return [{
-      name: "recordingStatus",
+      name: 'recordingStatus',
       defaultValue: 0,
       minValue: 0,
-      maxValue: 1,  
-    }
-  ];
+      maxValue: 1,
+    },
+    ];
   }
   constructor(options) {
     super();
@@ -17,14 +17,13 @@ class RecorderWorklet extends AudioWorkletProcessor {
     const sab = options.processorOptions;
     this._audio_writer = new AudioWriter(new RingBuffer(sab, Float32Array));
     this.port.onmessage = (e) => {
-      console.log("Received from Node" + e.data);
-      this.port.postMessage("pong");
+      console.log('Received from Node' + e.data);
+      this.port.postMessage('pong');
     };
   }
 
 
   process(inputs, _outputs, _parameters) {
-    
     // TODO : if (_parameters.recordingStatus[0] ===1)
 
     if (inputs[0]) {
@@ -40,4 +39,4 @@ class RecorderWorklet extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor("recorder-worklet", RecorderWorklet);
+registerProcessor('recorder-worklet', RecorderWorklet);

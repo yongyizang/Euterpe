@@ -34,23 +34,23 @@
 </template>
 
 <script>
-import "../css/keyboard.css";
+import '../css/keyboard.css';
 
-import * as Tone from "tone";
-import { clamp } from "@/utils/math";
-import {Note} from "@tonaljs/tonal";
+import * as Tone from 'tone';
+import {clamp} from '@/utils/math';
+import {Note} from '@tonaljs/tonal';
 import {
-    playerType, instrumentType, eventSourceType,
-    noteType,
-   
-} from '@/utils/types.js'
-import { NoteEvent } from '@/utils/NoteEvent.js'
+  playerType, instrumentType, eventSourceType,
+  noteType,
+
+} from '@/utils/types.js';
+import {NoteEvent} from '@/utils/NoteEvent.js';
 
 
 // Here, a set of constants are defined.
-const WHITE_KEYS = ["C", "D", "E", "F", "G", "A", "B"];
-const BLACK_KEYS = ["C#", "D#", null, "F#", "G#", "A#", null];
-const NOTE_OFFSETS = ["C", "D", "E", "F", "G", "A", "B"];
+const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const BLACK_KEYS = ['C#', 'D#', null, 'F#', 'G#', 'A#', null];
+const NOTE_OFFSETS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const NUM_WHITE_KEYS_PER_OCTAVE = 7;
 const NUM_BLACK_KEYS_PER_OCTAVE = 5;
 const NUM_WHITE_KEYS_TOTAL = 52;
@@ -63,7 +63,7 @@ const MAX_NOTE = 6;
 // Initialize the pianoSampler.
 
 export default {
-  name: "KeyboardComponent",
+  name: 'KeyboardComponent',
 
   props: {
     octaveStart: {
@@ -89,28 +89,28 @@ export default {
     noteStart: {
       type: [Number, String],
       validator(value) {
-        if (typeof value === "string") {
+        if (typeof value === 'string') {
           return WHITE_KEYS.includes(value);
         } else {
           return value >= MIN_NOTE && value <= MAX_NOTE;
         }
       },
       default() {
-        return WHITE_KEYS.indexOf("A");
+        return WHITE_KEYS.indexOf('A');
       },
     },
 
     noteEnd: {
       type: [Number, String],
       validator(value) {
-        if (typeof value === "string") {
+        if (typeof value === 'string') {
           return WHITE_KEYS.includes(value);
         } else {
           return value >= MIN_NOTE && value <= MAX_NOTE;
         }
       },
       default() {
-        return WHITE_KEYS.indexOf("C");
+        return WHITE_KEYS.indexOf('C');
       },
     },
   },
@@ -118,13 +118,13 @@ export default {
   created() {
     this.$root.$refs.keyboard = this;
 
-    if (typeof this.noteStart === "string") {
+    if (typeof this.noteStart === 'string') {
       this.offsets.noteStart = WHITE_KEYS.indexOf(this.noteStart);
     } else {
       this.offsets.noteStart = this.noteStart;
     }
 
-    if (typeof this.noteEnd === "string") {
+    if (typeof this.noteEnd === 'string') {
       this.offsets.noteEnd = WHITE_KEYS.indexOf(this.noteEnd);
     } else {
       this.offsets.noteEnd = this.noteEnd;
@@ -139,7 +139,7 @@ export default {
         this.offsets.noteStart > this.offsets.noteEnd)
     ) {
       throw new Error(
-        "The start octave must be lower than or equal to the end octave and the start note must be lower than the end note."
+          'The start octave must be lower than or equal to the end octave and the start note must be lower than the end note.',
       );
     }
   },
@@ -154,122 +154,118 @@ export default {
       },
       lastNote: null,
       audioKeysMap: {
-        C4: "Z",
-        "C#4": "S",
-        D4: "X",
-        "D#4": "D",
-        E4: "C",
-        F4: "V",
-        "F#4": "G",
-        G4: "B",
-        "G#4": "H",
-        A4: "N",
-        "A#4": "J",
-        B4: "M",
-        C5: "Q",
-        "C#5": "2",
-        D5: "W",
-        "D#5": "3",
-        E5: "E",
-        F5: "R",
-        "F#5": "5",
-        G5: "T",
-        "G#5": "6",
-        A5: "Y",       
-        "A#5": "7",
-        B5: "U",     
-        C6: "I",
-        "C#6": "9",
-        D6: "O",
-        "D#6": "0",
-        E6: "P",
-        F6: "[",
-        "F#6": "=",
-        G6: "]",
+        'C4': 'Z',
+        'C#4': 'S',
+        'D4': 'X',
+        'D#4': 'D',
+        'E4': 'C',
+        'F4': 'V',
+        'F#4': 'G',
+        'G4': 'B',
+        'G#4': 'H',
+        'A4': 'N',
+        'A#4': 'J',
+        'B4': 'M',
+        'C5': 'Q',
+        'C#5': '2',
+        'D5': 'W',
+        'D#5': '3',
+        'E5': 'E',
+        'F5': 'R',
+        'F#5': '5',
+        'G5': 'T',
+        'G#5': '6',
+        'A5': 'Y',
+        'A#5': '7',
+        'B5': 'U',
+        'C6': 'I',
+        'C#6': '9',
+        'D6': 'O',
+        'D#6': '0',
+        'E6': 'P',
+        'F6': '[',
+        'F#6': '=',
+        'G6': ']',
       },
     };
   },
 
   methods: {
     noteActive(note) {
-        // If the note is active, the state of that note is true.
-        let midi = Note.midi(note);
-        // return this.$store.getters.getPianoState[midi].status === true;
-        return false;
+      // If the note is active, the state of that note is true.
+      const midi = Note.midi(note);
+      // return this.$store.getters.getPianoState[midi].status === true;
+      return false;
     },
 
     toggleAttack(currentNote) {
-        
-        this.lastNote = currentNote;
-        window.addEventListener('mouseup', this.toggleReleaseOffKeyboard);
-        let noteName = currentNote;
-        // get midi number from noteName
-        let midi = Note.midi(noteName);
+      this.lastNote = currentNote;
+      window.addEventListener('mouseup', this.toggleReleaseOffKeyboard);
+      const noteName = currentNote;
+      // get midi number from noteName
+      const midi = Note.midi(noteName);
 
-        const newNoteEvent = new NoteEvent();
-        newNoteEvent.player = playerType.HUMAN;
-        newNoteEvent.instrument = instrumentType.PIANO;
-        newNoteEvent.source = eventSourceType.MOUSE;
-        newNoteEvent.name = noteName;
-        newNoteEvent.type = noteType.NOTE_ON;
-        newNoteEvent.channel = 140; // this is channel midi channel 0
-        newNoteEvent.midi = midi;
-        newNoteEvent.velocity = 127;
-        newNoteEvent.createdAt = {
-            seconds: performance.now(),
-            tick: this.$store.getters.getGlobalTickDelayed,
-        };
-        newNoteEvent.playAfter = {
-            seconds: 0,
-            tick: 0
-        };
-        newNoteEvent.duration = null;
-        // TODO : a better way to do this is to emit the event to the parent
-        this.$parent.processUserNoteEvent(newNoteEvent, true);
-        
-
+      const newNoteEvent = new NoteEvent();
+      newNoteEvent.player = playerType.HUMAN;
+      newNoteEvent.instrument = instrumentType.PIANO;
+      newNoteEvent.source = eventSourceType.MOUSE;
+      newNoteEvent.name = noteName;
+      newNoteEvent.type = noteType.NOTE_ON;
+      newNoteEvent.channel = 140; // this is channel midi channel 0
+      newNoteEvent.midi = midi;
+      newNoteEvent.velocity = 127;
+      newNoteEvent.createdAt = {
+        seconds: performance.now(),
+        tick: this.$store.getters.getGlobalTickDelayed,
+      };
+      newNoteEvent.playAfter = {
+        seconds: 0,
+        tick: 0,
+      };
+      newNoteEvent.duration = null;
+      // TODO : a better way to do this is to emit the event to the parent
+      this.$parent.processUserNoteEvent(newNoteEvent, true);
     },
 
     toggleReleaseOffKeyboard() {
-        if (this.lastNote){
-            this.toggleRelease(this.lastNote);
-        }
-        window.removeEventListener('mouseup', this.toggleReleaseOffKeyboard);
+      if (this.lastNote) {
+        this.toggleRelease(this.lastNote);
+      }
+      window.removeEventListener('mouseup', this.toggleReleaseOffKeyboard);
     },
 
     toggleRelease(currentNote) {
-        if (this.lastNote != currentNote) {
-            if (this.lastNote){
-                this.toggleRelease(this.lastNote);
-            }
-            return;
+      if (this.lastNote != currentNote) {
+        if (this.lastNote) {
+          this.toggleRelease(this.lastNote);
         }
-        console.log("releasing note ", currentNote);
-        this.lastNote = null;
-        let noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
-        // get midi number from noteName
-        let midi = Note.midi(noteName);
+        return;
+      }
+      console.log('releasing note ', currentNote);
+      this.lastNote = null;
+      const noteName = currentNote; // Midi.midiToNoteName(note.note, { sharps: true });
+      // get midi number from noteName
+      const midi = Note.midi(noteName);
 
-        const newNoteEvent = new NoteEvent();
-        newNoteEvent.player = playerType.HUMAN;
-        newNoteEvent.instrument = instrumentType.PIANO;
-        newNoteEvent.source = eventSourceType.MOUSE;
-        newNoteEvent.name = noteName;
-        newNoteEvent.type = noteType.NOTE_OFF;
-        newNoteEvent.channel = 140; // this is channel midi channel 0
-        newNoteEvent.midi = midi;
-        newNoteEvent.velocity = 127;
-        newNoteEvent.createdAt = {
-            seconds: performance.now(),
-            tick: this.$store.getters.getGlobalTickDelayed,
-        };
-        newNoteEvent.playAfter = {
-            seconds: 0,
-            tick: 0
-        };
-        newNoteEvent.duration = null;
-        this.$parent.processUserNoteEvent(newNoteEvent, true);
-
+      const newNoteEvent = new NoteEvent();
+      newNoteEvent.player = playerType.HUMAN;
+      newNoteEvent.instrument = instrumentType.PIANO;
+      newNoteEvent.source = eventSourceType.MOUSE;
+      newNoteEvent.name = noteName;
+      newNoteEvent.type = noteType.NOTE_OFF;
+      newNoteEvent.channel = 140; // this is channel midi channel 0
+      newNoteEvent.midi = midi;
+      newNoteEvent.velocity = 127;
+      newNoteEvent.createdAt = {
+        seconds: performance.now(),
+        tick: this.$store.getters.getGlobalTickDelayed,
+      };
+      newNoteEvent.playAfter = {
+        seconds: 0,
+        tick: 0,
+      };
+      newNoteEvent.duration = null;
+      this.$parent.processUserNoteEvent(newNoteEvent, true);
     },
 
     calculateOctave(n) {
@@ -291,19 +287,19 @@ export default {
 
     totalWhiteKeys() {
       return Math.min(
-        Infinity,
-        this.numOctaves * NUM_WHITE_KEYS_PER_OCTAVE -
+          Infinity,
+          this.numOctaves * NUM_WHITE_KEYS_PER_OCTAVE -
           this.offsetStart -
-          (NUM_WHITE_KEYS_PER_OCTAVE - (this.offsetEnd + 1))
+          (NUM_WHITE_KEYS_PER_OCTAVE - (this.offsetEnd + 1)),
       );
     },
 
     totalBlackKeys() {
       return Math.min(
-        Infinity,
-        this.numOctaves * NUM_BLACK_KEYS_PER_OCTAVE -
+          Infinity,
+          this.numOctaves * NUM_BLACK_KEYS_PER_OCTAVE -
           this.offsetStart -
-          (NUM_BLACK_KEYS_PER_OCTAVE - (this.offsetEnd + 1))
+          (NUM_BLACK_KEYS_PER_OCTAVE - (this.offsetEnd + 1)),
       );
     },
 
@@ -321,8 +317,8 @@ export default {
 
     style() {
       return {
-        "--keys": this.totalWhiteKeys,
-        "--octaves": this.numOctaves,
+        '--keys': this.totalWhiteKeys,
+        '--octaves': this.numOctaves,
       };
     },
 
@@ -335,9 +331,9 @@ export default {
         const keyName = WHITE_KEYS[i % 7];
         const key = {
           name: `${keyName}${octave}`,
-          class: ["white", keyName, `${keyName}${octave}`],
+          class: ['white', keyName, `${keyName}${octave}`],
           style: {
-            "grid-column": `${j === 0 ? 1 : 4 + (j - 1) * 3} / span 3`,
+            'grid-column': `${j === 0 ? 1 : 4 + (j - 1) * 3} / span 3`,
           },
         };
         keys.push(key);
@@ -356,13 +352,13 @@ export default {
           continue;
         }
 
-        const keyNameClass = keyName.replace("#", "s");
+        const keyNameClass = keyName.replace('#', 's');
 
         const key = {
           name: `${keyName}${octave}`,
-          class: ["black", keyNameClass, `${keyNameClass}${octave}`],
+          class: ['black', keyNameClass, `${keyNameClass}${octave}`],
           style: {
-            "grid-column": `${j === 0 ? 3 : 6 + (j - 1) * 3} / span 2`,
+            'grid-column': `${j === 0 ? 3 : 6 + (j - 1) * 3} / span 2`,
           },
         };
 

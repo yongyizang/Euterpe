@@ -7,7 +7,7 @@
         top: `${top}px`,
         right: `${right}px`,
         zIndex: 100,
-        width: `auto`, 
+        width: `auto`,
         height: `auto`,
         // ...styles,
         }"
@@ -23,160 +23,160 @@
         top: `${top}px`,
         right: `${right}px`,
         zIndex: 100,
-        width: `${width}px`, 
+        width: `${width}px`,
         height: `auto`,
         // ...styles,
         }"
         @mousedown="startDrag"
     ></div>
 </template>
-  
+
 <script>
 import {Pane} from 'tweakpane';
 
 export default {
-    name: 'MonitorComponent',
-    props: {
-        dataFromParent: {
-            type: Object,
-            default: () => {}
-        },
-        ref_c: {
-            type: String,
-            default: 'monitor'
-        },
-        id_c: {
-            type: String,
-            default: 'monitorId'
-        },
-        position: {
-            type: String,
-            default: 'absolute'
-        },
-        top: {
-            type: Number,
-            default: 311
-        },
-        right: {
-            type: Number,
-            default: 20
-        },
-        width: {
-            type: Number,
-            default: 300
-        },
-        // height: {
-        //     type: Number,
-        //     default: 400
-        // },
-        // cssClasses: {
-        //   default: '',
-        //   type: String
-        // },
-        // styles: {
-        //   type: Object,
-        //   default: () => {}
-        // },
+  name: 'MonitorComponent',
+  props: {
+    dataFromParent: {
+      type: Object,
+      default: () => {},
     },
-    data() {
-        return {
-            pane: null,
-            data: null,
-            structure: null,
-            title: "",
-        };
+    ref_c: {
+      type: String,
+      default: 'monitor',
     },
-    beforeCreate(){
-        console.log("beforeCreate monitor start")
-        console.log("beforeCreate monitor end")
+    id_c: {
+      type: String,
+      default: 'monitorId',
     },
-    created() {
-        console.log("created monitor start")
-        this.$root.$refs.monitor = this;
-        console.log(" created monitor end")
+    position: {
+      type: String,
+      default: 'absolute',
     },
-    mounted() {
-        console.log("mounted monitor start")
+    top: {
+      type: Number,
+      default: 311,
     },
+    right: {
+      type: Number,
+      default: 20,
+    },
+    width: {
+      type: Number,
+      default: 300,
+    },
+    // height: {
+    //     type: Number,
+    //     default: 400
+    // },
+    // cssClasses: {
+    //   default: '',
+    //   type: String
+    // },
+    // styles: {
+    //   type: Object,
+    //   default: () => {}
+    // },
+  },
+  data() {
+    return {
+      pane: null,
+      data: null,
+      structure: null,
+      title: '',
+    };
+  },
+  beforeCreate() {
+    console.log('beforeCreate monitor start');
+    console.log('beforeCreate monitor end');
+  },
+  created() {
+    console.log('created monitor start');
+    this.$root.$refs.monitor = this;
+    console.log(' created monitor end');
+  },
+  mounted() {
+    console.log('mounted monitor start');
+  },
 
-    methods: {
-        startDrag(event) {
-            if (typeof event.target.className !== 'string') return;
-            if (
-                event.target.classList.contains('sldv') ||
+  methods: {
+    startDrag(event) {
+      if (typeof event.target.className !== 'string') return;
+      if (
+        event.target.classList.contains('sldv') ||
                 event.target.id.includes('sldv')
-            ) {
-                return; // Don't start dragging
-            }
-            // Calculate the initial click position relative to the element's top-left corner
-            this.isDragging = true;
-            this.offsetX = this.$refs.monitor.getBoundingClientRect().right - event.clientX;
-            this.offsetY = event.clientY - this.$refs.monitor.getBoundingClientRect().top;
-            window.addEventListener('mousemove', this.handleDrag);
-            window.addEventListener('mouseup', this.stopDrag);
-        },
-        handleDrag(event) {
-            if (this.isDragging) {
-                // Update the element's position based on the mouse movement
-                // this.$refs.monitor.style.right = event.clientX + this.offsetX + 'px';
-                // this.$refs.monitor.style.bottom = event.clientY + this.offsetY + 'px';
-                this.$refs.monitor.style.right = window.innerWidth - event.clientX - this.offsetX + 'px';
-                this.$refs.monitor.style.top = event.clientY - this.offsetY + 'px';
-            }
-            
-        },
-        stopDrag(event) {
-            this.isDragging = false;
-            window.removeEventListener('mouseup', this.stopDrag);
-            window.removeEventListener('mousemove', this.handleDrag);
-        },
-        loadMonitorConfig(monitorConfig) {
-            let vm = this;
-            vm.structure = monitorConfig.structure;
-            vm.title = monitorConfig.title ?? "Monitor";
-            vm.pane = new Pane({
-                container: vm.$refs.monitor,
-                title: vm.title,
-            })
-            
-            // vm.data = data;
-            // const f = vm.pane.addFolder({
-            //     title: vm.title,
-            //     expanded: true,
-            // });
-            // vm.pane.on('fold', (ev) => {
-            //     console.log('changed: ', ev.value);
-            //     ev.stopPropagation();
-            //     ev.preventDefault();
-            //     ev.cancelBubble = true;
-            // });
-
-            // Iterate over the structure in the config file
-            if (vm.structure)
-                vm.structure.forEach((tab) => {
-                // Create a folder for each tab
-                    console.log("tab ", tab);
-                    const folder = vm.pane.addFolder({
-                        title: tab.label,
-                        expanded: true,
-                    });
-                    console.log("tab.label ", tab.label)
-                    console.log("tab.parameters ", tab.parameters)
-                    console.log("dataFromParent ", vm.$props.dataFromParent)
-                    // Iterate over the parameters in each tab
-                    tab.parameters.forEach((parameter) => {
-                        // Add a monitor for each parameter
-                        folder.addMonitor(vm.$props.dataFromParent, parameter.id, {
-                            label: parameter.label,
-                            interval: parameter.interval,
-                            view: parameter.graph ? 'graph' : 'text',
-                            min: parameter.min,
-                            max: parameter.max,
-                        });
-                    });
-                });
-        },
+      ) {
+        return; // Don't start dragging
+      }
+      // Calculate the initial click position relative to the element's top-left corner
+      this.isDragging = true;
+      this.offsetX = this.$refs.monitor.getBoundingClientRect().right - event.clientX;
+      this.offsetY = event.clientY - this.$refs.monitor.getBoundingClientRect().top;
+      window.addEventListener('mousemove', this.handleDrag);
+      window.addEventListener('mouseup', this.stopDrag);
     },
+    handleDrag(event) {
+      if (this.isDragging) {
+        // Update the element's position based on the mouse movement
+        // this.$refs.monitor.style.right = event.clientX + this.offsetX + 'px';
+        // this.$refs.monitor.style.bottom = event.clientY + this.offsetY + 'px';
+        this.$refs.monitor.style.right = window.innerWidth - event.clientX - this.offsetX + 'px';
+        this.$refs.monitor.style.top = event.clientY - this.offsetY + 'px';
+      }
+    },
+    stopDrag(event) {
+      this.isDragging = false;
+      window.removeEventListener('mouseup', this.stopDrag);
+      window.removeEventListener('mousemove', this.handleDrag);
+    },
+    loadMonitorConfig(monitorConfig) {
+      const vm = this;
+      vm.structure = monitorConfig.structure;
+      vm.title = monitorConfig.title ?? 'Monitor';
+      vm.pane = new Pane({
+        container: vm.$refs.monitor,
+        title: vm.title,
+      });
+
+      // vm.data = data;
+      // const f = vm.pane.addFolder({
+      //     title: vm.title,
+      //     expanded: true,
+      // });
+      // vm.pane.on('fold', (ev) => {
+      //     console.log('changed: ', ev.value);
+      //     ev.stopPropagation();
+      //     ev.preventDefault();
+      //     ev.cancelBubble = true;
+      // });
+
+      // Iterate over the structure in the config file
+      if (vm.structure) {
+        vm.structure.forEach((tab) => {
+          // Create a folder for each tab
+          console.log('tab ', tab);
+          const folder = vm.pane.addFolder({
+            title: tab.label,
+            expanded: true,
+          });
+          console.log('tab.label ', tab.label);
+          console.log('tab.parameters ', tab.parameters);
+          console.log('dataFromParent ', vm.$props.dataFromParent);
+          // Iterate over the parameters in each tab
+          tab.parameters.forEach((parameter) => {
+            // Add a monitor for each parameter
+            folder.addMonitor(vm.$props.dataFromParent, parameter.id, {
+              label: parameter.label,
+              interval: parameter.interval,
+              view: parameter.graph ? 'graph' : 'text',
+              min: parameter.min,
+              max: parameter.max,
+            });
+          });
+        });
+      }
+    },
+  },
 
 };
 </script>

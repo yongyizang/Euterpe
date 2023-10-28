@@ -1,6 +1,6 @@
 export function shiftRight(arr) {
-    const lastElement = arr.pop();
-    arr.unshift(lastElement);
+  const lastElement = arr.pop();
+  arr.unshift(lastElement);
 }
 
 export function average1d(arr) {
@@ -13,69 +13,69 @@ export function average1d(arr) {
 }
 
 export function average2d(arr) {
-    let suma = new Array(arr[0].length).fill(0);
+  const suma = new Array(arr[0].length).fill(0);
 
-    for (let i = 0; i < arr.length; i++) {
-        for (let j = 0; j < arr[i].length; j++) {
-            suma[j] += arr[i][j];
-        }
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr[i].length; j++) {
+      suma[j] += arr[i][j];
     }
-    return suma.map((sum) => sum / arr.length);
+  }
+  return suma.map((sum) => sum / arr.length);
 }
 
 /*
   Clamp a number to a range.
 */
 export function clamp(num, min, max) {
-     return Math.max(min, Math.min(max, num))
+  return Math.max(min, Math.min(max, num));
 }
 
 /* Clamp a midi note to a range. */
 export function clampMidi(midi, min, max) {
-    let clipedMidi = midi
-    while (clipedMidi < min){
-        clipedMidi += 12;
-    }
-    while (clipedMidi > max){
-        clipedMidi -= 12;
-    }
-    return clipedMidi;
+  let clipedMidi = midi;
+  while (clipedMidi < min) {
+    clipedMidi += 12;
+  }
+  while (clipedMidi > max) {
+    clipedMidi -= 12;
+  }
+  return clipedMidi;
 }
 
 /*
   Convert degrees to radians.
 */
 export function degreesToRadians(angle) {
-  return (-angle * Math.PI) / 180.0
+  return (-angle * Math.PI) / 180.0;
 }
 
 /*
   Convert radians to degrees.
 */
 export function radiansToDegrees(angle) {
-  return angle * (180 / Math.PI)
+  return angle * (180 / Math.PI);
 }
 
 /*
   Convert a polar coordinate (r, θ) to cartesian (x, y).
 */
 export function polarToCartesian(radius, theta) {
-  const x = radius + radius * Math.cos(theta)
-  const y = radius + radius * Math.sin(theta)
+  const x = radius + radius * Math.cos(theta);
+  const y = radius + radius * Math.sin(theta);
 
-  return [x, y]
+  return [x, y];
 }
 
 /*
   Convert a cartesian coordinate (x, y) to polar (r, θ).
 */
 export function cartesianToPolar(x, y) {
-  [x, y] = normalisePoint(x, y)
+  [x, y] = normalisePoint(x, y);
 
-  const radius = Math.sqrt(x ** 2, y ** 2)
-  const theta = Math.atan2(y, x)
+  const radius = Math.sqrt(x ** 2, y ** 2);
+  const theta = Math.atan2(y, x);
 
-  return [radius, theta]
+  return [radius, theta];
 }
 
 /*
@@ -88,23 +88,23 @@ export function cartesianToPolar(x, y) {
 */
 export function normalisePoint(x, y) {
   if (Array.isArray(x)) {
-    return x
-  } else if (typeof x === "object") {
+    return x;
+  } else if (typeof x === 'object') {
     if (x.x && x.y) {
-      return [x.x, x.y]
+      return [x.x, x.y];
     } else if (x.i && x.j) {
-      return [x.i, x.j]
+      return [x.i, x.j];
     } else {
-      throw new Error("Invalid object.")
+      throw new Error('Invalid object.');
     }
   }
 
-  return [x, y]
+  return [x, y];
 }
 
 export class Vector2 {
   constructor(i, j) {
-    this.i = i
-    this.j = j
+    this.i = i;
+    this.j = j;
   }
 }

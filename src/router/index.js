@@ -1,9 +1,9 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
 // import HomeView from '../views/HomeView.vue'
 // import Main from '../views/MainView.vue'
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const router = new VueRouter({
   mode: 'history',
@@ -28,11 +28,11 @@ const router = new VueRouter({
     //   component: () => import('../views/AboutView.vue')
     // },
     {
-      path: "/",
-        name: "mainScreen",
-        component: () => import('../views/MainView.vue')
+      path: '/',
+      name: 'mainScreen',
+      component: () => import('../views/MainView.vue'),
     },
-  ]
-})
+  ],
+});
 
-export default router
+export default router;

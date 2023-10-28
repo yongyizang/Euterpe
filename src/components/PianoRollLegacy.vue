@@ -11,23 +11,23 @@
 </template>
 <script>
 // This project mainly uses Three.js to generate the canvas.
-import * as THREE from "three";
-import { Midi } from "@tonaljs/tonal";
+import * as THREE from 'three';
+import {Midi} from '@tonaljs/tonal';
 import {
 	  playerType, instrumentType, eventSourceType,
-    messageType, statusType, noteType,
-    uiParameterType,
-    agentHookType
-    } from '@/utils/types.js'
+  messageType, statusType, noteType,
+  uiParameterType,
+  agentHookType,
+} from '@/utils/types.js';
 
-import("../css/variables.css");
+import('../css/variables.css');
 
 // get --pianoRoll-human-color and --pianoRoll-agent-color from CSS.
 const colorForAgent = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRoll-agent-color"
+    '--pianoRoll-agent-color',
 );
 const colorForHuman = getComputedStyle(document.documentElement).getPropertyValue(
-  "--pianoRoll-human-color"
+    '--pianoRoll-human-color',
 );
 
 const initialScaling = 10000; // a constant in scaling the noteblock.
@@ -46,7 +46,7 @@ const agentMaterial = new THREE.MeshBasicMaterial({
 });
 
 export default {
-  name: "PianoRoll",
+  name: 'PianoRoll',
   data() {
     return {
       lastUpdateTime: 0,
@@ -59,7 +59,7 @@ export default {
       currentNotes: {},
       /*
         We don't actually note anything here.
-        
+
         This is mainly just a flag... We use this to track the noteblocks generated.
         See the method KeyDown() for how this data is used.
       */
@@ -98,15 +98,15 @@ export default {
       this.camera = new THREE.OrthographicCamera(0, 1, 1, 0, 1, 1000);
       this.camera.position.z = 1;
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-      this.renderer = new THREE.WebGLRenderer({ alpha: true });
+      this.renderer = new THREE.WebGLRenderer({alpha: true});
       this.renderer.setSize(window.innerWidth, window.innerHeight);
-      
+
       this.renderer.setPixelRatio(window.devicePixelRatio);
       this.renderer.setClearColor(0xffffff, 0);
       this.renderer.sortObjects = false;
       this.$refs.canvas.appendChild(this.renderer.domElement);
-      console.log("size of canvas is ", this.$refs.canvas.clientWidth, this.$refs.canvas.clientHeight);
-      console.log("size of window is ", window.innerWidth, window.innerHeight);
+      console.log('size of canvas is ', this.$refs.canvas.clientWidth, this.$refs.canvas.clientHeight);
+      console.log('size of window is ', window.innerWidth, window.innerHeight);
       // console.log("size of renderer is ", this.renderer.getSize);
     },
 
@@ -119,39 +119,38 @@ export default {
       this.camera.updateProjectionMatrix();
 
       this.renderer.setSize(
-        this.$refs.canvas.clientWidth,
-        this.$refs.canvas.clientHeight - keyboardHeight
+          this.$refs.canvas.clientWidth,
+          this.$refs.canvas.clientHeight - keyboardHeight,
       );
     },
 
     animate() {
-        // Update lastUpdate time and compute the time difference since last update.
-        const delta = Date.now() - this.lastUpdateTime;
-        this.lastUpdateTime = Date.now();
-        // Tell three.js to give us another frame!
-        requestAnimationFrame(this.animate);
-        if (this.$store.getters.getClockStatus) {
-          // Update camera position.
-          // Camera moves down to give the illusion that every noteblock goes up.
-          this.camera.position.y += (1 / 10) * delta * 3;
-        }
-        // Tell renderer to re-render.
-        this.renderer.render(this.scene, this.camera);
+      // Update lastUpdate time and compute the time difference since last update.
+      const delta = Date.now() - this.lastUpdateTime;
+      this.lastUpdateTime = Date.now();
+      // Tell three.js to give us another frame!
+      requestAnimationFrame(this.animate);
+      if (this.$store.getters.getClockStatus) {
+        // Update camera position.
+        // Camera moves down to give the illusion that every noteblock goes up.
+        this.camera.position.y += (1 / 10) * delta * 3;
+      }
+      // Tell renderer to re-render.
+      this.renderer.render(this.scene, this.camera);
     },
 
     keyDown(noteEvent) {
       let noteInput = noteEvent.name;
-      if (noteInput == null){
-        noteInput = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
-          
+      if (noteInput == null) {
+        noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
       }
       // console.log("player", noteEvent.player, "sent keyDown note ", noteInput, noteEvent.type, noteEvent.midi);
       if (this.$store.getters.getClockStatus) {
-        // TODO pianoRoll should be based on Midi number. 
-        if (document.getElementsByClassName(noteInput.replace("#", "s"))[0]) {
+        // TODO pianoRoll should be based on Midi number.
+        if (document.getElementsByClassName(noteInput.replace('#', 's'))[0]) {
           const notePosition = document
-            .getElementsByClassName(noteInput.replace("#", "s"))[0]
-            .getBoundingClientRect();
+              .getElementsByClassName(noteInput.replace('#', 's'))[0]
+              .getBoundingClientRect();
 
           // Define the noteblock plane.
           const plane = new THREE.Mesh(geometry, (noteEvent.player == playerType.AGENT) ? agentMaterial : humanMaterial);
@@ -184,9 +183,8 @@ export default {
 
     keyUp(noteEvent) {
       let noteInput = noteEvent.name;
-      if (noteInput == null){
-        noteInput = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
-          
+      if (noteInput == null) {
+        noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
       }
       // console.log("player", noteEvent.player, "sent keyUp note ", noteInput, noteEvent.type, noteEvent.midi);
       const selector = (noteEvent.player == playerType.AGENT) ? playerType.AGENT + noteInput : playerType.HUMAN + noteInput;
@@ -195,8 +193,8 @@ export default {
         const note = this.currentNotes[selector].shift();
         // Change its scale and position.
         note.plane.scale.y = Math.max(
-          this.camera.position.y - note.position,
-          5
+            this.camera.position.y - note.position,
+            5,
         );
         note.plane.position.y =
           this.$refs.canvas.clientHeight +
@@ -206,21 +204,21 @@ export default {
       }
     },
     keyDownDummy() {
-        console.log("keyDown\n\n\n\n\n\n\n\n\n");
-        // Define the noteblock plane.
-        const plane = new THREE.Mesh(geometry,  humanMaterial);
-        const noteWidth = 30;
-        plane.scale.set(noteWidth, 10000, 1);
+      console.log('keyDown\n\n\n\n\n\n\n\n\n');
+      // Define the noteblock plane.
+      const plane = new THREE.Mesh(geometry, humanMaterial);
+      const noteWidth = 30;
+      plane.scale.set(noteWidth, 10000, 1);
 
-        // Define the plane's position.
-        plane.position.x = 100 + noteWidth / 2 + 10;
-        plane.position.y =
+      // Define the plane's position.
+      plane.position.x = 100 + noteWidth / 2 + 10;
+      plane.position.y =
             window.innerHeight + this.camera.position.y + 10000 / 2;
-        plane.position.z = 0;
+      plane.position.z = 0;
 
-        // Add that plane to the scene.
-        this.scene.add(plane);
-        },
+      // Add that plane to the scene.
+      this.scene.add(plane);
+    },
   },
 };
 </script>

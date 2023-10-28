@@ -5,41 +5,41 @@
         <div class="label">{{ label }}</div>
     </div>
 </template>
-  
+
 <script>
 export default {
-    name: 'HorizontalSlider',
-    props: {
-        value: {
-            type: Number,
-            required: true
-        },
-        min: {
-            type: Number,
-            default: 0
-        },
-        max: {
-            type: Number,
-            default: 100
-        },
-        label: {
-            type: String,
-            default: ""
-        }
+  name: 'HorizontalSlider',
+  props: {
+    value: {
+      type: Number,
+      required: true,
     },
-    methods: {
-        updateValue(value) {
-            // When the slider value changes, emit the 'input' event
-            this.$emit('input', Number(value));
-            // Update the background image for the slider
-            let percent100 = (value - this.min) / (this.max - this.min) * 100;
-            let bg = `linear-gradient(90deg, var(--bg-value-color) 0%, var(--bg-value-color) ${percent100}%, var(--bg-range-color) ${percent100}%, var(--bg-range-color) 100%)`;
-            this.$el.querySelector('input').style.backgroundImage = bg;
-        }
-    }
-}
+    min: {
+      type: Number,
+      default: 0,
+    },
+    max: {
+      type: Number,
+      default: 100,
+    },
+    label: {
+      type: String,
+      default: '',
+    },
+  },
+  methods: {
+    updateValue(value) {
+      // When the slider value changes, emit the 'input' event
+      this.$emit('input', Number(value));
+      // Update the background image for the slider
+      const percent100 = (value - this.min) / (this.max - this.min) * 100;
+      const bg = `linear-gradient(90deg, var(--bg-value-color) 0%, var(--bg-value-color) ${percent100}%, var(--bg-range-color) ${percent100}%, var(--bg-range-color) 100%)`;
+      this.$el.querySelector('input').style.backgroundImage = bg;
+    },
+  },
+};
 </script>
-  
+
 <style scoped>
 .horizontal-slider {
     height: 50px;
@@ -76,4 +76,4 @@ export default {
     opacity: 1;
 }
 </style>
-  
+

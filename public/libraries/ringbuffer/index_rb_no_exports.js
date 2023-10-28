@@ -16,7 +16,7 @@
 function deinterleave(input, output) {
   const channel_count = input.length / 256;
   if (output.length !== channel_count) {
-    throw RangeError("not enough space in output arrays");
+    throw RangeError('not enough space in output arrays');
   }
   for (let i = 0; i < channel_count; i++) {
     const out_channel = output[i];
@@ -40,7 +40,7 @@ function deinterleave(input, output) {
  */
 function interleave(input, output) {
   if (input.length * 128 !== output.length) {
-    throw RangeError("input and output of incompatible sizes");
+    throw RangeError('input and output of incompatible sizes');
   }
   let out_idx = 0;
   for (let i = 0; i < 128; i++) {
@@ -70,8 +70,8 @@ class AudioWriter {
    * @constructor
    */
   constructor(ringbuf) {
-    if (ringbuf.type() !== "Float32Array") {
-      throw TypeError("This class requires a ring buffer of Float32Array");
+    if (ringbuf.type() !== 'Float32Array') {
+      throw TypeError('This class requires a ring buffer of Float32Array');
     }
     this.ringbuf = ringbuf;
   }
@@ -115,8 +115,8 @@ class AudioReader {
    * @constructor
    */
   constructor(ringbuf) {
-    if (ringbuf.type() !== "Float32Array") {
-      throw TypeError("This class requires a ring buffer of Float32Array");
+    if (ringbuf.type() !== 'Float32Array') {
+      throw TypeError('This class requires a ring buffer of Float32Array');
     }
     this.ringbuf = ringbuf;
   }
@@ -175,8 +175,8 @@ class ParameterWriter {
    * @constructor
    */
   constructor(ringbuf) {
-    if (ringbuf.type() !== "Uint8Array") {
-      throw TypeError("This class requires a ring buffer of Uint8Array");
+    if (ringbuf.type() !== 'Uint8Array') {
+      throw TypeError('This class requires a ring buffer of Uint8Array');
     }
     const SIZE_ELEMENT = 5;
     this.ringbuf = ringbuf;
@@ -269,7 +269,7 @@ class RingBuffer {
    */
   static getStorageForCapacity(capacity, type) {
     if (!type.BYTES_PER_ELEMENT) {
-      throw TypeError("Pass in a ArrayBuffer subclass");
+      throw TypeError('Pass in a ArrayBuffer subclass');
     }
     const bytes = 8 + (capacity + 1) * type.BYTES_PER_ELEMENT;
     return new SharedArrayBuffer(bytes);
@@ -283,7 +283,7 @@ class RingBuffer {
    */
   constructor(sab, type) {
     if (type.BYTES_PER_ELEMENT === undefined) {
-      throw TypeError("Pass a concrete typed array class as second argument");
+      throw TypeError('Pass a concrete typed array class as second argument');
     }
 
     // Maximum usable size is 1<<32 - type.BYTES_PER_ELEMENT bytes in the ring
@@ -335,9 +335,9 @@ class RingBuffer {
 
     // publish the enqueued data to the other side
     Atomics.store(
-      this.write_ptr,
-      0,
-      (wr + to_write) % this._storage_capacity()
+        this.write_ptr,
+        0,
+        (wr + to_write) % this._storage_capacity(),
     );
 
     return to_write;
@@ -378,14 +378,14 @@ class RingBuffer {
 
     // This part will cause GC: don't use in the real time thread.
     const first_part_buf = new this._type(
-      this.storage.buffer,
-      8 + wr * this.storage.BYTES_PER_ELEMENT,
-      first_part
+        this.storage.buffer,
+        8 + wr * this.storage.BYTES_PER_ELEMENT,
+        first_part,
     );
     const second_part_buf = new this._type(
-      this.storage.buffer,
-      8 + 0,
-      second_part
+        this.storage.buffer,
+        8 + 0,
+        second_part,
     );
 
     const written = cb(first_part_buf, second_part_buf) || to_write;
@@ -609,5 +609,5 @@ class RingBuffer {
 // exports.RingBuffer = RingBuffer;
 // exports.deinterleave = deinterleave;
 // exports.interleave = interleave;
-//# sourceMappingURL=libraries/index.js.map
+// # sourceMappingURL=libraries/index.js.map
 // export {AudioReader, AudioWriter, ParameterReader, ParameterWriter, RingBuffer, deinterleave, interleave};

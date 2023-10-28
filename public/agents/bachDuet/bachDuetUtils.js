@@ -1,40 +1,59 @@
-import { clampMidi } from './../../../src/utils/math.js';
-import { NoteEvent } from './../../../src/utils/NoteEvent.js'
+import {clampMidi} from './../../../src/utils/math.js';
+import {NoteEvent} from './../../../src/utils/NoteEvent.js';
 
-const BAR =  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1];
-const BEAT = [0,-2,-1,-2, 0,-2,-1,-2, 0,-2,-1,-2, 0,-2,-1,-2];
-const ACCENT =[0,-3,-2,-3,-2,-4,-3,-4,-1,-3,-2,-3,-2,-4,-3,-4];
+const BAR = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1];
+const BEAT = [0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2];
+const ACCENT =[0, -3, -2, -3, -2, -4, -3, -4, -1, -3, -2, -3, -2, -4, -3, -4];
 
-function euterpeTickToBachDuetTick(tick){
-    let rhythmToken =   BAR[tick].toString() + '_' + 
-                        BEAT[tick].toString() + '_' + 
+/**
+ * Converts a tick from Euterpe to a tick in BachDuet.
+ * @param {number} tick - The tick to convert.
+ * @return {number} The converted tick.
+ */
+export function euterpeTickToBachDuetTick(tick) {
+    const rhythmToken = BAR[tick].toString() + '_' +
+                        BEAT[tick].toString() + '_' +
                         ACCENT[tick].toString();
     return self.tokenIndexDict.rhythm.token2index[rhythmToken];
 }
 
-function euterpeNoteToBachDuetNote(noteEvent){
+
+/**
+ * Converts a note from Euterpe to a note in BachDuet.
+ * @param {NoteEvent} noteEvent - The note to convert.
+ * @return {Object} The converted note.
+ */
+export function euterpeNoteToBachDuetNote(noteEvent) {
     let artic;
-    if (noteEvent.type == self.noteType.NOTE_HOLD) 
+    if (noteEvent.type == self.noteType.NOTE_HOLD) {
         artic = 0;
-    else if (noteEvent.type == self.noteType.NOTE_ON) 
+    } else if (noteEvent.type == self.noteType.NOTE_ON) {
         artic = 1;
-    let midi = clampMidi(noteEvent.midi, 28, 94);
-    let midiArtic = midi.toString() + '_' + artic.toString();
-    let midiArticInd = self.tokenIndexDict.midiArtic.token2index[midiArtic];
-    return {midi: midi, 
-            artic: artic, 
-            midiArticInd: midiArticInd,
-            cpc: noteEvent.midi % 12};
+    }
+    const midi = clampMidi(noteEvent.midi, 28, 94);
+    const midiArtic = midi.toString() + '_' + artic.toString();
+    const midiArticInd = self.tokenIndexDict.midiArtic.token2index[midiArtic];
+    return {
+        midi: midi,
+        artic: artic,
+        midiArticInd: midiArticInd,
+        cpc: noteEvent.midi % 12,
+    };
 }
 
-function bachDuetNoteToEuterpeNote (bachDuetNote){
-    let noteList = [];
+/**
+ * Converts a note from BachDuet to a list of MICP NoteEvents.
+ * @param {Object} bachDuetNote - The note to convert.
+ * @return {NoteEvent} The converted note.
+ */
+export function bachDuetNoteToEuterpeNote(bachDuetNote) {
+    const noteList = [];
     if (bachDuetNote.artic == 1) {
         // BachDuet generated a new note_on event
         // so we first need to send a note_off event for the previous note
         // unless the previous note was a rest.
         if (self.lastBachDuetNote.midi != 0) {
-            let prevNoteOff = new NoteEvent();
+            const prevNoteOff = new NoteEvent();
             prevNoteOff.player = self.playerType.AGENT;
             prevNoteOff.instrument = self.instrumentType.PIANO;
             prevNoteOff.type = self.noteType.NOTE_OFF;
@@ -43,13 +62,13 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
             prevNoteOff.playAfter = {
                 tick: 1,
                 seconds: 0,
-            }
+            };
             noteList.push(prevNoteOff);
         }
 
         if (bachDuetNote.midi != 0) {
-            // Now we create the new note_on event
-            let newNoteOn = new NoteEvent();
+        // Now we create the new note_on event
+            const newNoteOn = new NoteEvent();
             newNoteOn.player = self.playerType.AGENT;
             newNoteOn.instrument = self.instrumentType.PIANO;
             newNoteOn.type = self.noteType.NOTE_ON;
@@ -58,7 +77,7 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
             newNoteOn.playAfter = {
                 tick: 1,
                 seconds: 0,
-            }
+            };
             noteList.push(newNoteOn);
         }
     } else if (bachDuetNote.artic == 0) {
@@ -69,7 +88,7 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
         // In this case we send a 'note on' event to Euterpe
         if (self.lastBachDuetNote.midi != bachDuetNote.midi) {
             if (self.lastBachDuetNote.midi != 0) {
-                let prevNoteOff = new NoteEvent();
+                const prevNoteOff = new NoteEvent();
                 prevNoteOff.player = self.playerType.AGENT;
                 prevNoteOff.instrument = self.instrumentType.PIANO;
                 prevNoteOff.type = self.noteType.NOTE_OFF;
@@ -78,12 +97,11 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
                 prevNoteOff.playAfter = {
                     tick: 1,
                     seconds: 0,
-                }
+                };
                 noteList.push(prevNoteOff);
-                console.log("midi OFF (inhold)", prevNoteOff.midi);
+                console.log('midi OFF (inhold)', prevNoteOff.midi);
             }
-
-            let newNoteOn = new NoteEvent();
+            const newNoteOn = new NoteEvent();
             newNoteOn.player = self.playerType.AGENT;
             newNoteOn.instrument = self.instrumentType.PIANO;
             newNoteOn.type = self.noteType.NOTE_ON;
@@ -92,60 +110,63 @@ function bachDuetNoteToEuterpeNote (bachDuetNote){
             newNoteOn.playAfter = {
                 tick: 1,
                 seconds: 0,
-            }
+            };
             noteList.push(newNoteOn);
-            console.log("midi ON (inhold) ", bachDuetNote.midi);
+            console.log('midi ON (inhold) ', bachDuetNote.midi);
         }
     }
     return noteList;
-
 }
 
-function bachDuetInference(midiInput_t, cpcInput_t, rhythmInput_t){
-    
-    let exodos = self.modelEmb.predict([midiInput_t, cpcInput_t, rhythmInput_t]);
-    let embMidi = exodos[0];
-    let embCpc = exodos[1];
-    let embRhy = exodos[2];
-    let embMidiC = tf.concat([embMidi.slice([0,0,0],[1,1,150]),embMidi.slice([0,1,0],[1,1,150])], 2);
-    let embCpcC = tf.concat([embCpc.slice([0,0,0],[1,1,150]),embCpc.slice([0,1,0],[1,1,150])], 2);
-    let totalInp = tf.concat([embMidiC, embCpcC, embRhy],2);
-    let out = self.modelLstm.predict([totalInp, self.states1A, self.states1B, self.states2A, self.states2B]);
+/**
+ * The BachDuet neural network inference code
+ * @param {Tensor2D} midiInputTensor
+ * @param {Tensor2D} cpcInputTensor
+ * @param {Tensor1D} rhythmInputTensor
+ * @return {Object}
+ */
+export function bachDuetInference(midiInputTensor, cpcInputTensor, rhythmInputTensor) {
+    const exodos = self.modelEmb.predict([midiInputTensor, cpcInputTensor, rhythmInputTensor]);
+    const embMidi = exodos[0];
+    const embCpc = exodos[1];
+    const embRhy = exodos[2];
+    const embMidiC = tf.concat([embMidi.slice([0, 0, 0], [1, 1, 150]),
+        embMidi.slice([0, 1, 0], [1, 1, 150])], 2);
+    const embCpcC = tf.concat([embCpc.slice([0, 0, 0], [1, 1, 150]),
+        embCpc.slice([0, 1, 0], [1, 1, 150])], 2);
+    const totalInp = tf.concat([embMidiC, embCpcC, embRhy], 2);
+    const out = self.modelLstm.predict([totalInp,
+        self.states1A, self.states1B, self.states2A, self.states2B]);
     self.states1A = out[1];
     self.states1B = out[2];
     self.states2A = out[3];
     self.states2B = out[4];
-    let logits = out[0]
-    let logits_temp = logits.div(self.temperature/100);
-    let predictedNote = tf.multinomial(logits_temp, 2);
-    let midiArticInd = predictedNote.dataSync()[0];
-    let midiArtic = self.tokenIndexDict.midiArtic.index2token[midiArticInd];
-    let midi = parseInt(midiArtic.split("_")[0]);
-    let artic = parseInt(midiArtic.split("_")[1]);
-    let cpc = (midi === 0) ? 12 : midi % 12;
-    return {midi: midi, 
-            artic: artic, 
-            cpc: cpc, 
-            midiArticInd: midiArticInd
-        };
+    const logits = out[0];
+    const logitsTemp = logits.div(self.temperature/100);
+    const predictedNote = tf.multinomial(logitsTemp, 2);
+    const midiArticInd = predictedNote.dataSync()[0];
+    const midiArtic = self.tokenIndexDict.midiArtic.index2token[midiArticInd];
+    const midi = parseInt(midiArtic.split('_')[0]);
+    const artic = parseInt(midiArtic.split('_')[1]);
+    const cpc = (midi === 0) ? 12 : midi % 12;
+    return {midi: midi,
+        artic: artic,
+        cpc: cpc,
+        midiArticInd: midiArticInd,
+    };
 }
 
-function resetBachDuetState(){
-    console.log("reseting state");
+/**
+ * Resets the BachDuet state
+ */
+export function resetBachDuetState() {
+    console.log('reseting state');
     // self.states1A = tf.zeros([1,600]);
     // self.states1B = tf.zeros([1,600]);
     // self.states2A = tf.zeros([1,600]);
     // self.states2B = tf.zeros([1,600]);
-    self.states1A = tf.randomNormal([1,600]);
-    self.states1B = tf.randomNormal([1,600]);
-    self.states2A = tf.randomNormal([1,600]);
-    self.states2B = tf.randomNormal([1,600]);
-
-
+    self.states1A = tf.randomNormal([1, 600]);
+    self.states1B = tf.randomNormal([1, 600]);
+    self.states2A = tf.randomNormal([1, 600]);
+    self.states2B = tf.randomNormal([1, 600]);
 }
-
-export {euterpeTickToBachDuetTick,
-        euterpeNoteToBachDuetNote,
-        bachDuetNoteToEuterpeNote,
-        bachDuetInference,
-        resetBachDuetState}

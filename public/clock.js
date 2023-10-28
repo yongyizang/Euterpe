@@ -21,7 +21,7 @@ function tick() {
   // console.log("tick");
 }
 
-self.onmessage = function (msg) {
+self.onmessage = function(msg) {
   const data = msg.data;
   if (data.action === 'setBPM') {
     bpm = data.bpm;
