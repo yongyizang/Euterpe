@@ -1,10 +1,3 @@
-<!-- <template>
-    <div ref="mixer" id="mixerId" :width="width" :height="height"
-            style="position: absolute; top: 300px; left: 20px; z-index: 100; width: 400px; height: 400px;"
-            @mousedown="startDrag"
-            >
-    </div>
-  </template> -->
 <template>
     <div :ref="ref_c" :id="id_c" :style="{
         position: `${position}`,
@@ -21,241 +14,240 @@
 import {Pane} from 'tweakpane';
 
 export default {
-  name: 'MixerComponent',
-  props: {
-    ref_c: {
-      type: String,
-      default: 'mixer',
-    },
-    id_c: {
-      type: String,
-      default: 'mixerId',
-    },
-    position: {
-      type: String,
-      default: 'absolute',
-    },
-    top: {
-      type: Number,
-      default: 323,
-    },
-    left: {
-      type: Number,
-      default: 10,
-    },
-    width: {
-      type: Number,
-      default: 200,
-    },
-    // height: {
-    //     type: Number,
-    //     default: 400
-    // },
-    // cssClasses: {
-    //   default: '',
-    //   type: String
-    // },
-    // styles: {
-    //   type: Object,
-    //   default: () => {}
-    // },
-  },
-  data() {
-    return {
-      pane: null,
-      data: {},
-      playersConfig: null,
-      title: '',
-    };
-  },
-  beforeCreate() {
-    console.log('beforeCreate mixer start');
-    // this.$root.$refs.mixer = this;
-    console.log('beforeCreate mixer end');
-  },
-  created() {
-    console.log('created mixer start');
-    this.$root.$refs.mixer = this;
-    // this.startAnalyser();
-    console.log(' created mixer end');
-  },
-  mounted() {
-    console.log('mounted mixer start');
-    this.getMixerData();
-  },
-
-  methods: {
-    startDrag(event) {
-      // If event.target.className is not a string return
-      if (typeof event.target.className !== 'string') return;
-      // if that string contains 'fldv' or 'rotv'
-      if (event.target.className.includes('fldv') ||
-                event.target.className.includes('rotv')
-      ) {
-        this.isDragging = true;
-        this.offsetX = event.clientX - this.$refs.mixer.getBoundingClientRect().left;
-        this.offsetY = event.clientY - this.$refs.mixer.getBoundingClientRect().top;
-        window.addEventListener('mousemove', this.handleDrag);
-        window.addEventListener('mouseup', this.stopDrag);
-      }
-    },
-    handleDrag(event) {
-      if (this.isDragging) {
-        // Update the element's position based on the mouse movement
-        this.$refs.mixer.style.left = event.clientX - this.offsetX + 'px';
-        this.$refs.mixer.style.top = event.clientY - this.offsetY + 'px';
-      }
-    },
-    stopDrag(event) {
-      this.isDragging = false;
-      window.removeEventListener('mouseup', this.stopDrag);
-      window.removeEventListener('mousemove', this.handleDrag);
-      event.stopPropagation();
-      event.preventDefault();
-      event.cancelBubble = true;
-    },
-    loadMixerConfig(playersConfig) {
-      const vm = this;
-      vm.playersConfig = playersConfig;
-      vm.pane = new Pane({
-        container: vm.$refs.mixer,
-        title: 'Mixer',
-      });
-      // vm.pane.on('fold', (ev) => {
-      //     console.log('changed: ', ev.value);
-      //     // ev.stopPropagation();
-      //     // ev.preventDefault();
-      //     // ev.cancelBubble = true;
-      // });
-      // vm.pane.on('change', (ev) => {
-      //     console.log(ev);
-      //     console.log('changed: ' + JSON.stringify(ev.value));
-      // });
-
-      // Create the mixer data object for Pane.
-      for (const [player, playerData] of Object.entries(vm.playersConfig)) {
-        vm.data[`${player}`] = {
-          label: playerData.label,
-          mute: playerData.mute,
-          volume: playerData.volume,
-          instruments: {},
-        };
-        playerData.instruments.forEach((instrument) => {
-          console.log(instrument.id + ' ' + instrument.label);
-          vm.data[`${player}`].instruments[`${instrument.id}`] = {
-            label: instrument.label,
-            mute: instrument.mute,
-            volume: instrument.volume,
-          };
-        });
-      };
-
-      // Iterate over the 'players' in the config file
-      for (const [player, playerData] of Object.entries(vm.data)) {
-        console.log(player, ' ', playerData);
-        const playerFolder = vm.pane.addFolder({
-          title: playerData.label,
-          expanded: true,
-        });
-        playerFolder.addInput(vm.data[player], 'volume',
-            {
-              label: 'vol.',
-              min: 1,
-              max: 10,
-            }).on('change', (ev) => {
-          const changeEvent = {
-            playerId: player,
-            instrumentId: null,
-            what: 'volume',
-            value: ev,
-          };
-          vm.updateData(changeEvent);
+    name: 'MixerComponent',
+    props: {
+        ref_c: {
+            type: String,
+            default: 'mixer',
         },
-        );
-        playerFolder.addInput(vm.data[player], 'mute',
-            {
-              label: 'mute',
-            }).on('change', (ev) => {
-          const changeEvent = {
-            playerId: player,
-            instrumentId: null,
-            what: 'mute',
-            value: ev,
-          };
-          vm.updateData(changeEvent);
+        id_c: {
+            type: String,
+            default: 'mixerId',
         },
-        );
-        for (const [instId, instData] of Object.entries(playerData.instruments)) {
-          console.log(instData.label);
-          // player.instruments.forEach((instrument) => {
-          const instFolder = playerFolder.addFolder({
-            title: instData.label,
-            expanded: false,
-          });
-          console.log('added sub');
-          instFolder.addInput(vm.data[player].instruments[instId], 'volume',
-              {
-                label: 'vol.',
-                min: 1,
-                max: 10,
-              }).on('change', (ev) => {
-            const changeEvent = {
-              playerId: player,
-              instrumentId: instId,
-              what: 'volume',
-              value: ev,
-            };
-            vm.updateData(changeEvent);
-          },
-          );
-          instFolder.addInput(vm.data[player].instruments[instId], 'mute',
-              {
-                label: 'mute',
-              }).on('change', (ev) => {
-            const changeEvent = {
-              playerId: player,
-              instrumentId: instId,
-              what: 'mute',
-              value: ev,
-            };
-            vm.updateData(changeEvent);
-          },
-          );
+        position: {
+            type: String,
+            default: 'absolute',
+        },
+        top: {
+            type: Number,
+            default: 323,
+        },
+        left: {
+            type: Number,
+            default: 10,
+        },
+        width: {
+            type: Number,
+            default: 200,
+        },
+        // height: {
+        //     type: Number,
+        //     default: 400
+        // },
+        // cssClasses: {
+        //   default: '',
+        //   type: String
+        // },
+        // styles: {
+        //   type: Object,
+        //   default: () => {}
+        // },
+    },
+    data() {
+        return {
+            pane: null,
+            data: {},
+            playersConfig: null,
+            title: '',
         };
-      }
     },
-    // manuallyUpdateData() {
-    //     let vm = this;
-    //     for (const [player, playerData] of Object.entries(vm.data)) {
-    //         let changeEvent = {
-    //             playerId: player,
-    //             instrumentId: null,
-    //             what: 'volume',
-    //             value: ev
-    //         }
-    //         vm.updateData(changeEvent);
-    //         for (const [instId, instData] of Object.entries(playerData.instruments)) {
-    //             let changeEvent = {
-    //                 playerId: player,
-    //                 instrumentId: instId,
-    //                 what: 'volume',
-    //                 value: ev
-    //             }
-    //             vm.updateData(changeEvent);
-    //         };
-    //     }
-    // },
-    updateData(changeEvent) {
-      // Emit a signal to push the mixer change
-      // to the parent component, which will update
-      // the samplers' statuses
-      this.$emit('newEventSignal', changeEvent);
+    beforeCreate() {
+        console.log('beforeCreate mixer start');
+        // this.$root.$refs.mixer = this;
+        console.log('beforeCreate mixer end');
     },
-    getMixerData() {
-      this.$emit('getMixerDataSignal', this.data);
+    created() {
+        console.log('created mixer start');
+        this.$root.$refs.mixer = this;
+        // this.startAnalyser();
+        console.log(' created mixer end');
     },
-  },
+    mounted() {
+        console.log('mounted mixer start');
+        this.getMixerData();
+    },
 
+    methods: {
+        startDrag(event) {
+            // If event.target.className is not a string return
+            if (typeof event.target.className !== 'string') return;
+            // if that string contains 'fldv' or 'rotv'
+            if (event.target.className.includes('fldv') ||
+                        event.target.className.includes('rotv')
+            ) {
+                this.isDragging = true;
+                this.offsetX = event.clientX - this.$refs.mixer.getBoundingClientRect().left;
+                this.offsetY = event.clientY - this.$refs.mixer.getBoundingClientRect().top;
+                window.addEventListener('mousemove', this.handleDrag);
+                window.addEventListener('mouseup', this.stopDrag);
+            }
+        },
+        handleDrag(event) {
+            if (this.isDragging) {
+                // Update the element's position based on the mouse movement
+                this.$refs.mixer.style.left = event.clientX - this.offsetX + 'px';
+                this.$refs.mixer.style.top = event.clientY - this.offsetY + 'px';
+            }
+        },
+        stopDrag(event) {
+            this.isDragging = false;
+            window.removeEventListener('mouseup', this.stopDrag);
+            window.removeEventListener('mousemove', this.handleDrag);
+            event.stopPropagation();
+            event.preventDefault();
+            event.cancelBubble = true;
+        },
+        loadMixerConfig(playersConfig) {
+            const vm = this;
+            vm.playersConfig = playersConfig;
+            vm.pane = new Pane({
+                container: vm.$refs.mixer,
+                title: 'Mixer',
+            });
+            // vm.pane.on('fold', (ev) => {
+            //     console.log('changed: ', ev.value);
+            //     // ev.stopPropagation();
+            //     // ev.preventDefault();
+            //     // ev.cancelBubble = true;
+            // });
+            // vm.pane.on('change', (ev) => {
+            //     console.log(ev);
+            //     console.log('changed: ' + JSON.stringify(ev.value));
+            // });
+
+            // Create the mixer data object for Pane.
+            for (const [player, playerData] of Object.entries(vm.playersConfig)) {
+                vm.data[`${player}`] = {
+                    label: playerData.label,
+                    mute: playerData.mute,
+                    volume: playerData.volume,
+                    instruments: {},
+                };
+                playerData.instruments.forEach((instrument) => {
+                    console.log(instrument.id + ' ' + instrument.label);
+                    vm.data[`${player}`].instruments[`${instrument.id}`] = {
+                        label: instrument.label,
+                        mute: instrument.mute,
+                        volume: instrument.volume,
+                    };
+                });
+            };
+
+            // Iterate over the 'players' in the config file
+            for (const [player, playerData] of Object.entries(vm.data)) {
+                console.log(player, ' ', playerData);
+                const playerFolder = vm.pane.addFolder({
+                    title: playerData.label,
+                    expanded: true,
+                });
+                playerFolder.addInput(vm.data[player], 'volume',
+                    {
+                        label: 'vol.',
+                        min: 1,
+                        max: 10,
+                    }).on('change', (ev) => {
+                    const changeEvent = {
+                        playerId: player,
+                        instrumentId: null,
+                        what: 'volume',
+                        value: ev,
+                    };
+                    vm.updateData(changeEvent);
+                },
+                );
+                playerFolder.addInput(vm.data[player], 'mute',
+                    {
+                        label: 'mute',
+                    }).on('change', (ev) => {
+                    const changeEvent = {
+                        playerId: player,
+                        instrumentId: null,
+                        what: 'mute',
+                        value: ev,
+                    };
+                    vm.updateData(changeEvent);
+                },
+                );
+                for (const [instId, instData] of Object.entries(playerData.instruments)) {
+                    console.log(instData.label);
+                    // player.instruments.forEach((instrument) => {
+                    const instFolder = playerFolder.addFolder({
+                        title: instData.label,
+                        expanded: false,
+                    });
+                    console.log('added sub');
+                    instFolder.addInput(vm.data[player].instruments[instId], 'volume',
+                        {
+                            label: 'vol.',
+                            min: 1,
+                            max: 10,
+                        }).on('change', (ev) => {
+                        const changeEvent = {
+                            playerId: player,
+                            instrumentId: instId,
+                            what: 'volume',
+                            value: ev,
+                        };
+                        vm.updateData(changeEvent);
+                    },
+                    );
+                    instFolder.addInput(vm.data[player].instruments[instId], 'mute',
+                        {
+                            label: 'mute',
+                        }).on('change', (ev) => {
+                        const changeEvent = {
+                            playerId: player,
+                            instrumentId: instId,
+                            what: 'mute',
+                            value: ev,
+                        };
+                        vm.updateData(changeEvent);
+                    },
+                    );
+                };
+            }
+        },
+        // manuallyUpdateData() {
+        //     let vm = this;
+        //     for (const [player, playerData] of Object.entries(vm.data)) {
+        //         let changeEvent = {
+        //             playerId: player,
+        //             instrumentId: null,
+        //             what: 'volume',
+        //             value: ev
+        //         }
+        //         vm.updateData(changeEvent);
+        //         for (const [instId, instData] of Object.entries(playerData.instruments)) {
+        //             let changeEvent = {
+        //                 playerId: player,
+        //                 instrumentId: instId,
+        //                 what: 'volume',
+        //                 value: ev
+        //             }
+        //             vm.updateData(changeEvent);
+        //         };
+        //     }
+        // },
+        updateData(changeEvent) {
+            // Emit a signal to push the mixer change
+            // to the parent component, which will update
+            // the samplers' statuses
+            this.$emit('newEventSignal', changeEvent);
+        },
+        getMixerData() {
+            this.$emit('getMixerDataSignal', this.data);
+        },
+    },
 };
 </script>
 <style>

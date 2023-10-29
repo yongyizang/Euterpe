@@ -10,24 +10,24 @@ import samplers from './modules/samplers';
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-  state: {
+    state: {
 
-  },
-  actions: {
+    },
+    actions: {
 
-  },
-  mutations: {
+    },
+    mutations: {
 
-  },
-  getters: {
+    },
+    getters: {
 
-  },
-  modules: {
-    noteBuffers,
-    tickNumber,
-    globalSettings,
-    samplers,
-    // add new modules here in this manner:
-    // newmodule,
-  },
+    },
+    modules: {
+        noteBuffers,
+        tickNumber,
+        globalSettings,
+        samplers,
+        // add new modules here in this manner:
+        // newmodule,
+    },
 });

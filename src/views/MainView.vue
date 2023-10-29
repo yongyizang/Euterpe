@@ -3,7 +3,7 @@
 Import custom components
 */
 import Keyboard from '@/components/Keyboard.vue';
-import PianoRoll from '@/components/PianoRollLegacy.vue';
+import PianoRoll from '@/components/PianoRoll.vue';
 import Score from '@/components/Score.vue';
 import VerticalSlider from '@/components/VerticalSlider.vue';
 // import HorizontalSlider from '@/components/HorizontalSlider.vue'
@@ -59,7 +59,7 @@ export default {
             // Choose the agent.
             // This string should be one of
             // dir names inside public/agents/
-            agentName: 'copycat',
+            agentName: 'meydaDemo',
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml',

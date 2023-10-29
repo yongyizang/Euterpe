@@ -28,21 +28,21 @@
  *    - `noteModeSettings.gridBased.quantizedEvents: true`
  * 3) the current clock tick number
  *
- * @returns {Object=} - An optional object containing results to be sent to the UI.
+ * @return {Object} - An optional object containing results to be sent to the UI.
  *  For example, you can send a list of notes to be played using the
  * `NOTE_LIST` message type.
  */
 export function processClockEvent(content) {
-  // Put your code here
-  // let agentOutputNoteList = [];
+    // Put your code here
+    let agentOutputNoteList = [];
 
-  /*
+    /*
     At this stage, the agent has finished processing the clock event
     and may send results to the UI. We can send a list of notes to be
     played using the `NOTE_LIST` message type.
     e.g.:
-    return {
-        [self.messageType.NOTE_LIST]: agentOutputNoteList
-    }
     */
+    return {
+        [self.messageType.NOTE_LIST]: agentOutputNoteList,
+    };
 }

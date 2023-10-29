@@ -8,16 +8,16 @@
  *  for the loaded AudioWorklet.
  */
 export function urlFromFiles(files) {
-  const promises = files.map((file) =>
-    fetch(file).then((response) => response.text()),
-  );
+    const promises = files.map((file) =>
+        fetch(file).then((response) => response.text()),
+    );
 
-  return Promise.all(promises).then((texts) => {
-    const text = texts.join('');
-    const blob = new Blob([text], {type: 'application/javascript'});
+    return Promise.all(promises).then((texts) => {
+        const text = texts.join('');
+        const blob = new Blob([text], {type: 'application/javascript'});
 
-    return URL.createObjectURL(blob);
-  });
+        return URL.createObjectURL(blob);
+    });
 }
 
 export const isNotChrome = navigator.userAgent.indexOf('Chrome') <= -1;
@@ -43,20 +43,20 @@ export const isMobile = /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry
  * @param {number} channelCount is the number of channels.
  */
 export function deinterleaveCustom(input, output, channelCount) {
-  // const channelCount = input.length / 256;
-  const sampleLength = input.length / channelCount;
-  if (output.length !== channelCount) {
-    // eslint-disable-next-line new-cap
-    throw RangeError('not enough space in output arrays');
-  }
-  for (let i = 0; i < channelCount; i++) {
-    const outChannel = output[i];
-    let interleavedIndex = i;
-    for (let j = 0; j < sampleLength; ++j) {
-      outChannel[j] = input[interleavedIndex];
-      interleavedIndex += channelCount;
+    // const channelCount = input.length / 256;
+    const sampleLength = input.length / channelCount;
+    if (output.length !== channelCount) {
+        // eslint-disable-next-line new-cap
+        throw RangeError('not enough space in output arrays');
     }
-  }
+    for (let i = 0; i < channelCount; i++) {
+        const outChannel = output[i];
+        let interleavedIndex = i;
+        for (let j = 0; j < sampleLength; ++j) {
+            outChannel[j] = input[interleavedIndex];
+            interleavedIndex += channelCount;
+        }
+    }
 }
 
 /**
@@ -64,8 +64,8 @@ export function deinterleaveCustom(input, output, channelCount) {
  * @param {number} delay - The amount of time to block in milliseconds.
  */
 export function simulateBlockingOperation(delay) {
-  const startTime = Date.now();
-  while (Date.now() - startTime < delay) {
-    // Blocking loop
-  }
+    const startTime = Date.now();
+    while (Date.now() - startTime < delay) {
+        // Blocking loop
+    }
 }

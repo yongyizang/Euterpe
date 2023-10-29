@@ -1,5 +1,7 @@
 <template>
-    <div ref="textBox" class="wrapper" :style="{ height: height + 'px', width: width + 'px' }" @mousedown="startDrag">
+    <div ref="textBox" class="wrapper"
+        :style="{ height: height + 'px', width: width + 'px' }"
+        @mousedown="startDrag">
         <div class="title" v-if="title">{{ title }}</div>
         <div class="text">
             <p>{{ text }}</p>
@@ -11,50 +13,51 @@
 <script>
 import '../css/variables.css';
 export default {
-  name: 'TextBox',
-  props: {
-    height: {
-      type: Number,
-      required: true,
+    name: 'TextBox',
+    props: {
+        height: {
+            type: Number,
+            required: true,
+        },
+        width: {
+            type: Number,
+            required: true,
+        },
+        title: {
+            type: String,
+            default: null,
+        },
+        text: {
+            type: String,
+            default: '',
+        },
     },
-    width: {
-      type: Number,
-      required: true,
+    methods: {
+        startDrag(event) {
+            if (typeof event.target.className !== 'string') return;
+            // if that string contains 'fldv' or 'rotv'
+            if (event.target.className.includes('title')) {
+                this.isDragging = true;
+                this.offsetX = this.$refs.textBox.getBoundingClientRect().right - event.clientX;
+                this.offsetY = event.clientY - this.$refs.textBox.getBoundingClientRect().top;
+                window.addEventListener('mousemove', this.handleDrag);
+                window.addEventListener('mouseup', this.stopDrag);
+            }
+        },
+        handleDrag(event) {
+            if (this.isDragging) {
+                // Update the element's position based on the mouse movement
+                this.$refs.textBox.style.right =
+                    window.innerWidth - event.clientX - this.offsetX + 'px';
+                this.$refs.textBox.style.top = event.clientY - this.offsetY + 'px';
+            }
+        },
+        stopDrag() {
+            this.isDragging = false;
+            window.removeEventListener('mousemove', this.handleDrag);
+            window.removeEventListener('mouseup', this.stopDrag);
+        },
     },
-    title: {
-      type: String,
-      default: null,
-    },
-    text: {
-      type: String,
-      default: '',
-    },
-  },
-  methods: {
-    startDrag(event) {
-      if (typeof event.target.className !== 'string') return;
-      // if that string contains 'fldv' or 'rotv'
-      if (event.target.className.includes('title')) {
-        this.isDragging = true;
-        this.offsetX = this.$refs.textBox.getBoundingClientRect().right - event.clientX;
-        this.offsetY = event.clientY - this.$refs.textBox.getBoundingClientRect().top;
-        window.addEventListener('mousemove', this.handleDrag);
-        window.addEventListener('mouseup', this.stopDrag);
-      }
-    },
-    handleDrag(event) {
-      if (this.isDragging) {
-        // Update the element's position based on the mouse movement
-        this.$refs.textBox.style.right = window.innerWidth - event.clientX - this.offsetX + 'px';
-        this.$refs.textBox.style.top = event.clientY - this.offsetY + 'px';
-      }
-    },
-    stopDrag() {
-      this.isDragging = false;
-      window.removeEventListener('mousemove', this.handleDrag);
-      window.removeEventListener('mouseup', this.stopDrag);
-    },
-  },
 };
 </script>
 

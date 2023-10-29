@@ -1,6 +1,7 @@
 <template>
     <div class="vertical-slider">
-        <input type="range" :min="min" :max="max" :value="value" @input="updateValue($event.target.value)" class="slider"
+        <input type="range" :min="min" :max="max" :value="value"
+            @input="updateValue($event.target.value)" class="slider"
             orient="vertical">
         <div class="label">{{ label }}</div>
     </div>
@@ -8,31 +9,31 @@
 
 <script>
 export default {
-  name: 'VerticalSlider',
-  props: {
-    value: {
-      type: Number,
-      required: true,
+    name: 'VerticalSlider',
+    props: {
+        value: {
+            type: Number,
+            required: true,
+        },
+        min: {
+            type: Number,
+            default: 0,
+        },
+        max: {
+            type: Number,
+            default: 100,
+        },
+        label: {
+            type: String,
+            default: '',
+        },
     },
-    min: {
-      type: Number,
-      default: 0,
+    methods: {
+        updateValue(value) {
+            // When the slider value changes, emit the 'input' event
+            this.$emit('input', Number(value));
+        },
     },
-    max: {
-      type: Number,
-      default: 100,
-    },
-    label: {
-      type: String,
-      default: '',
-    },
-  },
-  methods: {
-    updateValue(value) {
-      // When the slider value changes, emit the 'input' event
-      this.$emit('input', Number(value));
-    },
-  },
 };
 </script>
 

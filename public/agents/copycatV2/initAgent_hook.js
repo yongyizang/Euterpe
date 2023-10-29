@@ -50,21 +50,21 @@ self.switch1 = false;
  * @param {object} newUpdate - An object containing information about the UI parameter update.
  */
 export function updateParameter(newUpdate) {
-  switch (newUpdate.index) {
+    switch (newUpdate.index) {
     case self.uiParameterType.SLIDER_1:
-      self.slider1 = newUpdate.value;
-      break;
+        self.slider1 = newUpdate.value;
+        break;
     case self.uiParameterType.SWITCH_1:
-      self.switch1 = newUpdate.value;
-      break;
+        self.switch1 = newUpdate.value;
+        break;
     case self.uiParameterType.BUTTON_1:
-      // Call a function here. For example:
-      // callbackForButton1();
-      break;
+        // Call a function here. For example:
+        // callbackForButton1();
+        break;
     default:
-      console.warn('Invalid parameter type');
-      break;
-  }
+        console.warn('Invalid parameter type');
+        break;
+    }
 }
 
 
@@ -73,12 +73,12 @@ export function updateParameter(newUpdate) {
  *
  */
 export async function loadExternalFiles() {
-  // For example:
-  // await fetch('extraData.json').then(response => {
-  //     return response.json();
-  // }).then(data => {
-  //     self.externalData = data;
-  // });
+    // For example:
+    // await fetch('extraData.json').then(response => {
+    //     return response.json();
+    // }).then(data => {
+    //     self.externalData = data;
+    // });
 }
 
 /**
@@ -91,54 +91,54 @@ export async function loadExternalFiles() {
  *
  */
 export async function loadAlgorithm() {
-  // A simple example of loading a model with TensorFlow.js:
-  // tf.setBackend('webgl');
-  // try {
-  //     self.model = await tf.loadLayersModel('Checkpoints/model.json');
-  // } catch (error) {
-  //     console.error(error);
-  // }
-  // Or loading a model with Magenta.js:
-  // self.model = new piano_genie.PianoGenie(GENIE_CHECKPOINT);
-  // await self.model.initialize();
+    // A simple example of loading a model with TensorFlow.js:
+    // tf.setBackend('webgl');
+    // try {
+    //     self.model = await tf.loadLayersModel('Checkpoints/model.json');
+    // } catch (error) {
+    //     console.error(error);
+    // }
+    // Or loading a model with Magenta.js:
+    // self.model = new piano_genie.PianoGenie(GENIE_CHECKPOINT);
+    // await self.model.initialize();
 
-  // Optional message for the Euterpe/UI
-  // postMessage({
-  //     hookType: self.agentHookType.INIT_AGENT,
-  //     message:{
-  //         [self.messageType.STATUS]:
-  //                 self.statusType.LOADED,
-  //         [self.messageType.TEXT]:
-  //                 "Core algorithm is loaded",
-  //     },
-  // })
+    // Optional message for the Euterpe/UI
+    // postMessage({
+    //     hookType: self.agentHookType.INIT_AGENT,
+    //     message:{
+    //         [self.messageType.STATUS]:
+    //                 self.statusType.LOADED,
+    //         [self.messageType.TEXT]:
+    //                 "Core algorithm is loaded",
+    //     },
+    // })
 
-  // Warm up the model if needed
-  // for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
-  //     // Put your code here for warming up the model
+    // Warm up the model if needed
+    // for (let i = 0; i < self.config.agentSettings.warmupRounds; i++) {
+    //     // Put your code here for warming up the model
 
-  //     // Optional message for the Euterpe/UI
-  //     postMessage({
-  //         hookType: self.agentHookType.INIT_AGENT,
-  //         message:{
-  //             [self.messageType.STATUS]:
-  //                     self.statusType.WARMUP,
-  //             [self.messageType.TEXT]:
-  //                     "Agent is warming up: " + (i + 1) + "/" +
-  //                     self.config.agentSettings.warmupRounds,
-  //         },
-  //     })
-  // }
+    //     // Optional message for the Euterpe/UI
+    //     postMessage({
+    //         hookType: self.agentHookType.INIT_AGENT,
+    //         message:{
+    //             [self.messageType.STATUS]:
+    //                     self.statusType.WARMUP,
+    //             [self.messageType.TEXT]:
+    //                     "Agent is warming up: " + (i + 1) + "/" +
+    //                     self.config.agentSettings.warmupRounds,
+    //         },
+    //     })
+    // }
 
-  // Once your model/agent is ready to play,
-  // the UI expects a success message, don't forget to send it.
-  postMessage({
-    hookType: self.agentHookType.INIT_AGENT,
-    message: {
-      [self.messageType.STATUS]:
-                    self.statusType.SUCCESS,
-      [self.messageType.TEXT]:
-                    'The Agent is ready to interact with you!',
-    },
-  });
+    // Once your model/agent is ready to play,
+    // the UI expects a success message, don't forget to send it.
+    postMessage({
+        hookType: self.agentHookType.INIT_AGENT,
+        message: {
+            [self.messageType.STATUS]:
+                            self.statusType.SUCCESS,
+            [self.messageType.TEXT]:
+                            'The Agent is ready to interact with you!',
+        },
+    });
 }

@@ -2,7 +2,8 @@
     <div class="bpm-slider">
         <span class="label">{{ internalValue }}</span>
         <div class="range">
-            <input class="horizontal slider" type="range" :min="min" :max="max" v-model="internalValue"
+            <input class="horizontal slider" type="range"
+                :min="min" :max="max" v-model="internalValue"
                 @change="handleSliderChange($event.target.value)"
                 @input="handleSliderDrag($event.target.value)"
             />
@@ -15,53 +16,57 @@
 // TODO: Unify style with other sliders.
 
 export default {
-  name: 'BPMSlider',
-  props: {
-    value: {
-      type: Number,
-      required: true,
-      default: 80,
-    },
-    min: {
-      type: Number,
-      default: 60,
-    },
-    max: {
-      type: Number,
-      default: 120,
-    },
-  },
-
-  data() {
-    return {
-      internalValue: this.value,
-    };
-  },
-
-  watch: {
-    value(newVal) {
-      this.internalValue = newVal;
-    },
-  },
-
-  mounted() {
-    this.handleSliderDrag(this.internalValue);
-  },
-
-  methods: {
-    handleSliderChange(value) {
-      // When the slider value changes, emit the 'input' event
-      this.$emit('bpmChangeEvent', Number(value));
-      this.handleSliderDrag(value);
+    name: 'BPMSlider',
+    props: {
+        value: {
+            type: Number,
+            required: true,
+            default: 80,
+        },
+        min: {
+            type: Number,
+            default: 60,
+        },
+        max: {
+            type: Number,
+            default: 120,
+        },
     },
 
-    handleSliderDrag(value) {
-      // Update the background image for the slider
-      const percent100 = (value - this.min) / (this.max - this.min) * 100;
-      const bg = `linear-gradient(90deg, var(--bg-value-color) 0%, var(--bg-value-color) ${percent100}%, var(--bg-range-color) ${percent100}%, var(--bg-range-color) 100%)`;
-      this.$el.querySelector('input').style.backgroundImage = bg;
+    data() {
+        return {
+            internalValue: this.value,
+        };
     },
-  },
+
+    watch: {
+        value(newVal) {
+            this.internalValue = newVal;
+        },
+    },
+
+    mounted() {
+        this.handleSliderDrag(this.internalValue);
+    },
+
+    methods: {
+        handleSliderChange(value) {
+            // When the slider value changes, emit the 'input' event
+            this.$emit('bpmChangeEvent', Number(value));
+            this.handleSliderDrag(value);
+        },
+
+        handleSliderDrag(value) {
+            // Update the background image for the slider
+            const percent100 = (value - this.min) / (this.max - this.min) * 100;
+            const bg = `linear-gradient(90deg, 
+                var(--bg-value-color) 0%, 
+                var(--bg-value-color) ${percent100}%, 
+                var(--bg-range-color) ${percent100}%, 
+                var(--bg-range-color) 100%)`;
+            this.$el.querySelector('input').style.backgroundImage = bg;
+        },
+    },
 };
 </script>
 
