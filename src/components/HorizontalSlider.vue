@@ -58,6 +58,7 @@ export default {
 .slider {
     writing-mode: bt-lr;
     /* IE */
+    appearance: none; /* Standard property */
     -webkit-appearance: slider-horizontal;
     /* WebKit */
     width: 200px;

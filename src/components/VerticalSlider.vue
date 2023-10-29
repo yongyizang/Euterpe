@@ -50,6 +50,7 @@ export default {
 .slider {
     writing-mode: bt-lr;
     /* IE */
+    appearance: none; /* Standard property */
     -webkit-appearance: slider-vertical;
     /* WebKit */
     width: 20px;

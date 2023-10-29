@@ -39,7 +39,8 @@ const getters = {
         return state.config.clockSettings.ticksPerBeat;
     },
     getTicksPerMeasure(state) {
-        return state.config.clockSettings.timeSignature.numerator * state.config.clockSettings.ticksPerBeat;
+        return state.config.clockSettings.timeSignature.numerator *
+            state.config.clockSettings.ticksPerBeat;
     },
     getSecondsPerTick(state) {
         return 60 / state.currentBPM / state.config.clockSettings.ticksPerBeat;

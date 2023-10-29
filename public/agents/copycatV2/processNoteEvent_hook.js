@@ -1,4 +1,4 @@
-import {NoteEvent} from './../../../src/utils/NoteEvent.js';
+// import {NoteEvent} from './../../../src/utils/NoteEvent.js';
 
 /**
  * Hook for processing single user note events.
@@ -20,7 +20,7 @@ import {NoteEvent} from './../../../src/utils/NoteEvent.js';
  */
 export function processNoteEvent(noteEvent) {
     // Put your code here
-    let noteList = [];
+    const noteList = [];
 
     /*
     At this stage, the worker has finished processing the note event.

@@ -196,7 +196,7 @@ export default {
     methods: {
         noteActive(note) {
             // If the note is active, the state of that note is true.
-            const midi = Note.midi(note);
+            // const midi = Note.midi(note);
             // return this.$store.getters.getPianoState[midi].status === true;
             return false;
         },

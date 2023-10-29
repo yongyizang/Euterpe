@@ -168,7 +168,7 @@ const getters = {
             let ind = 0;
             while (state.agentNotesToBePlayed.length > 0 && ind <= numElems) {
                 if (state.agentNotesToBePlayed.get(0)._playAt.tick < currentGlobalTick) {
-                    const discard = state.agentNotesToBePlayed.remove(0);
+                    state.agentNotesToBePlayed.remove(0); // const discard =
                     ind++;
                 } else if (state.agentNotesToBePlayed.get(0)._playAt.tick === currentGlobalTick) {
                     notesToBePlayed.push(state.agentNotesToBePlayed.remove(0));

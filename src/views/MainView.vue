@@ -432,9 +432,14 @@ export default {
         };
 
         // Prevent spacebar trigger any button
-        document.querySelectorAll('button').forEach(function(item) {
-            item.addEventListener('focus', function() {
-                this.blur();
+        // document.querySelectorAll('button').forEach(function(item) {
+        //     item.addEventListener('focus', function() {
+        //         this.blur();
+        //     });
+        // });
+        document.querySelectorAll('button').forEach((item) => {
+            item.addEventListener('focus', () => {
+                item.blur();
             });
         });
 
@@ -1298,6 +1303,7 @@ export default {
 
         loadConfigSync() {
             // Read about sync and async requests here:
+            // eslint-disable-next-line max-len
             // https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
             // In our case, we need to load the config asap, since
             // the config contains also info to generate the UI.
