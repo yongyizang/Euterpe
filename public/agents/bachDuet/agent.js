@@ -212,7 +212,7 @@ function initAudio(content) {
     */
     staging = new Float32Array(self.hopSize);
 
-    Meyda.bufferSize = self.config.audioModeSettings.windowSize;
+    // Meyda.bufferSize = self.config.audioModeSettings.windowSize;
     // console.log(self.windowSize, " ", self.Meyda.bufferSize);
     stagingIntervalID = setInterval(_readFromQueue, 10);
     console.log('finished setting up audio');
