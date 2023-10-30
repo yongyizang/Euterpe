@@ -1,7 +1,7 @@
 ---
 # The name of your system
-title: "Euterpe Demo"
-subtitle: "A music interaction system framework"
+title: "GridyCopycat"
+subtitle: "Built with Euterpe"
 
 # Set the correct flags based on the type of your music interaction algorithm
 interactionMode: 
@@ -37,6 +37,10 @@ audioModeSettings:
 # The settings for the clockBased operation.
 # These are taken into account not only if "noteMode: true"
 clockSettings:
+  # If autoStart is true, then the clock starts just after 
+  # the intro screen is shown without the need for the user
+  # to hit the play button (or the space bar)
+  autoStart: false
   # You need to set the clock's tick duration.
   # This can happen either by: 
 
@@ -64,8 +68,8 @@ agentSettings:
 # Choose the text to be displayed in the splash screen animation
 introModal: false
 introModalContent:
-  - "Hi! This is a Demo Agent."
-  - "A 16th-grid quantized monophonic interaction"
+  - "Hi! This is GridyCopycat."
+  - "I mimic your input similar to 'Copycat', but in a 16th-grid quantized monophonic interaction"
 
 custom:
   useTriggerRelease: true

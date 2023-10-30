@@ -1,7 +1,7 @@
 ---
 # The name of your system
 title: "Meyda Demo"
-subtitle: "Using Euterpe"
+subtitle: "Built with Euterpe"
 
 # Set the correct flags based on the type of your music interaction algorithm
 interactionMode: 
@@ -38,6 +38,10 @@ audioModeSettings:
 # The settings for the clockBased operation.
 # These are taken into account not only if "noteMode: true"
 clockSettings:
+  # If autoStart is true, then the clock starts just after 
+  # the intro screen is shown without the need for the user
+  # to hit the play button (or the space bar)
+  autoStart: true
   # You need to set the clock's tick duration.
   # This can happen either by: 
 
@@ -65,6 +69,7 @@ agentSettings:
 # Choose the text to be displayed in the splash screen animation
 introModal: false
 introModalContent:
-  - "Hi! This is a Meyda demo"
+  - "Hi! This is a basic agent to demonstrate the audio-input capabilities of Euterpe"
+  - "It uses Meyda to estimate rms and chroma features from the audio input"
 custom:
   useTriggerRelease: true

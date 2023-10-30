@@ -1,7 +1,7 @@
 ---
 # The name of your system
-title: "Empty Agent Template"
-subtitle: "Using Euterpe"
+title: "Empty Agent"
+subtitle: "Built with Euterpe"
 
 # Set the correct flags based on the type of your music interaction algorithm
 interactionMode: 
@@ -38,6 +38,10 @@ audioModeSettings:
 # The settings for the clockBased operation.
 # These are taken into account not only if "noteMode: true"
 clockSettings:
+  # If autoStart is true, then the clock starts just after 
+  # the intro screen is shown without the need for the user
+  # to hit the play button (or the space bar)
+  autoStart: true
   # You need to set the clock's tick duration.
   # This can happen either by: 
 
