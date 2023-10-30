@@ -398,7 +398,7 @@ export default {
                         firstX: this.lastSvgGroupTrebleXOffset_lastNote_prevBar + 40,
                         lastX: this.xTreble + 40,
                         firstY: this.lastDrawnNote_Human_prevBar.getYs()[0],
-                        last_y: notesToDraw[0].getYs()[0],
+                        lastY: notesToDraw[0].getYs()[0],
                         direction: -1,
                     });
                     this.barTieHuman = false;
@@ -425,7 +425,7 @@ export default {
                         firstX: firstX + 40,
                         lastX: lastX + 40,
                         firstY: notesToDraw[0].getYs()[0],
-                        last_y: notesToDraw[1].getYs()[0],
+                        lastY: notesToDraw[1].getYs()[0],
                         direction: -1,
                     });
                     firstX = lastX;
