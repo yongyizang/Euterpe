@@ -1,7 +1,6 @@
 import {NoteEvent} from './../../../src/utils/NoteEvent.js';
 import {clamp} from './../../../src/utils/math.js';
 
-
 /**
  * Hook for processing single user note events.
  * This hook is invoked every time a note/midi

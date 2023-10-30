@@ -15,6 +15,7 @@ export function processClockEvent(content) {
 
     const quantizedEvents = content.humanQuantizedInput;
     const noteList = [];
+    const message = {};
 
     // filter the notes with note.type === self.noteType.NOTE_ON
     const noteOnEvents = quantizedEvents.filter((note) => note.type === self.noteType.NOTE_ON);
@@ -29,7 +30,7 @@ export function processClockEvent(content) {
             noteOffResponse.midi = lastNote.midi;
             noteOffResponse.velocity = lastNote.velocity;
             noteOffResponse.playAfter = {
-                tick: 8,
+                tick: self.delay,
                 seconds: 0,
             };
             noteList.push(noteOffResponse);
@@ -41,19 +42,21 @@ export function processClockEvent(content) {
         noteOnResponse.player = self.playerType.AGENT;
         noteOnResponse.instrument = self.instrumentType.PIANO;
         noteOnResponse.type = currentNote.type;
-        noteOnResponse.midi = currentNote.midi - 12;
+        noteOnResponse.midi = currentNote.midi + self.pitchShift + Math.floor(Math.random() * self.randomness);
         noteOnResponse.velocity = currentNote.velocity;
         noteOnResponse.playAfter = {
-            tick: 8,
+            tick: self.delay,
             seconds: 0,
         },
         noteList.push(noteOnResponse);
         lastNote = noteOnResponse;
+        self.userToAgentNoteMapping[currentNote.midi] = noteOnResponse.midi;
         console.log('agent generated note: ' + noteOnResponse.midi);
     } else if (noteOnEvents.length === 0 && noteHoldEvents.length > 0) {
         if (lastNote) {
             // console.log(noteHoldEvents[0].midi, " ", lastNote.midi);
-            if (lastNote.midi + 12 !== noteHoldEvents[0].midi) {
+            // if (lastNote.midi + 12 !== noteHoldEvents[0].midi) {
+            if (lastNote.midi !== self.userToAgentNoteMapping[noteHoldEvents[0].midi]) {
                 // create a note off event
                 const noteOffResponse = new NoteEvent();
                 noteOffResponse.player = self.playerType.AGENT;
@@ -62,7 +65,7 @@ export function processClockEvent(content) {
                 noteOffResponse.midi = lastNote.midi;
                 noteOffResponse.velocity = lastNote.velocity;
                 noteOffResponse.playAfter = {
-                    tick: 8,
+                    tick: self.delay,
                     seconds: 0,
                 };
                 noteList.push(noteOffResponse);
@@ -79,7 +82,7 @@ export function processClockEvent(content) {
             noteOffResponse.midi = lastNote.midi;
             noteOffResponse.velocity = lastNote.velocity;
             noteOffResponse.playAfter = {
-                tick: 8,
+                tick: self.delay,
                 seconds: 0,
             };
             noteList.push(noteOffResponse);
@@ -93,10 +96,6 @@ export function processClockEvent(content) {
     console.log(actualBPM);
     self.param_writer.enqueue_change(3, actualBPM);
 
-    const message = {
-        // [self.messageType.CHROMA_VECTOR]: tickAverageChroma,
-        [self.messageType.NOTE_LIST]: noteList,
-        [self.messageType.LABEL]: 'Dm7',
-    };
+    message[self.messageType.NOTE_LIST] = noteList
     return message;
 }

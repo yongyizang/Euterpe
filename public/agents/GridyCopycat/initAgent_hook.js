@@ -21,8 +21,9 @@
  *      switch1 --> arpeggioType
  *      e.t.c
  */
-self.slider1 = 0;
-self.switch1 = false;
+self.randomness = 0.0;
+self.delay = 0;
+self.pitchShift = 0;
 
 /**
  * This function is invoked every time there is a change in the UI parameters.
@@ -52,14 +53,15 @@ self.switch1 = false;
 export function updateParameter(newUpdate) {
     switch (newUpdate.index) {
     case self.uiParameterType.SLIDER_1:
-        self.slider1 = newUpdate.value;
+        self.randomness = newUpdate.value;
         break;
-    case self.uiParameterType.SWITCH_1:
-        self.switch1 = newUpdate.value;
+    case self.uiParameterType.SLIDER_2:
+        // Divide by 100 to make the delay range from 0 to 16 ticks
+        self.delay = newUpdate.value;
         break;
-    case self.uiParameterType.BUTTON_1:
-        // Call a function here. For example:
-        // callbackForButton1();
+    case self.uiParameterType.SLIDER_3:
+        // Subtract 12 to make the pitch shift range from -12 to 12
+        self.pitchShift = newUpdate.value - 24;
         break;
     default:
         console.warn('Invalid parameter type');

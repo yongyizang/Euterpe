@@ -1,5 +1,6 @@
 <template>
-  <div ref="score" id="pianoScores">
+  <!-- <div ref="score" id="pianoScores"> -->
+  <div @wheel="onWheel" ref="score" id="pianoScores">
     <div v-touch:swipe.up="triggerCollapse" id="scoreWrapper">
       <div id="fadeBlockStart"></div>
       <div id="grandStaff"></div>
@@ -84,6 +85,7 @@ export default {
       durations: null,
       lastXOffsetOnBar: null, // TODO delete that after I'm done
       viewX: 30,
+      viewXOnWheel: 30,
       xTreble: 30,
       xBass: 30,
       xCurrent: 30,
@@ -279,6 +281,12 @@ export default {
         (steps * (this.scrollStepTime * this.tickStepPixels)) /
         ((1000 * 60) / this.$store.getters.getBPM / 4);
       this.context.setViewBox(this.viewX, 0, this.screenWidth, 300);
+      this.viewXOnWheel = this.viewX;
+    },
+
+    onWheel(event) {
+        this.viewXOnWheel -= (event.deltaX + event.deltaY);
+        this.context.setViewBox(this.viewXOnWheel, 0, this.screenWidth, 300);
     },
 
     formatQuantizedNote(quantNoteDict, clef = "treble", afairetis = 0) {
