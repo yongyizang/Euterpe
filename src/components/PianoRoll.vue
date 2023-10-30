@@ -141,7 +141,7 @@ export default {
             // if (noteInput == null) {
             //     noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
             // }
-            let noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+            const noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
             if (this.$store.getters.getClockStatus) {
                 // TODO pianoRoll should be based on Midi number.
                 if (document.getElementsByClassName(noteInput.replace('#', 's'))[0]) {

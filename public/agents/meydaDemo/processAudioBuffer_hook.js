@@ -9,17 +9,17 @@
  * audio data.Each Float32Array corresponds to a channel of audio data.
  */
 export function processAudioBuffer(buffer) {
-  /*
+    /*
     The audio buffer has 2 channels (stereo), buffer[0] and buffer[1]
     The buffers that processAudioBuffer receives are of size windowSize (config.yaml)
     And they are overlaped according to the hopSize (config.yaml)
     */
 
-  // console.log("audio buffer received")
-  // Υou can use Meyda to extract audio features from the left channel
-  const features = Meyda.extract(['rms', 'chroma'], buffer[0]);
+    // console.log("audio buffer received")
+    // Υou can use Meyda to extract audio features from the left channel
+    const features = Meyda.extract(['rms', 'chroma'], buffer[0]);
 
-  /*
+    /*
     Υou have the option to send those features to the UI for visualization.
     Since these features are estimated many times per second,
     it's better to push them to the sharedArrayBuffer queue that
@@ -34,16 +34,16 @@ export function processAudioBuffer(buffer) {
     and the second arg is the float value you want to send.
     */
 
-  self.param_writer.enqueue_change(0, features.rms);
+    self.param_writer.enqueue_change(0, features.rms);
 
-  /*
+    /*
     Here we push the overlapped audio frames and their features
     to the local queues. This is useful for agents that process both MIDI
     and  audio inputs at the same time as these queues can be accessed from both
     processClockEvent() and processNoteEvent() hooks.
     */
 
-  self.audio_frames_queue.push(buffer[0]);
-  self.audio_features_queue.push(features);
-  // console.log("audio buffer processed")
+    self.audio_frames_queue.push(buffer[0]);
+    self.audio_features_queue.push(features);
+    // console.log("audio buffer processed")
 }

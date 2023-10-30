@@ -96,6 +96,6 @@ export function processClockEvent(content) {
     console.log(actualBPM);
     self.param_writer.enqueue_change(3, actualBPM);
 
-    message[self.messageType.NOTE_LIST] = noteList
+    message[self.messageType.NOTE_LIST] = noteList;
     return message;
 }

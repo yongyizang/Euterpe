@@ -27,6 +27,7 @@ module.exports = {
     'plugins': [
         'vue',
     ],
+    'ignorePatterns': ['public/libraries/**/*'],
     'rules': {
         'indent': ['error', 4],
         'max-len': ['error', {'code': 100}],
