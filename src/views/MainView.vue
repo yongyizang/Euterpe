@@ -4,7 +4,7 @@ Import custom components
 */
 import Keyboard from '@/components/Keyboard.vue';
 import PianoRoll from '@/components/PianoRoll.vue';
-import Score from '@/components/Score.vue';
+import Score from '@/components/ScoreWorking.vue';
 import VerticalSlider from '@/components/VerticalSlider.vue';
 // import HorizontalSlider from '@/components/HorizontalSlider.vue'
 import AudioMeter from '@/components/AudioMeter.vue';
