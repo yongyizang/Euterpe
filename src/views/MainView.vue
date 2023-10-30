@@ -59,7 +59,7 @@ export default {
             // Choose the agent.
             // This string should be one of
             // dir names inside public/agents/
-            agentName: 'meydaDemo',
+            agentName: 'Copycat',
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml',
@@ -1465,7 +1465,7 @@ export default {
                                                 newState.value,
                                             )
                         ) {
-                            onsole.warn('Couldn\'t enqueue.');
+                            console.warn('Couldn\'t enqueue.');
                         }
                     }
                 });

@@ -22,7 +22,7 @@
  *      e.t.c
  */
 self.randomness = 0.0;
-self.delay = 0;
+self.delay = 0.0;
 self.pitchShift = -12;
 
 /**
@@ -56,9 +56,11 @@ export function updateParameter(newUpdate) {
         self.randomness = newUpdate.value;
         break;
     case self.uiParameterType.SLIDER_2:
+        // Divide by 100 to make the delay range from 0 to 2 seconds
         self.delay = newUpdate.value/100;
         break;
     case self.uiParameterType.SLIDER_3:
+        // Subtract 12 to make the pitch shift range from -12 to 12
         self.pitchShift = newUpdate.value - 12;
         break;
     default:

@@ -4,21 +4,20 @@ players:
     mute: false
     volume: 7
     instruments: 
-        # it must be one of the available instrument ids in
-        # public/audio/samples. You can't have two 
-        # instruments with the same id in the same player 
-      - id: "piano" 
-        label: "Piano" # can be anything
-        mute: false
-        volume: 7
-        default: true
+    # it must be one of the available instrument ids in audio/samples
+    # you can't have two instruments with the same id in the same player 
+    - id: "piano" 
+      label: "Piano" # can be anything
+      mute: false
+      volume: 7
+      default: true
   agent:
-    label: 'CopyCat'
+    label: 'Copycat'
     mute: false
     volume: 7
     instruments:
-      - id: "piano"
-        label: "Piano"
-        mute: false
-        volume: 7
-        default: true
+    - id: "piano"
+      label: "Piano"
+      mute: false
+      volume: 7
+      default: true
