@@ -59,7 +59,7 @@ export default {
             // Choose the agent.
             // This string should be one of
             // dir names inside public/agents/
-            agentName: 'EmptyAgent',
+            agentName: 'CallAndResponse',
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml',
@@ -880,6 +880,7 @@ export default {
                                 // console.log("NAI NAI NAI NIA NIA NIA ");
                                 this.$store.dispatch('storeAgentQuantizedOutput', noteEvent);
                             } else {
+                                // console.log("type ", noteEvent.type, " ", noteEvent.midi);
                                 vm.processAgentNoteEvent(noteEvent);
                             }
                         });

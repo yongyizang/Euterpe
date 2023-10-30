@@ -1,5 +1,5 @@
-import {NoteEvent} from './../../../src/utils/NoteEvent.js';
-import {clamp} from './../../../src/utils/math.js';
+import {NoteEvent} from '../../../src/utils/NoteEvent.js';
+import {clamp} from '../../../src/utils/math.js';
 
 /**
  * Hook for processing single user note events.
@@ -9,7 +9,7 @@ import {clamp} from './../../../src/utils/math.js';
  * For this hook to be invoked, make sure that in `config.yaml`,
  * the following flags are set to true:
  * - `interactionMode.noteMode: true`
- * - `nodeModeSettings.gridBased.status: true`
+ * - `nodeModeSettings.eventBased.status: true`
  *
  * @param {NoteEvent} noteEvent - A `NoteEvent` object representing
  * the note/midi event received by the user.

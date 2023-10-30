@@ -29,11 +29,12 @@ const actions = {
         const durationInSeconds = noteEvent.duration.seconds + context.getters.getSecondsPerTick *
                                     noteEvent.duration.tick;
         const instrumentLabel = instNamesMap[noteEvent.instrument];
+        const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
         if (noteEvent.player == playerType.AGENT) {
-            let name = noteEvent.name;
-            if (name == null) {
-                name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
-            }
+            // let name = noteEvent.name;
+            // if (name == null) {
+            // const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+            // }
             const instrumentToPlayOn = context.state.samplersAndBuses['agent']
                 .samplers[instrumentLabel];
             if (instrumentToPlayOn == null) {
@@ -49,6 +50,7 @@ const actions = {
     },
     samplerOn(context, noteEvent) {
         const instrumentLabel = instNamesMap[noteEvent.instrument];
+        const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
         if (noteEvent.player == playerType.HUMAN) {
             const instrumentToPlayOn = context.state.samplersAndBuses['human']
                 .samplers[instrumentLabel];
@@ -58,17 +60,17 @@ const actions = {
                 ' Make sure it is declared in the config_players file.');
             } else {
                 // console.log("samplerON before play ", Tone.now());
-                instrumentToPlayOn.triggerAttack(noteEvent.name,
+                instrumentToPlayOn.triggerAttack(name,
                     Tone.now() + noteEvent.playAfter.seconds,
                     noteEvent.velocity / 127);
             }
         } else if (noteEvent.player == playerType.AGENT) {
             // if noteEvent.name is null then use tonal.js to
             // get the name of the note from noteEvent.midi
-            let name = noteEvent.name;
-            if (name == null) {
-                name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
-            }
+            // let name = noteEvent.name;
+            // if (name == null) {
+            //     name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+            // }
             const instrumentToPlayOn = context.state.samplersAndBuses['agent']
                 .samplers[instrumentLabel];
             if (instrumentToPlayOn == null) {
@@ -92,6 +94,7 @@ const actions = {
     },
     samplerOff(context, noteEvent) {
         const instrumentLabel = instNamesMap[noteEvent.instrument];
+        const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
         if (noteEvent.player == playerType.HUMAN) {
             const instrumentToPlayOn =
                 context.state.samplersAndBuses['human'].samplers[instrumentLabel];
@@ -100,14 +103,14 @@ const actions = {
                     ' is not available for the Human. ' +
                     ' Make sure it is declared in the config_players file.');
             } else {
-                instrumentToPlayOn.triggerRelease(noteEvent.name,
+                instrumentToPlayOn.triggerRelease(name,
                     Tone.now() + noteEvent.playAfter.seconds + 0.0);
             }
         } else if (noteEvent.player == playerType.AGENT) {
-            let name = noteEvent.name;
-            if (name == null) {
-                name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
-            }
+            // let name = noteEvent.name;
+            // if (name == null) {
+            //     name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+            // }
             const instrumentToPlayOn =
                 context.state.samplersAndBuses['agent'].samplers[instrumentLabel];
             if (instrumentToPlayOn == null) {

@@ -34,7 +34,7 @@
  */
 export function processClockEvent(content) {
     // Put your code here
-    let agentOutputNoteList = [];
+    const agentOutputNoteList = [];
 
     /*
     At this stage, the agent has finished processing the clock event

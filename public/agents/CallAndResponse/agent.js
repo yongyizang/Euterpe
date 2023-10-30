@@ -6,15 +6,15 @@ import {
 import {processClockEvent} from './processClockEvent_hook.js';
 import {processNoteEvent} from './processNoteEvent_hook.js';
 import {processAudioBuffer} from './processAudioBuffer_hook.js';
-import {deinterleaveCustom} from '../../../src/utils/helpers.js';
-import {LIFOQueue} from '../../../src/utils/dataStructures.js';
-import {NoteEvent} from '../../../src/utils/NoteEvent.js';
+import {deinterleaveCustom} from './../../../src/utils/helpers.js';
+import {LIFOQueue} from './../../../src/utils/dataStructures.js';
+import {NoteEvent} from './../../../src/utils/NoteEvent.js';
 import {
     AudioReader,
     ParameterReader,
     ParameterWriter,
     RingBuffer,
-} from '../../libraries/ringbuffer/index_rb_exports.js';
+} from './../../libraries/ringbuffer/index_rb_exports.js';
 
 // Global variables shared between the agent.js and the hooks
 // need to be declared using the self keyword

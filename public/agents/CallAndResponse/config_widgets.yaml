@@ -1,0 +1,31 @@
+gui:
+  score: 
+    status: false
+  textBox:
+    status: false
+    title: "Note"
+  pianoRoll:
+    status: true
+    human: true
+    agent: true
+  keyboard:
+    status: true 
+    # set the visible octaves. Max range [0,8]
+    octaveStart: 2
+    octaveEnd: 6
+  chromaChart:
+    status: false
+  audioMeter: 
+    status: false
+  settingsModal:
+    sliders:
+      - id: 1
+        label: "Randomness"
+        value: 0
+        min: 0
+        max: 10
+      - id : 2
+        label: "Pitch Shift"
+        value: 0
+        min: 0
+        max: 24
