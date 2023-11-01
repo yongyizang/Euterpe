@@ -5,6 +5,22 @@ const BAR = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1];
 const BEAT = [0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2];
 const ACCENT =[0, -3, -2, -3, -2, -4, -3, -4, -1, -3, -2, -3, -2, -4, -3, -4];
 
+
+function createNote(midi, type) {
+    const noteOn = new NoteEvent();
+    noteOn.player = self.playerType.AGENT;
+    noteOn.instrument = self.instrumentType.PIANO;
+    noteOn.type = type;
+    noteOn.midi = midi;
+    noteOn.velocity = 127;
+    // Play it instantly
+    noteOn.playAfter = {
+        tick: 1,
+        seconds: 0,
+    };
+    return noteOn;
+}
+
 /**
  * Converts a tick from Euterpe to a tick in BachDuet.
  * @param {number} tick - The tick to convert.
@@ -53,32 +69,11 @@ export function bachDuetNoteToEuterpeNote(bachDuetNote) {
         // so we first need to send a note_off event for the previous note
         // unless the previous note was a rest.
         if (self.lastBachDuetNote.midi != 0) {
-            const prevNoteOff = new NoteEvent();
-            prevNoteOff.player = self.playerType.AGENT;
-            prevNoteOff.instrument = self.instrumentType.PIANO;
-            prevNoteOff.type = self.noteType.NOTE_OFF;
-            prevNoteOff.midi = self.lastBachDuetNote.midi;
-            prevNoteOff.velocity = 127;
-            prevNoteOff.playAfter = {
-                tick: 1,
-                seconds: 0,
-            };
-            noteList.push(prevNoteOff);
+            noteList.push(createNote(self.lastBachDuetNote.midi, self.noteType.NOTE_OFF));
         }
-
         if (bachDuetNote.midi != 0) {
         // Now we create the new note_on event
-            const newNoteOn = new NoteEvent();
-            newNoteOn.player = self.playerType.AGENT;
-            newNoteOn.instrument = self.instrumentType.PIANO;
-            newNoteOn.type = self.noteType.NOTE_ON;
-            newNoteOn.midi = bachDuetNote.midi;
-            newNoteOn.velocity = 127;
-            newNoteOn.playAfter = {
-                tick: 1,
-                seconds: 0,
-            };
-            noteList.push(newNoteOn);
+            noteList.push(createNote(bachDuetNote.midi, self.noteType.NOTE_ON));
         }
     } else if (bachDuetNote.artic == 0) {
         // check if the last note had the same midi.
@@ -88,31 +83,9 @@ export function bachDuetNoteToEuterpeNote(bachDuetNote) {
         // In this case we send a 'note on' event to Euterpe
         if (self.lastBachDuetNote.midi != bachDuetNote.midi) {
             if (self.lastBachDuetNote.midi != 0) {
-                const prevNoteOff = new NoteEvent();
-                prevNoteOff.player = self.playerType.AGENT;
-                prevNoteOff.instrument = self.instrumentType.PIANO;
-                prevNoteOff.type = self.noteType.NOTE_OFF;
-                prevNoteOff.midi = self.lastBachDuetNote.midi;
-                prevNoteOff.velocity = 127;
-                prevNoteOff.playAfter = {
-                    tick: 1,
-                    seconds: 0,
-                };
-                noteList.push(prevNoteOff);
-                console.log('midi OFF (inhold)', prevNoteOff.midi);
+                noteList.push(createNote(self.lastBachDuetNote.midi, self.noteType.NOTE_OFF));
             }
-            const newNoteOn = new NoteEvent();
-            newNoteOn.player = self.playerType.AGENT;
-            newNoteOn.instrument = self.instrumentType.PIANO;
-            newNoteOn.type = self.noteType.NOTE_ON;
-            newNoteOn.midi = bachDuetNote.midi;
-            newNoteOn.velocity = 127;
-            newNoteOn.playAfter = {
-                tick: 1,
-                seconds: 0,
-            };
-            noteList.push(newNoteOn);
-            console.log('midi ON (inhold) ', bachDuetNote.midi);
+            noteList.push(createNote(bachDuetNote.midi, self.noteType.NOTE_ON));
         }
     }
     return noteList;
