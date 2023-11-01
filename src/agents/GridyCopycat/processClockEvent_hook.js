@@ -5,6 +5,10 @@ let lastNote = null;
 let prevStartTime = performance.now();
 
 function createNote(midi, type) {
+    let delayFix = 0;
+    if (type == self.noteType.NOTE_ON) {
+        delayFix = 0.0;
+    }
     const noteOn = new NoteEvent();
     noteOn.player = self.playerType.AGENT;
     noteOn.instrument = self.instrumentType.PIANO;
@@ -14,7 +18,7 @@ function createNote(midi, type) {
     // Play it instantly
     noteOn.playAfter = {
         tick: self.delay,
-        seconds: 0,
+        seconds: delayFix,
     };
     return noteOn;
 }
