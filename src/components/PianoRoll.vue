@@ -141,7 +141,7 @@ export default {
             // if (noteInput == null) {
             //     noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
             // }
-            console.log("keyDown midi is ", noteEvent.midi);
+            // console.log("keyDown midi is ", noteEvent.midi);
             const noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
             if (this.$store.getters.getClockStatus) {
                 // TODO pianoRoll should be based on Midi number.
@@ -186,7 +186,7 @@ export default {
             // if (noteInput == null) {
             //     noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
             // }
-            console.log("keyUp midi is ", noteEvent.midi);
+            // console.log("keyUp midi is ", noteEvent.midi);
             const noteInput = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
             const selector = (noteEvent.player == playerType.AGENT) ?
                 playerType.AGENT + noteInput : playerType.HUMAN + noteInput;

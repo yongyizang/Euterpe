@@ -35,6 +35,7 @@ export function processClockEvent(content) {
     const noteOnEvents = quantizedEvents.filter((note) => note.type === self.noteType.NOTE_ON);
     const noteHoldEvents = quantizedEvents.filter((note) => note.type === self.noteType.NOTE_HOLD);
     if (noteOnEvents.length > 0) {
+        console.log(noteOnEvents[0].midi)
         if (lastNote) {
             // This means there is alread a note on, so we need to turn it off
             // we do that to ensure our agent outputs a monophonic melody
@@ -64,7 +65,7 @@ export function processClockEvent(content) {
     // calculations for monitoring the true BPM
     const actualPeriod = timeDiff;
     const actualBPM = 60 / (actualPeriod / 1000) / self.config.clockSettings.ticksPerBeat;
-    console.log(actualBPM);
+    // console.log(actualBPM);
     self.param_writer.enqueue_change(3, actualBPM);
 
     message[self.messageType.NOTE_LIST] = noteList;
