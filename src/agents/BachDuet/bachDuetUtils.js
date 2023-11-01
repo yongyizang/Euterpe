@@ -1,5 +1,5 @@
-import {clampMidi} from './../../../src/utils/math.js';
-import {NoteEvent} from './../../../src/utils/NoteEvent.js';
+import {clampMidi} from '@/utils/math.js';
+import {NoteEvent} from '@/utils/NoteEvent.js';
 
 const BAR = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1];
 const BEAT = [0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2, 0, -2, -1, -2];

@@ -57,8 +57,8 @@ export async function loadExternalFiles(content) {
 export async function loadAlgorithm() {
     tf.setBackend('webgl');
     try {
-        self.modelLstm = await tf.loadLayersModel('checkpoints/modelsFinal_Lstm/model.json');
-        self.modelEmb = await tf.loadLayersModel('checkpoints/modelsFinal_Emb/model_cleaned.json');
+        self.modelLstm = await tf.loadLayersModel('./checkpoints/modelsFinal_Lstm/model.json');
+        self.modelEmb = await tf.loadLayersModel('./checkpoints/modelsFinal_Emb/model_cleaned.json');
     } catch (error) {
         console.error(error);
     }

@@ -1,4 +1,4 @@
-// import {NoteEvent} from './../../../src/utils/NoteEvent.js';
+// import {NoteEvent} from '@/utils/NoteEvent.js';
 
 /**
  * Hook for processing single user note events.

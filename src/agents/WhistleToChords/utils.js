@@ -1,4 +1,4 @@
-import {average1d, max1d} from './../../../src/utils/math.js';
+import {average1d, max1d} from '@/utils/math.js';
 
 import { NoteEvent } from '../../../src/utils/NoteEvent.js';
 
@@ -16,7 +16,6 @@ const BOSA = {
     'root' :  [1,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0],
     'duration' : [1,0,3,0,0,1,0,1,0,1,0,0,1,0,1,0],
 }
-
 
 export class RunningHistogram {
     constructor(numBins, decayFactor) {

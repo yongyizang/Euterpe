@@ -1,7 +1,7 @@
 # Musical Agents
 
 ## Agent Files
-Agent-specific files are located in `public/agents/{agentName}/`:
+Agent-specific files are located in `src/agents/{agentName}/`:
 - `agent.js`: This is the main agent script that Euterpe calls to initialize the agent. It includes boilerplate code for the basic audio and MIDI functionalities of the agent and determines which hook to invoke based on messages received from Euterpe.
 
 - `initAgent_hook.js`: This file contains hook functions, such as `loadAlgorithm()`, and `loadExternalFiles()`. These hooks are invoked only at the beginning of the agent's lifecycle.
@@ -28,8 +28,8 @@ Additionally we provide some examples of already implemented agents in the same 
     - This is an agent that copies the user's input with a delay set by a slider. It's a monophonic 16th note grid-based interaction where both PianoRoll and the Score are used to visualize the musical interaction.
 - **CallAndResponse**
     - This is an agent that engages with a user in a free-time event-based call and response interaction. The agent waits for the user to finish their 'call' before responding with a 'response' of that mimics the user's input.
-- **MeydaDemo**
-    - This is a simple agent used only to demonstrate the audio input capabilities of Euterpe. It takes audio input from the microphone and estimates and displays audio features (rms and chroma vector) using the [Meyda](https://meyda.js.org/) library. 
+- **WhistleToChords**
+    - This is an agent that listens to you whistling and generates chord accompaniment based on basic rules. We built this agent to demonstrate the audio input capabilities of Euterpe. It takes audio input from the microphone and estimates and displays audio features (rms and chroma vector) using the [Meyda](https://meyda.js.org/) library. 
 - **PianoGenie**
     - This a re-implementation of the [Piano Genie](https://magenta.tensorflow.org/pianogenie) by Google Magent, using Euterpe. It's an neural-network agent that has the role of an intelligent musical instrument. The user can only use 8 buttons to play the piano, but the agent can generate a full 88-key piano performance.
 - **BachDuet**

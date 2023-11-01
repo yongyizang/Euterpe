@@ -1,4 +1,4 @@
-// import {NoteEvent} from './../../../src/utils/NoteEvent.js';
+// import {NoteEvent} from '@/utils/NoteEvent.js';
 
 /**
  * Hook for processing single user note events.
@@ -8,7 +8,7 @@
  * For this hook to be invoked, make sure that in `config.yaml`,
  * the following flags are set to true:
  * - `interactionMode.noteMode: true`
- * - `nodeModeSettings.gridBased.status: true`
+ * - `nodeModeSettings.eventBased.status: true`
  *
  * @param {NoteEvent} noteEvent - A `NoteEvent` object representing
  * the note/midi event received by the user.

@@ -1,3 +1,4 @@
+import 'https://cdn.jsdelivr.net/npm/meyda@5.6.1/dist/web/meyda.js';
 import {
     updateParameter,
     loadAlgorithm,
@@ -6,9 +7,9 @@ import {
 import {processClockEvent} from './processClockEvent_hook.js';
 import {processNoteEvent} from './processNoteEvent_hook.js';
 import {processAudioBuffer} from './processAudioBuffer_hook.js';
-import {deinterleaveCustom} from './../../../src/utils/helpers.js';
-import {LIFOQueue} from './../../../src/utils/dataStructures.js';
-import {NoteEvent} from './../../../src/utils/NoteEvent.js';
+import {deinterleaveCustom} from '@/utils/helpers.js';
+import {LIFOQueue} from '@/utils/dataStructures.js';
+import {NoteEvent} from '@/utils/NoteEvent.js';
 import {
     AudioReader,
     ParameterReader,
@@ -209,8 +210,8 @@ function initAudio(content) {
     // deadlines:
     */
     staging = new Float32Array(self.hopSize);
-
-    // Meyda.bufferSize = self.config.audioModeSettings.windowSize;
+    
+    Meyda.bufferSize = self.config.audioModeSettings.windowSize;
     // console.log(self.windowSize, " ", self.Meyda.bufferSize);
     stagingIntervalID = setInterval(_readFromQueue, 10);
     console.log('finished setting up audio');

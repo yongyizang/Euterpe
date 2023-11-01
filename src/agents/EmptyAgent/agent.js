@@ -6,9 +6,9 @@ import {
 import {processClockEvent} from './processClockEvent_hook.js';
 import {processNoteEvent} from './processNoteEvent_hook.js';
 import {processAudioBuffer} from './processAudioBuffer_hook.js';
-import {deinterleaveCustom} from './../../../src/utils/helpers.js';
-import {LIFOQueue} from './../../../src/utils/dataStructures.js';
-import {NoteEvent} from './../../../src/utils/NoteEvent.js';
+import {deinterleaveCustom} from '@/utils/helpers.js';
+import {LIFOQueue} from '@/utils/dataStructures.js';
+import {NoteEvent} from '@/utils/NoteEvent.js';
 import {
     AudioReader,
     ParameterReader,

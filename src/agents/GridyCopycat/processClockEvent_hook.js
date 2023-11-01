@@ -1,5 +1,4 @@
-import {NoteEvent} from './../../../src/utils/NoteEvent.js';
-import {average2d, shiftRight} from './../../../src/utils/math.js';
+import {NoteEvent} from '@/utils/NoteEvent.js';
 
 let lastNote = null;
 let prevStartTime = performance.now();
@@ -97,15 +96,6 @@ export function processClockEvent(content) {
     console.log(actualBPM);
     self.param_writer.enqueue_change(3, actualBPM);
 
-    // Chroma extraction from audio buffers
-    const features = self.audio_features_queue.toArrayAndClear();
-    const chromas = features.map((f) => f.chroma);
-    const averageChroma = average2d(chromas);
-    // The chroma's we get from Meyda seem to be shifted by 1 left.
-    // That's probably a bug in Meyda. We'll shift it back here.
-    shiftRight(averageChroma);
-
     message[self.messageType.NOTE_LIST] = noteList;
-    message[self.messageType.CHROMA_VECTOR] = averageChroma;
     return message;
 }

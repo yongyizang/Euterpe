@@ -1,4 +1,4 @@
-import {average2d, shiftRight, average1d} from './../../../src/utils/math.js';
+import {average2d, shiftRight, average1d} from '@/utils/math.js';
 import {RunningHistogram, getChord, 
         chordToNoteEvents, chromaToPitch,
         NOTE_PITCHES} from './utils.js';
