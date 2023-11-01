@@ -1,6 +1,6 @@
 ---
 # The name of your system
-title: "Meyda Demo"
+title: "WhistleToChords"
 subtitle: "Built with Euterpe"
 
 # Set the correct flags based on the type of your music interaction algorithm
@@ -32,8 +32,8 @@ noteModeSettings:
     delayedExecution: false
 
 audioModeSettings:
-  windowSize: 1024
-  hopSize: 512
+  windowSize: 8192
+  hopSize: 8192
 
 # The settings for the clockBased operation.
 # These are taken into account not only if "noteMode: true"
@@ -52,7 +52,7 @@ clockSettings:
     denominator: 4
   # This is just the default value. The user can later change it
   # from the settings menu (effectively changing the clock's period)
-  defaultBPM: 100
+  defaultBPM: 60
 
   # ---- OPTION 2: 
   # Set the clockPeriod explicitly (milliseconds >100)
@@ -70,6 +70,7 @@ agentSettings:
 introModal: false
 introModalContent:
   - "Hi! This is a basic agent to demonstrate the audio-input capabilities of Euterpe"
-  - "It uses Meyda to estimate rms and chroma features from the audio input"
+  - "It uses Meyda to estimate rms, chroma features and extract pitch from the audio input"
+  - "and then generates chords based on a simple rule based algorithm "
 custom:
   useTriggerRelease: true

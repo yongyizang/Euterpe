@@ -1,5 +1,6 @@
 // importScripts("https://cdn.jsdelivr.net/npm/meyda@5.6.0/dist/web/meyda.min.js")
-import 'https://cdn.jsdelivr.net/npm/meyda@5.6.1/dist/web/meyda.js';
+import 'https://cdn.jsdelivr.net/npm/meyda@5.6.1/dist/web/meyda.min.js';
+
 import {
     updateParameter,
     loadAlgorithm,
@@ -16,7 +17,7 @@ import {
     ParameterReader,
     ParameterWriter,
     RingBuffer,
-} from './../../libraries/ringbuffer/index_rb_exports.js';
+} from 'ringbuf.js';
 
 // Global variables shared between the agent.js and the hooks
 // need to be declared using the self keyword

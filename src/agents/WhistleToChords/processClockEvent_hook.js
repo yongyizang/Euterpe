@@ -1,7 +1,7 @@
 import {average2d, shiftRight, average1d} from '@/utils/math.js';
 import {RunningHistogram, getChord, 
         chordToNoteEvents, chromaToPitch,
-        NOTE_PITCHES} from './utils.js';
+        } from './utils.js';
 
 const runningNoteHistogram = new RunningHistogram(12, 0.9);
 let lastChord = null;

@@ -73,7 +73,7 @@ export function updateParameter(newUpdate) {
  *
  */
 export async function loadExternalFiles() {
-    await fetch('chord_histograms_minimized.json').then(response => {
+    await fetch('chord_histograms_majmin.json').then(response => {
         return response.json();
     }).then(data => {
         self.chordDict = data;

@@ -14,7 +14,7 @@ import {
     ParameterReader,
     ParameterWriter,
     RingBuffer,
-} from './../../libraries/ringbuffer/index_rb_exports.js';
+} from 'ringbuf.js';
 
 // Global variables shared between the agent.js and the hooks
 // need to be declared using the self keyword
