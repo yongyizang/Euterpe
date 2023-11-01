@@ -10,7 +10,7 @@ const router = new VueRouter({
         {
             path: '/',
             name: 'mainScreen',
-            component: () => import('../views/MainView.vue'),
+            component: () => import('../views/Euterpe.vue'),
         },
     ],
 });
