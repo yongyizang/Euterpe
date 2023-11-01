@@ -25,6 +25,14 @@ gui:
         value: 25
         min: 0
         max: 100
+    switches:
+      - id: 1
+        label: "Bypass"
+        value: 0
+    buttons:
+      - id: 1
+        label: "reset"
+        
   monitor:
     status: true
     title: "Monitor"

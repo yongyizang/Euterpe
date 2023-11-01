@@ -70,6 +70,10 @@ export function updateParameter(newUpdate) {
         self.bypass = newUpdate.value;
         console.log('bypass is ' + self.bypass);
         break;
+    case self.uiParameterType.BUTTON_1:
+        self.genie.resetState();
+        console.log("reset genie's state")
+        break;
     default:
         console.warn('Invalid parameter type');
         break;
