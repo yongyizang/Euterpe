@@ -59,7 +59,6 @@ const actions = {
                 ' is not available for the Human. ' +
                 ' Make sure it is declared in the config_players file.');
             } else {
-                // console.log("samplerON before play ", Tone.now());
                 instrumentToPlayOn.triggerAttack(name,
                     Tone.now() + noteEvent.playAfter.seconds,
                     noteEvent.velocity / 127);
@@ -78,9 +77,16 @@ const actions = {
                     'is not available for the Agent. ' +
                     ' Make sure it is declared in the config_players file.');
             } else {
-                instrumentToPlayOn.triggerAttack(name,
-                    Tone.now() + noteEvent.playAfter.seconds,
-                    noteEvent.velocity / 127);
+                console.log("samplerON before play ", Tone.now(), 'after seconds ', noteEvent.playAfter.seconds);
+                // This doesn't work if there are both note_on and note_off events of the same note
+                // tone.js just ignores the note_on if we call triggerAttack and triggerRelease at the same time (Tone.now())
+                // even if we add noteEvent.playAfter.seconds to the time of the note_on event.
+                // So that's a necessary hack due to a weird behavior of Tone.js
+                setTimeout(() => {
+                    instrumentToPlayOn.triggerAttack(name,
+                        Tone.now(), // + noteEvent.playAfter.seconds
+                        noteEvent.velocity / 127);
+                },  Math.floor(noteEvent.playAfter.seconds * 1000));
             }
         } else if (noteEvent.player == playerType.METRONOME) {
             // console.log("click", noteEvent)
@@ -114,11 +120,19 @@ const actions = {
             const instrumentToPlayOn =
                 context.state.samplersAndBuses['agent'].samplers[instrumentLabel];
             if (instrumentToPlayOn == null) {
+                
                 throw new Error('Instrument ' + instrumentLabel +
                     ' is not available for the Agent. ' +
                     ' Make sure it is declared in the config_players file.');
             } else {
-                instrumentToPlayOn.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
+                // console.log("samplerOFF before play ", Tone.now(), 'after seconds ', noteEvent.playAfter.seconds);
+                if (noteEvent.playAfter.seconds == 0) {
+                instrumentToPlayOn.triggerRelease(name, Tone.now());
+                } else {
+                    setTimeout(() => {
+                        instrumentToPlayOn.triggerRelease(name, Tone.now());
+                    }, Math.floor(noteEvent.playAfter.seconds * 1000));
+                }
             }
         }
     },

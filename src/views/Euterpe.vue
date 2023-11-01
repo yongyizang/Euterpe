@@ -872,12 +872,31 @@ export default {
                         break;
                     case vm.messageType.NOTE_LIST: {
                         const noteEventsList = messageValue;
+                        
+                        const delayForNoteOn = 0.01;
+                        const noteOffEvents = {}; // Store note_off events
+
                         noteEventsList.forEach((noteEventPlain) => {
-                            // Only On and Hold notes are sent from the agent's clockEvent hook
 
                             // The noteEvents received from the agent are serialized
                             // we need to deserialize them before using them
                             const noteEvent = NoteEvent.fromPlain(noteEventPlain);
+
+                            // A dirty hack to deal with tone.js weird behavior. check samplers.js
+                            if (noteEvent.type === vm.noteType.NOTE_OFF) {
+                                // Store note_off events by their note value
+                                noteOffEvents[noteEvent.midi] = noteEvent;
+                            } else if (noteEvent.type === vm.noteType.NOTE_ON) {
+                                // Check if there's a corresponding note_off event
+                                if (noteOffEvents[noteEvent.midi]) {
+                                    if (noteOffEvents[noteEvent.midi].playAfter.tick === noteEvent.playAfter.tick &&
+                                        noteOffEvents[noteEvent.midi].playAfter.seconds === noteEvent.playAfter.seconds)
+                                    // Apply the tiny delay for note_on the note_on event
+                                    noteEvent.playAfter.seconds += delayForNoteOn;
+                                }
+                            }
+                            // End of hack
+
                             if (noteEvent.playAfter.tick > 0) {
                                 // console.log("NAI NAI NAI NIA NIA NIA ");
                                 this.$store.dispatch('storeAgentQuantizedOutput', noteEvent);
