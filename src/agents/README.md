@@ -21,7 +21,7 @@ Agent-specific files are located in `src/agents/{agentName}/`:
 
 ## Examples
 
-In the directory where you cloned or downloaded the `Euterpe` code, you should find an empty template agent located in the `/public/agents/` folder, named **EmptyAgent**. This is the starting point for creating your own agent. 
+In the directory where you cloned or downloaded the `Euterpe` code, you should find an empty template agent located in `src/agents/`, named **EmptyAgent**. This is the starting point for creating your own agent. 
 
 Additionally we provide some examples of already implemented agents in the same folder to demonstrate the various interaction paradigms supported in Euterpe.
 - **GridyCopycat**
