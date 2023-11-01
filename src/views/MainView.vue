@@ -59,7 +59,7 @@ export default {
             // Choose the agent.
             // This string should be one of
             // dir names inside public/agents/
-            agentName: 'EmptyAgent',
+            agentName: 'WhistleToChords',
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml',
@@ -815,9 +815,11 @@ export default {
             const agentNotesToBePlayed = this.$store.getters.popAgentNotesToBePlayedAt(
                 this.$store.getters.getGlobalTickDelayed,
             );
-            // This guy here should update the lastNoteAI for the score to get
-            // naively choose the first note only. ScoreUI only supports monophonic
-            this.$store.dispatch('updateLastAgentNote', agentNotesToBePlayed);
+            if (this.config.gui.score.status) {
+                // This guy here should update the lastNoteAI for the score to get
+                // naively choose the first note only. ScoreUI only supports monophonic
+                this.$store.dispatch('updateLastAgentNote', agentNotesToBePlayed);
+            }
             if (agentNotesToBePlayed.length > 0) {
                 agentNotesToBePlayed.forEach((noteEvent) => {
                     vm.processAgentNoteEvent(noteEvent);

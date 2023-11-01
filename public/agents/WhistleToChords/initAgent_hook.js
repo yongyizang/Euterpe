@@ -73,12 +73,11 @@ export function updateParameter(newUpdate) {
  *
  */
 export async function loadExternalFiles() {
-    // For example:
-    // await fetch('extraData.json').then(response => {
-    //     return response.json();
-    // }).then(data => {
-    //     self.externalData = data;
-    // });
+    await fetch('chord_histograms_minimized.json').then(response => {
+        return response.json();
+    }).then(data => {
+        self.chordDict = data;
+    });
 }
 
 /**

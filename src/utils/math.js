@@ -4,6 +4,20 @@ export function shiftRight(arr) {
     arr.unshift(lastElement);
 }
 
+// Find the maximum of a 1d array
+// and the index of the maximum
+export function max1d(arr) {
+    let max = 0;
+    let maxIndex = 0;
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > max) {
+            max = arr[i];
+            maxIndex = i;
+        }
+    }
+    return [max, maxIndex];
+}
+
 export function average1d(arr) {
     // Handle the case of an empty array to avoid division by zero.
     if (arr.length === 0) {

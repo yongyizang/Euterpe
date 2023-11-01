@@ -2,8 +2,8 @@ gui:
   score: 
     status: false
   textBox:
-    status: false
-    title: "Title"
+    status: true
+    title: "Chord"
   pianoRoll:
     status: true
     human: true
@@ -35,3 +35,9 @@ gui:
             graph: true
             min: 0
             max: 0.5
+          - id: 1
+            label: "confidence" 
+            interval: 10
+            graph: true
+            min: 0
+            max: 10

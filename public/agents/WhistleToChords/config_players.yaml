@@ -21,12 +21,17 @@ players:
         mute: false
         volume: 7
         default: true
-  # metronome:
-  #   label: 'Metronome'
-  #   mute: true
-  #   volume: 5
-  #   instruments:
-  #     - id: "click"
-  #       label: "Click"
-  #       mute: false
-  #       volume: 5
+      - id: "synth"
+        label: "Synth"
+        mute: false
+        volume: 7
+        default: true
+  metronome:
+    label: 'Metronome'
+    mute: true
+    volume: 5
+    instruments:
+      - id: "click"
+        label: "Click"
+        mute: false
+        volume: 5
