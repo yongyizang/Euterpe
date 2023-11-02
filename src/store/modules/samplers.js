@@ -77,7 +77,7 @@ const actions = {
                     'is not available for the Agent. ' +
                     ' Make sure it is declared in the config_players file.');
             } else {
-                console.log("samplerON before play ", Tone.now(), 'after seconds ', noteEvent.playAfter.seconds);
+                // console.log("samplerON before play ", Tone.now(), 'after seconds ', noteEvent.playAfter.seconds);
                 // This doesn't work if there are both note_on and note_off events of the same note
                 // tone.js just ignores the note_on if we call triggerAttack and triggerRelease at the same time (Tone.now())
                 // even if we add noteEvent.playAfter.seconds to the time of the note_on event.

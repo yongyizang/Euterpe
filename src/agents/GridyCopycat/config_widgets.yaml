@@ -10,8 +10,8 @@ gui:
     agent: true
   keyboard:
     status: true
-    octaveStart: 2
-    octaveEnd: 6
+    octaveStart: 1
+    octaveEnd: 7
   chromaChart:
     status: true
   audioMeter: 
