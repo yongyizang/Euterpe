@@ -59,7 +59,7 @@ export default {
             // Choose the agent.
             // This string should be one of
             // dir names inside public/agents/
-            agentName: 'GridyCopycat',
+            agentName: 'BachDuet',
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml',
@@ -950,17 +950,33 @@ export default {
             // if (this.$root.$refs.keyboard.$refs[noteEvent.name] ) is
             // null then the key is not on screen
             const keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
+            // vm.timeout_IDS_kill.push(setTimeout(() => {
+            //     // if (this.config.gui.pianoRoll.status)
+            //     if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent) {
+            //         this.$root.$refs.pianoRoll.keyDown(noteEvent);
+            //     }
+            //     if (keyOnScreenRange) {
+            //         if (whiteKey) {
+            //             this.$root.$refs.keyboard.$refs[noteName][0].
+            //                 classList.add('active-white-key-agent');
+            //         } else {
+            //             this.$root.$refs.keyboard.$refs[noteName][0].
+            //                 classList.add('active-black-key-agent');
+            //         }
+            //     }
+            // }, noteEvent.playAfter.seconds * 1000),
+            // );
             vm.timeout_IDS_kill.push(setTimeout(() => {
                 // if (this.config.gui.pianoRoll.status)
-                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent) {
-                    this.$root.$refs.pianoRoll.keyDown(noteEvent);
+                if (vm.config.gui.pianoRoll.status && vm.config.gui.pianoRoll.agent) {
+                    vm.$root.$refs.pianoRoll.keyDown(noteEvent);
                 }
                 if (keyOnScreenRange) {
                     if (whiteKey) {
-                        this.$root.$refs.keyboard.$refs[noteName][0].
+                        vm.$root.$refs.keyboard.$refs[noteName][0].
                             classList.add('active-white-key-agent');
                     } else {
-                        this.$root.$refs.keyboard.$refs[noteName][0].
+                        vm.$root.$refs.keyboard.$refs[noteName][0].
                             classList.add('active-black-key-agent');
                     }
                 }
@@ -1013,8 +1029,12 @@ export default {
                             if (vm.config.custom.useTriggerRelease) {
                                 // console.log("about to send samplerOnOff ", noteEvent.midi);
                                 this.$store.dispatch('samplerOnOff', noteEvent);
+                                // vm.timeout_IDS_live.push(setTimeout(() => {
+                                //     this.uiNoteOffAgent(noteEvent);
+                                // }, noteEvent.duration.seconds * 1000),
+                                // );
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                    this.uiNoteOffAgent(noteEvent);
+                                    vm.uiNoteOffAgent(noteEvent);
                                 }, noteEvent.duration.seconds * 1000),
                                 );
 
@@ -1027,9 +1047,14 @@ export default {
                                 // I need to create a new noteOff event, and send it after >0seconds
                                 // to a new method  that will call samplerOff and uiNoteOffAgent.
                                 // For now, I just use option2
+                                // vm.timeout_IDS_live.push(setTimeout(() => {
+                                //     this.uiNoteOffAgent(noteEvent);
+                                //     this.$store.dispatch('samplerOff', noteEvent);
+                                // }, noteEvent.duration.seconds * 1000),
+                                // );
                                 vm.timeout_IDS_live.push(setTimeout(() => {
-                                    this.uiNoteOffAgent(noteEvent);
-                                    this.$store.dispatch('samplerOff', noteEvent);
+                                    vm.uiNoteOffAgent(noteEvent);
+                                    vm.$store.dispatch('samplerOff', noteEvent);
                                 }, noteEvent.duration.seconds * 1000),
                                 );
                             }
@@ -1067,21 +1092,39 @@ export default {
             // is null then the key is not on screen
             const keyOnScreenRange = this.$root.$refs.keyboard.$refs[noteName] ? true : false;
             // set a timeout to call keyUp based on noteEvent.playAfter.seconds
+            // vm.timeout_IDS_live.push(setTimeout(() => {
+            //     if (keyOnScreenRange) {
+            //         if (whiteKey) {
+            //             // console.log("released white key ", noteName)
+            //             this.$root.$refs.keyboard.$refs[noteName][0].
+            //                 classList.remove('active-white-key-agent');
+            //         } else {
+            //             // console.log("released black key ", noteName)
+            //             this.$root.$refs.keyboard.$refs[noteName][0].
+            //                 classList.remove('active-black-key-agent');
+            //         }
+            //     }
+            //     // if (this.config.gui.pianoRoll.status)
+            //     if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent) {
+            //         this.$root.$refs.pianoRoll.keyUp(noteEvent);
+            //     }
+            // }, noteEvent.playAfter.seconds * 1000),
+            // );
             vm.timeout_IDS_live.push(setTimeout(() => {
                 if (keyOnScreenRange) {
                     if (whiteKey) {
                         // console.log("released white key ", noteName)
-                        this.$root.$refs.keyboard.$refs[noteName][0].
+                        vm.$root.$refs.keyboard.$refs[noteName][0].
                             classList.remove('active-white-key-agent');
                     } else {
                         // console.log("released black key ", noteName)
-                        this.$root.$refs.keyboard.$refs[noteName][0].
+                        vm.$root.$refs.keyboard.$refs[noteName][0].
                             classList.remove('active-black-key-agent');
                     }
                 }
                 // if (this.config.gui.pianoRoll.status)
-                if (this.config.gui.pianoRoll.status && this.config.gui.pianoRoll.agent) {
-                    this.$root.$refs.pianoRoll.keyUp(noteEvent);
+                if (vm.config.gui.pianoRoll.status && vm.config.gui.pianoRoll.agent) {
+                    vm.$root.$refs.pianoRoll.keyUp(noteEvent);
                 }
             }, noteEvent.playAfter.seconds * 1000),
             );
