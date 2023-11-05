@@ -1,0 +1,98 @@
+@import url('variables.css');
+
+#vectorBar {
+    overflow: hidden;
+    z-index: 10;
+    /* width: 100%; */
+    /* height: 300px; */
+    position: relative;
+    background-color: blue;
+    /* left: 10px;
+    top: 10px; */
+  }
+  
+  #canvasWrapperVectorBar {
+    position: relative;
+    /* height: 100px; */
+    width: 100%;
+    overflow-x: hidden;
+    /* background-color: transparent; */
+    -webkit-box-shadow: -4px 6px 15px -9px #000000;
+    box-shadow: -4px 6px 15px -9px #000000;
+    background-color: var(--grey-background-color);
+  }
+  
+  #collapseBtnVectorBar {
+    z-index: 10;
+    width: 60px;
+    height: 20px;
+    position: relative;
+    top: 0 px;
+    left: calc(50% - 30px);
+    -webkit-box-shadow: -4px 6px 15px -9px #000000;
+    box-shadow: -4px 6px 15px -9px #000000;
+    background-color: var(--grey-background-color);
+    color: var(--text-color);
+    font-size: 20px;
+    -webkit-border-bottom-right-radius: 20px;
+    -webkit-border-bottom-left-radius: 20px;
+    -moz-border-radius-bottomright: 20px;
+    -moz-border-radius-bottomleft: 20px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-style: hidden;
+  }
+  
+  .slide-up-vectorbar {
+    -webkit-animation: slide-up-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation: slide-up-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    z-index: 2!important;
+  }
+  
+  .slide-down-vectorbar {
+    -webkit-animation: slide-down-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation: slide-down-vectorbar 0.5s cubic-bezier(0.19, 1, 0.22, 1) both;
+    z-index: 9!important;
+  }
+  
+  @-webkit-keyframes slide-up-vectorbar {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    100% {
+      -webkit-transform: translateY(calc(-1 * 100% ));
+      transform: translateY(calc(-1 * 100%));
+    }
+  }
+  @keyframes slide-up-vectorbar {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    100% {
+      -webkit-transform: translateY(calc(-1 * 100% ));
+      transform: translateY(calc(-1 * 100% ));
+    }
+  }
+  
+  @-webkit-keyframes slide-down-vectorbar {
+    0% {
+      -webkit-transform: translateY(calc(-1 * 100% + 20px));
+      transform: translateY(calc(-1 * 100% + 20px));
+    }
+    100% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+  }
+  @keyframes slide-down-vectorbar {
+    0% {
+      -webkit-transform: translateY(calc(-1 * 100% + 20px));
+      transform: translateY(calc(-1 * 100% + 20px));
+    }
+    100% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+  }

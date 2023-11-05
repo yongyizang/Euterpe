@@ -1,123 +1,189 @@
 <template>
-    <Bar
-      :chart-options="chartOptions"
-      :chart-data="chartData"
-      :chart-id="chartId"
-      :dataset-id-key="datasetIdKey"
-      :plugins="plugins"
-      :css-classes="cssClasses"
-      :styles="styles"
-      :width="width"
-      :height="height"
-    />
+    <div
+        :ref="ref_c"
+        :id="id_c"
+        :style="{
+        position: `${position}`,
+        top: `${top}px`,
+        right: `${right}px`,
+        zIndex: 100,
+        width: `${width}px`,
+        height: `${height}px`,
+        // ...styles,
+        }"
+    >
+    <div v-touch:swipe.up="triggerCollapse" id="canvasWrapperVectorBar">
+      <Bar
+        :chart-options="chartOptions"
+        :chart-data="chartData"
+        :chart-id="chartId"
+        :dataset-id-key="datasetIdKey"
+        :plugins="plugins"
+        :css-classes="cssClasses"
+        :width="width"
+        :height="height"
+      />
+      <!-- :styles="styles"
+        :width="width"
+        :height="height" -->
+      </div>
+      <button type="button" @click="triggerCollapse" id="collapseBtnVectorBar">
+        <i ref="collapseBtnSymbol2" class="ri-arrow-up-s-line"></i>
+      </button>
+
+
+  </div>
+
+
   </template>
-  
-  <script>
-  import { Bar } from 'vue-chartjs/legacy'
-  
-  import {
+
+<script>
+import {Bar} from 'vue-chartjs/legacy';
+import '../css/vectorBar.css';
+
+import {
     Chart as ChartJS,
     Title,
     Tooltip,
     Legend,
     BarElement,
     CategoryScale,
-    LinearScale
-  } from 'chart.js'
-  
-  ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+    LinearScale,
+} from 'chart.js';
 
-  export default {
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+
+export default {
     name: 'ChromaChart',
     components: {
-      Bar
+        Bar,
     },
 
     props: {
-      chartId: {
-        type: String,
-        default: 'bar-chart'
-      },
-      datasetIdKey: {
-        type: String,
-        default: 'label'
-      },
-      width: {
-        type: Number,
-        default: 400
-      },
-      height: {
-        type: Number,
-        default: 400
-      },
-      cssClasses: {
-        default: '',
-        type: String
-      },
-      styles: {
-        type: Object,
-        default: () => {}
-      },
-      plugins: {
-        type: Array,
-        default: () => []
-      }
+        chartId: {
+            type: String,
+            default: 'bar-chart',
+        },
+        datasetIdKey: {
+            type: String,
+            default: 'label',
+        },
+        ref_c: {
+            type: String,
+            default: 'chromaChart',
+        },
+        id_c: {
+            type: String,
+            default: 'chromaId',
+        },
+        position: {
+            type: String,
+            default: 'absolute',
+        },
+        top: {
+            type: Number,
+            default: 0,
+        },
+        right: {
+            type: Number,
+            default: 0,
+        },
+        width: {
+            type: Number,
+            default: 400,
+        },
+        height: {
+            type: Number,
+            default: 100,
+        },
+        cssClasses: {
+            default: '',
+            type: String,
+        },
+        styles: {
+            type: Object,
+            default: () => {},
+        },
+        plugins: {
+            type: Array,
+            default: () => [],
+        },
     },
 
     data() {
-      return {
-        chartData: null,
-        chartOptions: null,
-      }
+        return {
+            chartData: null,
+            chartOptions: null,
+        };
     },
-    
+
     created() {
         this.$root.$refs.chromaChart = this;
         this.init();
     },
-    
+
     mounted() {
+        // this.width = 300;
+        // this.height = 300;
+        console.log('mounted chromaChart start/end');
+        // this.triggerCollapse();
     },
 
     methods: {
-      init() {
-        this.chartData = {
-          labels: ['C','C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A','A#', 'B'],
-          datasets: [
-            {
-                label: 'chromaData',
-                backgroundColor: '#e6a100',
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        triggerCollapse() {
+            const btnSymbol = this.$refs.collapseBtnSymbol2.classList;
+            const score = this.$refs.chromaChart;
+            const scoreClass = score.classList;
+            if (scoreClass.contains('slide-up-vectorbar')) {
+                scoreClass.replace('slide-up-vectorbar', 'slide-down-vectorbar');
+                btnSymbol.replace('ri-arrow-down-s-line', 'ri-arrow-up-s-line');
+            } else if (scoreClass.contains('slide-down-vectorbar')) {
+                scoreClass.replace('slide-down-vectorbar', 'slide-up-vectorbar');
+                btnSymbol.replace('ri-arrow-up-s-line', 'ri-arrow-down-s-line');
+            } else {
+                scoreClass.add('slide-up-vectorbar');
+                btnSymbol.replace('ri-arrow-up-s-line', 'ri-arrow-down-s-line');
             }
-          ]
-        };
-        this.chartOptions = {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-              x: {
-                  display: true 
-              },
-              y: {
-                  display: false 
-              }
-          },
-          plugins: {
-              legend: {
-                  display: false  
-              },
-              title: {
-                  display: false,
-                  text: 'Chromagram'
-              }
-          }
+        },
 
-        };
-      },
-      updateChromaData(chromaData) {
-          this.chartData.datasets[0].data = chromaData;
-      }
+        init() {
+            this.chartData = {
+                labels: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
+                datasets: [
+                    {
+                        label: 'chromaData',
+                        backgroundColor: '#e6a100',
+                        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    },
+                ],
+            };
+            this.chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: true,
+                    },
+                    y: {
+                        display: false,
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: false,
+                        text: 'Chromagram',
+                    },
+                },
+
+            };
+        },
+        updateChromaData(chromaData) {
+            this.chartData.datasets[0].data = chromaData;
+        },
     },
-  }
-  </script>
-  
+};
+</script>
+

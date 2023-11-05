@@ -1,109 +1,171 @@
 <template>
-    <div ref="monitor" id="monitorId" :width="width" :height="height" 
-            style="position: absolute; bottom: 430px; right: 20px">
-    </div>
-  </template>
-  
-  <script>
-  import {Pane} from 'tweakpane';
+    <div
+        :ref="ref_c"
+        :id="id_c"
+        :style="{
+        position: `${position}`,
+        top: `${top}px`,
+        right: `${right}px`,
+        zIndex: 100,
+        width: `${width}px`,
+        height: `auto`,
+        // ...styles,
+        }"
+        @mousedown="startDrag"
+    ></div>
+</template>
 
-  export default {
-    name: 'Monitor',
+<script>
+import {Pane} from 'tweakpane';
+
+export default {
+    name: 'MonitorComponent',
     props: {
         dataFromParent: {
             type: Object,
-            default: () => {}
+            default: () => {},
+        },
+        ref_c: {
+            type: String,
+            default: 'monitor',
+        },
+        id_c: {
+            type: String,
+            default: 'monitorId',
+        },
+        position: {
+            type: String,
+            default: 'absolute',
+        },
+        top: {
+            type: Number,
+            default: 311,
+        },
+        right: {
+            type: Number,
+            default: 20,
         },
         width: {
-          type: Number,
-          default: 400
+            type: Number,
+            default: 300,
         },
-        height: {
-          type: Number,
-          default: 400
-        },
-        cssClasses: {
-          default: '',
-          type: String
-        },
-        styles: {
-          type: Object,
-          default: () => {}
-        },
-      },
+        // height: {
+        //     type: Number,
+        //     default: 400
+        // },
+        // cssClasses: {
+        //   default: '',
+        //   type: String
+        // },
+        // styles: {
+        //   type: Object,
+        //   default: () => {}
+        // },
+    },
     data() {
         return {
             pane: null,
             data: null,
             structure: null,
-            title: "",
+            title: '',
         };
     },
-    beforeCreate(){
-        console.log("beforeCreate monitor start")
-        // this.$root.$refs.monitor = this;
-        console.log("beforeCreate monitor end")
+    beforeCreate() {
+        console.log('beforeCreate monitor start');
+        console.log('beforeCreate monitor end');
     },
     created() {
-        console.log("created monitor start")
+        console.log('created monitor start');
         this.$root.$refs.monitor = this;
-        // this.startAnalyser();
-        console.log(" created monitor end")
+        console.log(' created monitor end');
     },
     mounted() {
-        console.log("mounted monitor start")
-
-        
-        
-        
+        console.log('mounted monitor start');
     },
-  
-    methods: {
-        loadMonitorConfig(monitorConfig) {
-            let vm = this;
-            vm.structure = monitorConfig.structure;
-            vm.title = monitorConfig.title;
 
+    methods: {
+        startDrag(event) {
+            if (typeof event.target.className !== 'string') return;
+            if (
+                event.target.classList.contains('sldv') ||
+                        event.target.id.includes('sldv')
+            ) {
+                return; // Don't start dragging
+            }
+            // Calculate the initial click position relative to the element's top-left corner
+            this.isDragging = true;
+            this.offsetX = this.$refs.monitor.getBoundingClientRect().right - event.clientX;
+            this.offsetY = event.clientY - this.$refs.monitor.getBoundingClientRect().top;
+            window.addEventListener('mousemove', this.handleDrag);
+            window.addEventListener('mouseup', this.stopDrag);
+        },
+        handleDrag(event) {
+            if (this.isDragging) {
+                // Update the element's position based on the mouse movement
+                // this.$refs.monitor.style.right = event.clientX + this.offsetX + 'px';
+                // this.$refs.monitor.style.bottom = event.clientY + this.offsetY + 'px';
+                this.$refs.monitor.style.right =
+                    window.innerWidth - event.clientX - this.offsetX + 'px';
+                this.$refs.monitor.style.top = event.clientY - this.offsetY + 'px';
+            }
+        },
+        stopDrag(event) {
+            this.isDragging = false;
+            window.removeEventListener('mouseup', this.stopDrag);
+            window.removeEventListener('mousemove', this.handleDrag);
+        },
+        loadMonitorConfig(monitorConfig) {
+            const vm = this;
+            vm.structure = monitorConfig.structure;
+            vm.title = monitorConfig.title ?? 'Monitor';
             vm.pane = new Pane({
-              container: vm.$refs.monitor,
-              title: vm.title,
-            })
+                container: vm.$refs.monitor,
+                title: vm.title,
+            });
+
             // vm.data = data;
             // const f = vm.pane.addFolder({
             //     title: vm.title,
             //     expanded: true,
             // });
-            // vm.pane.on('change', (ev) => {
-            //     console.log('changed: ' + JSON.stringify(ev.value));
+            // vm.pane.on('fold', (ev) => {
+            //     console.log('changed: ', ev.value);
+            //     ev.stopPropagation();
+            //     ev.preventDefault();
+            //     ev.cancelBubble = true;
             // });
 
             // Iterate over the structure in the config file
-            vm.structure.forEach((tab) => {
-            // Create a folder for each tab
-                const folder = vm.pane.addFolder({
-                    title: tab.label,
-                    expanded: true,
-                });
-
-                // Iterate over the parameters in each tab
-                tab.parameters.forEach((parameter) => {
-                    // Add a monitor for each parameter
-                    folder.addMonitor(vm.$props.dataFromParent, parameter.id, {
-                        label: parameter.label,
-                        interval: parameter.interval,
-                        view: parameter.graph ? 'graph' : 'text',
-                        min: parameter.min,
-                        max: parameter.max,
+            if (vm.structure) {
+                vm.structure.forEach((tab) => {
+                    // Create a folder for each tab
+                    console.log('tab ', tab);
+                    const folder = vm.pane.addFolder({
+                        title: tab.label,
+                        expanded: true,
+                    });
+                    console.log('tab.label ', tab.label);
+                    console.log('tab.parameters ', tab.parameters);
+                    console.log('dataFromParent ', vm.$props.dataFromParent);
+                    // Iterate over the parameters in each tab
+                    tab.parameters.forEach((parameter) => {
+                        // Add a monitor for each parameter
+                        folder.addMonitor(vm.$props.dataFromParent, parameter.id, {
+                            label: parameter.label,
+                            interval: parameter.interval,
+                            view: parameter.graph ? 'graph' : 'text',
+                            min: parameter.min,
+                            max: parameter.max,
+                        });
                     });
                 });
-            });
+            }
         },
     },
-  
-  };
-  </script>
-  <!-- <style>
-  :root {
+};
+</script>
+<!-- <style>
+    :root {
     --tp-base-background-color: hsla(0, 0%, 10%, 0.8);
     --tp-base-shadow-color: hsla(0, 0%, 0%, 0.2);
     --tp-button-background-color: hsla(0, 0%, 80%, 1);
@@ -125,5 +187,5 @@
     --tp-label-foreground-color: hsla(0, 0%, 100%, 0.5);
     --tp-monitor-background-color: hsla(0, 0%, 0%, 0.3);
     --tp-monitor-foreground-color: hsla(0, 0%, 100%, 0.3);
-  }
-  </style> -->
+    }
+</style> -->

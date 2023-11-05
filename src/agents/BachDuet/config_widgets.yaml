@@ -1,0 +1,28 @@
+gui:
+  score: 
+    status: true
+  textBox:
+    status: false
+    title: "Key"
+  pianoRoll:
+    status: true
+    human: true
+    agent: true
+  keyboard:
+    status: true
+    octaveStart: 1
+    octaveEnd: 7
+  chromaChart:
+    status: false
+  audioMeter: 
+    status: false
+  settingsModal:
+    sliders:
+      - id: 1 
+        label: "Temperature"
+        value: 25
+        min: 1
+        max: 300
+    buttons:
+      - id: 1
+        label: "Reset"

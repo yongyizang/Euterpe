@@ -1,0 +1,43 @@
+gui:
+  score: 
+    status: false
+  textBox:
+    status: true
+    title: "Chord"
+  pianoRoll:
+    status: true
+    human: true
+    agent: true
+  keyboard:
+    status: true # not used (always true)
+    # set the visible octaves. Max range [0,8]
+    octaveStart: 2
+    octaveEnd: 6
+  chromaChart:
+    status: true
+  audioMeter: 
+    status: true
+  monitor:
+    status: true 
+    title: "Monitor"
+    structure:
+      - label: "Audio"
+        parameters:
+          # The 'id' for each parameter must be unique and is used
+          # in the hooks for adding new values for monitoring
+          # The 'label' is the parameter name that appears in the GUI.
+          # The 'interval' is the refresh rate of the parameter in ms.
+          # The 'graph' flag allows you to visualize the value as a time grpah.
+          # The 'min' and 'max' indicate the expected range of the parameter.
+          - id: 0 
+            label: "rms" 
+            interval: 10
+            graph: true
+            min: 0
+            max: 0.5
+          - id: 1
+            label: "confidence" 
+            interval: 10
+            graph: true
+            min: 0
+            max: 10

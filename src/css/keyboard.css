@@ -8,7 +8,7 @@ ul{
     width: 100vw;
     height: 200px;
     overflow-x: hidden;
-    background: rgb(221, 221, 213);
+    background: rgb(84, 101, 119);
   }
   
   .keyboard ul {
@@ -110,12 +110,12 @@ ul{
     animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     background: var(--keyboard-white-active-color-human);
   }
-  .active-white-key-worker {
+  .active-white-key-agent {
     box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
       -5px 5px 20px rgba(0, 0, 0, 0.2) inset, 0 0 3px rgba(0, 0, 0, 0.2);
     -webkit-animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-    background: var(--keyboard-white-active-color-worker);
+    background: var(--keyboard-white-active-color-agent);
   }
   /* .white-activate {
     box-shadow: 2px 0 3px rgba(0, 0, 0, 0.1) inset,
@@ -154,13 +154,13 @@ ul{
     animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     background: var(--keyboard-black-active-color-human)
   }
-  .active-black-key-worker {
+  .active-black-key-agent {
     box-shadow: -1px -1px 2px rgba(255, 255, 255, 0.2) inset,
       0 -2px 2px 3px rgba(0, 0, 0, 0.6) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
     -webkit-animation: scale-down-center 0.05s
       cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     animation: scale-down-center 0.05s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-    background: var(--keyboard-black-active-color-worker)
+    background: var(--keyboard-black-active-color-agent)
   }
   
   .blank {

@@ -19,10 +19,11 @@
     /* background-color: transparent; */
     -webkit-box-shadow: -4px 6px 15px -9px #000000;
     box-shadow: -4px 6px 15px -9px #000000;
-    background-color: var(--score-background-color);
+    background-color: var(--grey-background-color);
+    border-radius: 10px; 
   }
   
-  #collapseBtn2 {
+  #collapseBtnAudioMeter {
     z-index: 10;
     width: 60px;
     height: 20px;
@@ -31,7 +32,7 @@
     left: calc(50% - 30px);
     -webkit-box-shadow: -4px 6px 15px -9px #000000;
     box-shadow: -4px 6px 15px -9px #000000;
-    background-color: var(--score-background-color);
+    background-color: var(--grey-background-color);
     color: var(--text-color);
     font-size: 20px;
     -webkit-border-bottom-right-radius: 20px;

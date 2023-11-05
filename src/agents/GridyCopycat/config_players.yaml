@@ -1,0 +1,39 @@
+players:
+  human:
+    label: 'User' # player labels must be unique
+    mute: false
+    volume: 7
+    instruments: 
+        # it must be one of the available instrument ids in audio/samples
+        # you can't have two instruments with the same id in the same player 
+      - id: "piano" 
+        label: "Piano" # can be anything
+        mute: false
+        volume: 7
+        default: true
+      - id: "synth"
+        label: "Synth"
+        mute: false
+        volume: 7
+  agent:
+    label: 'Agent'
+    mute: false
+    volume: 7
+    instruments:
+      - id: "piano"
+        label: "Piano"
+        mute: false
+        volume: 7
+      - id: "drums"
+        label: "Drums"
+        mute: false
+        volume: 5
+  metronome:
+    label: 'Metronome'
+    mute: false
+    volume: 7
+    instruments:
+      - id: "click"
+        label: "Click"
+        mute: false
+        volume: 7

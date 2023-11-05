@@ -1,0 +1,47 @@
+gui:
+  score: 
+    status: true
+  textBox:
+    status: false
+    title: "Chord"
+  pianoRoll:
+    status: true
+    human: true
+    agent: true
+  keyboard:
+    status: true
+    octaveStart: 1
+    octaveEnd: 7
+  chromaChart:
+    status: true
+  audioMeter: 
+    status: true
+  monitor:
+    status: true
+    title: "Monitor"
+    structure:
+      - label: "Agent"
+        parameters:
+          - id: 3
+            label: "Inference"
+            interval: 100 
+            graph: true
+            min: 80
+            max: 130
+  settingsModal:
+    sliders:
+      - id: 1
+        label: "Randomness"
+        value: 0
+        min: 0
+        max: 10
+      - id : 2
+        label: "Delay"
+        value: 8
+        min : 1
+        max : 16
+      - id : 3
+        label: "Pitch Shift"
+        value: 0
+        min: 0
+        max: 24

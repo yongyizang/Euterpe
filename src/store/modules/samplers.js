@@ -1,14 +1,11 @@
-import Vue from "vue";
-import * as Tone from "tone";
-import Instruments from "@/utils/instruments";
-import { Midi } from "@tonaljs/tonal";
+// import Vue from 'vue';
+import * as Tone from 'tone';
+import Instruments from '@/utils/instruments';
+import {Midi} from '@tonaljs/tonal';
 import {
-	playerType, instrumentType, eventSourceType,
-    messageType, statusType, noteType,
-    uiParameterType, workerParameterType,
-    workerHookType,
-    instNamesTemp
-    } from '@/utils/types.js'
+    playerType,
+    instNamesMap,
+} from '@/utils/types.js';
 
 // window.onclick = () => {
 //     Tone.start();
@@ -16,292 +13,240 @@ import {
 // };
 
 const state = {
-    metronomeMuteStatus: true,
-    humanMuteStatus: false,
-    workerMuteStatus: false,
-
-    humanSamplersVolume: 0, // in dB
-    workerSamplersVolume: 0, // in dB
-    metronomeSamplerVolume: 0, // in dB
-
     playersConfig: null,
-    // metronome
-    
-    metronomeBus: null,
-    metronomeSamplersBus: null,
-    metronomeSamplers: null,
-    // human
-    humanBus: null,
-    humanSamplersBus: null,
-    humanSamplers: null,
-    // worker
-    workerBus: null,
-    workerSamplersBus: null,
-    workerSamplers: null,
-    // limiter
+    // master limiter
     limiter: null,
+    // player's buses
+    samplersAndBuses: {},
 };
 
 const getters = {
-    getmetronomeMuteStatus(state){
-        return state.metronomeMuteStatus;
-    },
-    getUserSamplersVolume(state){
-        return state.humanSamplersVolume;
-    },
-    getWorkerSamplersVolume(state){
-        return state.workerSamplersVolume;
-    },
-    getMetronomeSamplerVolume(state){
-        return state.metronomeSamplerVolume;
-    },
 };
 
 const actions = {
 
-    samplerOnOff(context, noteEvent){
-        let durationInSeconds = noteEvent.duration.seconds + context.getters.getSecondsPerTick * noteEvent.duration.tick;
-        let instrument_label = instNamesTemp[noteEvent.instrument];
-        if (noteEvent.player == playerType.WORKER){
-            let name = noteEvent.name;
-            if (name == null){
-                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
-            }
-            // console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
-            let instrument_to_play_on = context.state.workerSamplers[instrument_label];
-            if (instrument_to_play_on == null){
-                throw new Error("Instrument " + instrument_label + " not found in workerSamplers");
+    samplerOnOff(context, noteEvent) {
+        const durationInSeconds = noteEvent.duration.seconds + context.getters.getSecondsPerTick *
+                                    noteEvent.duration.tick;
+        const instrumentLabel = instNamesMap[noteEvent.instrument];
+        const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+        if (noteEvent.player == playerType.AGENT) {
+            // let name = noteEvent.name;
+            // if (name == null) {
+            // const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+            // }
+            const instrumentToPlayOn = context.state.samplersAndBuses['agent']
+                .samplers[instrumentLabel];
+            if (instrumentToPlayOn == null) {
+                throw new Error('Instrument ' + instrumentLabel +
+                            ' is not available for the Agent. ' +
+                            ' Make sure it is declared in the config_players file.');
             } else {
-                instrument_to_play_on.triggerAttackRelease(name, durationInSeconds, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+                instrumentToPlayOn.triggerAttackRelease(name, durationInSeconds,
+                    Tone.now() + noteEvent.playAfter.seconds,
+                    noteEvent.velocity / 127);
             }
         }
-
     },
-    samplerOn(context, noteEvent){
-        let instrument_label = instNamesTemp[noteEvent.instrument];
-        if (noteEvent.player == playerType.HUMAN){
-            
-            let instrument_to_play_on = context.state.humanSamplers[instrument_label];
-            if (instrument_to_play_on == null){
-                throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
+    samplerOn(context, noteEvent) {
+        const instrumentLabel = instNamesMap[noteEvent.instrument];
+        const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+        if (noteEvent.player == playerType.HUMAN) {
+            const instrumentToPlayOn = context.state.samplersAndBuses['human']
+                .samplers[instrumentLabel];
+            if (instrumentToPlayOn == null) {
+                throw new Error('Instrument ' + instrumentLabel +
+                ' is not available for the Human. ' +
+                ' Make sure it is declared in the config_players file.');
             } else {
-                console.log("samplerON before play ", Tone.now());
-                instrument_to_play_on.triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+                instrumentToPlayOn.triggerAttack(name,
+                    Tone.now() + noteEvent.playAfter.seconds,
+                    noteEvent.velocity / 127);
             }
-        } else if (noteEvent.player == playerType.WORKER){
-            // if noteEvent.name is null then use tonal.js to get the name of the note from noteEvent.midi
-            let name = noteEvent.name;
-            if (name == null){
-                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });
-            }
-            // console.log("WorkerSAMPLER", noteEvent.midi, Tone.now() + noteEvent.playAfter.seconds)
-            let instrument_to_play_on = context.state.workerSamplers[instrument_label];
-            if (instrument_to_play_on == null){
-                throw new Error("Instrument " + instrument_label + " not found in workerSamplers");
+        } else if (noteEvent.player == playerType.AGENT) {
+            // if noteEvent.name is null then use tonal.js to
+            // get the name of the note from noteEvent.midi
+            // let name = noteEvent.name;
+            // if (name == null) {
+            //     name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+            // }
+            const instrumentToPlayOn = context.state.samplersAndBuses['agent']
+                .samplers[instrumentLabel];
+            if (instrumentToPlayOn == null) {
+                throw new Error('Instrument ' + instrumentLabel +
+                    'is not available for the Agent. ' +
+                    ' Make sure it is declared in the config_players file.');
             } else {
-                instrument_to_play_on.triggerAttack(name, Tone.now() + noteEvent.playAfter.seconds, noteEvent.velocity / 127);
+                // console.log("samplerON before play ", Tone.now(), 'after seconds ', noteEvent.playAfter.seconds);
+                // This doesn't work if there are both note_on and note_off events of the same note
+                // tone.js just ignores the note_on if we call triggerAttack and triggerRelease at the same time (Tone.now())
+                // even if we add noteEvent.playAfter.seconds to the time of the note_on event.
+                // So that's a necessary hack due to a weird behavior of Tone.js
+                setTimeout(() => {
+                    instrumentToPlayOn.triggerAttack(name,
+                        Tone.now(), // + noteEvent.playAfter.seconds
+                        noteEvent.velocity / 127);
+                },  Math.floor(noteEvent.playAfter.seconds * 1000));
             }
-        } else if (noteEvent.player == playerType.METRONOME){
+        } else if (noteEvent.player == playerType.METRONOME) {
             // console.log("click", noteEvent)
-            context.state.metronomeSamplers["click"].triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+            context.state.samplersAndBuses['metronome'].samplers['click']
+                .triggerAttack(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
             // release the note 0.5s after the attack
             // TODO : make that depend on the beat duration
-            context.state.metronomeSamplers["click"].triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 500);
+            context.state.samplersAndBuses['metronome'].samplers['click']
+                .triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds + 500);
         }
     },
-    samplerOff(context, noteEvent){
-        let instrument_label = instNamesTemp[noteEvent.instrument];
-        if (noteEvent.player == playerType.HUMAN){
-            let instrument_to_play_on = context.state.humanSamplers[instrument_label];
-            if (instrument_to_play_on == null){
-                throw new Error("Instrument " + instrument_label + " not found in humanSamplers");
+    samplerOff(context, noteEvent) {
+        const instrumentLabel = instNamesMap[noteEvent.instrument];
+        const name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+        if (noteEvent.player == playerType.HUMAN) {
+            const instrumentToPlayOn =
+                context.state.samplersAndBuses['human'].samplers[instrumentLabel];
+            if (instrumentToPlayOn == null) {
+                throw new Error('Instrument ' + instrumentLabel +
+                    ' is not available for the Human. ' +
+                    ' Make sure it is declared in the config_players file.');
             } else {
-                instrument_to_play_on.triggerRelease(noteEvent.name, Tone.now() + noteEvent.playAfter.seconds);
+                instrumentToPlayOn.triggerRelease(name,
+                    Tone.now() + noteEvent.playAfter.seconds + 0.0);
             }
-
-        } else if (noteEvent.player == playerType.WORKER){
-            let name = noteEvent.name;
-            if (name == null){
-                name = Midi.midiToNoteName(noteEvent.midi, { sharps: true });   
-            }
-            let instrument_to_play_on = context.state.workerSamplers[instrument_label];
-            if (instrument_to_play_on == null){
-                throw new Error("Instrument " + instrument_label + " not found in workerSamplers");
+        } else if (noteEvent.player == playerType.AGENT) {
+            // let name = noteEvent.name;
+            // if (name == null) {
+            //     name = Midi.midiToNoteName(noteEvent.midi, {sharps: true});
+            // }
+            const instrumentToPlayOn =
+                context.state.samplersAndBuses['agent'].samplers[instrumentLabel];
+            if (instrumentToPlayOn == null) {
+                
+                throw new Error('Instrument ' + instrumentLabel +
+                    ' is not available for the Agent. ' +
+                    ' Make sure it is declared in the config_players file.');
             } else {
-                instrument_to_play_on.triggerRelease(name, Tone.now() + noteEvent.playAfter.seconds);
+                // console.log("samplerOFF before play ", Tone.now(), 'after seconds ', noteEvent.playAfter.seconds);
+                if (noteEvent.playAfter.seconds == 0) {
+                instrumentToPlayOn.triggerRelease(name, Tone.now());
+                } else {
+                    setTimeout(() => {
+                        instrumentToPlayOn.triggerRelease(name, Tone.now());
+                    }, Math.floor(noteEvent.playAfter.seconds * 1000));
+                }
             }
         }
     },
 };
 
 const mutations = {
-    // muteMetronome(state){
-    //     metronomeBus.mute = state.metronomeMuteStatus;
-    // },
 
-    flipMetronomeSamplerMuteStatus(state){
-        state.metronomeMuteStatus = !state.metronomeMuteStatus;
-        if (state.metronomeMuteStatus){
-            state.metronomeBus.mute = true;
-        } else {
-            state.metronomeBus.mute = false;
-        }
-    },
-
-    flipHumanSamplersMuteStatus(state){
-        state.humanMuteStatus = !state.humanMuteStatus;
-        if (state.humanMuteStatus){
-            state.humanBus.mute = true;
-        } else {
-            state.humanBus.mute = false;
-        }
-    },
-    flipWorkerSamplersMuteStatus(state){
-        state.workerMuteStatus = !state.workerMuteStatus;
-        if (state.workerMuteStatus){
-            state.workerBus.mute = true;
-        } else {
-            state.workerBus.mute = false;
-        }
-    },
-
-    muteHumanSampler(state, instrument){
-        state.humanSamplersBus[instrument].mute = true;
-    },
-    unmuteHumanSampler(state, instrument){
-        state.humanSamplersBus[instrument].mute = false;
-    },
-    muteWorkerSampler(state, instrument){
-        state.workerSamplersBus[instrument].mute = true;
-    },
-    unmuteWorkerSampler(state, instrument){
-        state.workerSamplersBus[instrument].mute = false;
-    },
-    
     stopMute(state) {
-        state.metronomeBus.mute = true;
-        // state.humanBus.mute = true;
-        state.workerBus.mute = true;
+        for (const [player, playerData] of Object.entries(state.samplersAndBuses)) {
+            if (player == 'human') {
+                return;
+            }
+            playerData.bus.mute = true;
+        }
     },
     startUnMute(state) {
-        state.metronomeBus.mute = state.metronomeMuteStatus;
-        // state.humanBus.mute = state.humanMuteStatus;    
-        state.workerBus.mute = state.workerMuteStatus;
+        for (const [player, playerData] of Object.entries(state.samplersAndBuses)) {
+            if (player == 'human') {
+                return;
+            }
+            playerData.bus.mute = playerData.lastMuteState;
+        }
     },
 
-    createInstruments(state, config){
+    createInstruments(state, config) {
         state.playersConfig = config.players;
-        console.log("inside setInstrumentsConfig", state.playersConfig);
+        console.log('inside setInstrumentsConfig', state.playersConfig);
         state.limiter = new Tone.Limiter(-5).toDestination();
+        // state.limiter = new Tone.Channel().toDestination();
         // const tremolo = new Tone.Tremolo(9, 0.75).toDestination().start();
-        
-        state.humanBus = new Tone.Channel().connect(state.limiter);
-        state.humanSamplersBus = {
-            synth: new Tone.Channel().connect(state.humanBus),
-            piano: new Tone.Channel().connect(state.humanBus),
-            drums: new Tone.Channel().connect(state.humanBus),
-            upright_bass: new Tone.Channel().connect(state.humanBus),
-        }
-        
-        state.humanSamplers = {
-            synth: new Tone.PolySynth(Tone.FMSynth).connect(state.humanSamplersBus["synth"]),
-            piano: new Instruments().createSampler("piano", (piano) => {
-                piano.connect(state.humanSamplersBus["piano"]);
-            }),
-            drums: new Instruments().createSampler("drums", (drums) => {
-                drums.connect(state.humanSamplersBus["drums"]);
-            }),
-            upright_bass: new Instruments().createSampler("upright_bass", (upright_bass) => {
-                upright_bass.connect(state.humanSamplersBus["upright_bass"]);
-            }),
-        }
-        
-        state.workerBus = new Tone.Channel().connect(state.limiter);
-        
-        state.workerSamplersBus = {
-            synth: new Tone.Channel().connect(state.workerBus),
-            piano: new Tone.Channel().connect(state.workerBus),
-            drums: new Tone.Channel().connect(state.workerBus),
-            upright_bass: new Tone.Channel().connect(state.workerBus),
-        }
-        
-        state.workerSamplers = {
-            synth: new Tone.PolySynth(Tone.FMSynth).connect(state.workerSamplersBus["synth"]),
-            piano: new Instruments().createSampler("piano", (piano) => {
-                piano.connect(state.workerSamplersBus["piano"]);
-            }),
-            drums: new Instruments().createSampler("drums", (drums) => {
-                drums.connect(state.workerSamplersBus["drums"]);
-            }),
-            upright_bass: new Instruments().createSampler("upright_bass", (upright_bass) => {
-                upright_bass.connect(state.workerSamplersBus["upright_bass"]);
-            }),
-        }
-        
-        state.metronomeBus = new Tone.Channel().connect(state.limiter);
-        state.metronomeSamplersBus = {
-            click: new Tone.Channel().connect(state.metronomeBus),
-        }
-        state.metronomeSamplers = {
-            click: new Instruments().createSampler(
-                "click",
-                (metronome) => {
-                    metronome.release = 0.2;
-                    metronome.connect(state.metronomeSamplersBus["click"]);
-                }),
-        }
-        
-        state.metronomeBus.mute = true;
-        // state.metronomeSampler.connect(state.metronomeBus);
 
-        // TODO : automatically parse the playersConfig create only the samplers we need
-        // TODO : also set the default volumes and mute states. 
-        console.log(state.humanSamplers);
+        for (const [player, playerData] of Object.entries(state.playersConfig)) {
+            const volumeDB =
+                playerData.volume === 10 ? 0 : -Math.abs(20 * Math.log(playerData.volume / 10));
+            state.samplersAndBuses[`${player}`] = {
+                bus: new Tone.Channel().connect(state.limiter),
+                lastMuteState: playerData.mute,
+                lastLinVolumeState: volumeDB,
+                samplersBus: {},
+                samplers: {},
+                lastStates: {},
+            };
+            state.samplersAndBuses[`${player}`].bus.volume.value = volumeDB;
+            state.samplersAndBuses[`${player}`].bus.mute = playerData.mute;
+
+            playerData.instruments.forEach((instrumentData) => {
+                state.samplersAndBuses[`${player}`].samplersBus[`${instrumentData.id}`] =
+                    new Tone.Channel().connect(state.samplersAndBuses[`${player}`].bus);
+                const volumeDB = instrumentData.volume === 10 ? 0 :
+                    -Math.abs(20 * Math.log(instrumentData.volume / 10));
+                state.samplersAndBuses[`${player}`]
+                    .samplersBus[`${instrumentData.id}`].volume.value = volumeDB;
+                state.samplersAndBuses[`${player}`]
+                    .samplersBus[`${instrumentData.id}`].mute = instrumentData.mute;
+                state.samplersAndBuses[`${player}`].lastStates[`${instrumentData.id}`] = {
+                    volume: volumeDB,
+                    mute: instrumentData.mute,
+                };
+                if (instrumentData.id == 'synth') {
+                    state.samplersAndBuses[`${player}`].samplers[`${instrumentData.id}`] =
+                        new Tone.PolySynth(Tone.FMSynth, {voices: 24})
+                            .connect(state.samplersAndBuses[`${player}`]
+                                .samplersBus[`${instrumentData.id}`]);
+                } else {
+                    state.samplersAndBuses[`${player}`].samplers[`${instrumentData.id}`] =
+                        new Instruments().createSampler(instrumentData.id, (instrument) => {
+                            instrument.connect(state.samplersAndBuses[`${player}`]
+                                .samplersBus[`${instrumentData.id}`]);
+                        });
+                }
+            });
+        };
     },
 
-    handleMixerUpdate(state, update){
-        // console.log("inside handleMixerUpdate ", update);
+    handleMixerUpdate(state, update) {
         let isVolume = false;
-        let isMute = false; 
-        if (update.what == 'mute'){
+        let isMute = false;
+
+        if (update.what == 'mute') {
             isMute = true;
-        } else if (update.what == 'volume'){
-            isVolume = true
+        } else if (update.what == 'volume') {
+            isVolume = true;
         } else {
-            console.error("unknown mixer variable type, check confi_players.yaml, we only suppoer 'mute' and 'volume'")
+            console.error('unknown mixer variable type, check confi_players.yaml, ' +
+            'we only support \'mute\' and \'volume\'');
         }
-        
+
         // find which bus
-        let player = update.playerId;
-        let instrument = update.instrumentId;
-        let playerBus = null;
-        let instrumentsBus = null;
-        let finalBus = null;
-        if (player == 'human'){
-            playerBus = state.humanBus;
-            instrumentsBus = state.humanSamplersBus;
-        } else if (player == 'worker'){
-            playerBus = state.workerBus;
-            instrumentsBus = state.workerSamplersBus;
-        } else if (player == 'metronome'){
-            playerBus = state.metronomeBus;
-            instrumentsBus = state.metronomeSamplersBus;
+        const player = update.playerId;
+        const instrument = update.instrumentId;
+        let bus =state.samplersAndBuses[`${player}`].bus;
+        if (instrument != null) {
+            bus = state.samplersAndBuses[`${player}`].samplersBus[`${instrument}`];
         }
-        if (instrument != null){
-            finalBus = instrumentsBus[`${instrument}`];
-        } else {
-            finalBus = playerBus;
-        }
-        if (isVolume == true){
-            let volume = update.value.value;
-            // if volume == 10, then volumeDB = 0 else,  -Math.abs(20*Math.log(volume/10));
+
+        if (isVolume == true) {
+            const volume = update.value.value;
             const volumeDB = volume === 10 ? 0 : -Math.abs(20 * Math.log(volume / 10));
-            finalBus.volume.value = volumeDB;
-            // console.log("settin volume ", volumeDB, "to channel ", finalBus);
+            bus.volume.value = volumeDB;
+            if (instrument != null) {
+                state.samplersAndBuses[`${player}`].lastStates[`${instrument}`].volume = volumeDB;
+            } else {
+                state.samplersAndBuses[`${player}`].lastLinVolumeState = volumeDB;
+            }
         } else if (isMute == true) {
-            finalBus.mute = update.value.value;
+            bus.mute = update.value.value;
+            if (instrument != null) {
+                state.samplersAndBuses[`${player}`].lastStates[`${instrument}`].mute =
+                     update.value.value;
+            } else {
+                state.samplersAndBuses[`${player}`].lastMuteState =
+                    update.value.value;
+            }
         }
-        
     },
 };
 

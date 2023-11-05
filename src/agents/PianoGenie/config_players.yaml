@@ -1,0 +1,23 @@
+players:
+  human:
+    label: 'User'
+    mute: true
+    volume: 5
+    instruments: 
+        # it must be one of the available instrument ids in audio/samples
+        # you can't have two instruments with the same id in the same player 
+      - id: "piano" 
+        label: "Piano" # can be anything
+        mute: false
+        volume: 5
+        default: true
+  agent:
+    label: 'PianoGenie'
+    mute: false
+    volume: 10
+    instruments:
+      - id: "piano"
+        label: "Piano"
+        mute: false
+        volume: 10
+        default: true

@@ -1,38 +1,40 @@
 export const playerType = {
     HUMAN: 0,
-    WORKER: 1,
+    AGENT: 1,
     METRONOME: 2,
-}
+};
 export const instrumentType = {
     PIANO: 0,
     DRUMS: 1,
     BASS: 2,
     SYNTH: 3,
-}
-export const instNamesTemp = {
-    0: "piano",
-    1: "drums",
-    2: "upright_bass",
-    3: "synth"
-}
+};
+export const instNamesMap = {
+    0: 'piano',
+    1: 'drums',
+    2: 'upright_bass',
+    3: 'synth',
+};
 
-export const eventSourceType =  {
+export const eventSourceType = {
     MOUSE: 0, // for on-screen keyboard
-    MIDI_KEYBOARD: 1,// external midi keyboard
+    MIDI_KEYBOARD: 1, // external midi keyboard
     KEYBOARD: 2, // laptop keyboard
-}
+};
 
 export const messageType = {
     STATUS: 0,
     NOTE_LIST: 4,
     AUDIO_BUFFER: 7,
-    CHROMA_VECTOR: 11,
+    CHROMA_VECTOR: 10,
+    VECTOR: 11,
     CHORD_LABEL: 12,
     LABEL: 14,
     TEXT: 13,
-    CLOCK_TIME: 1
+    CLOCK_TIME: 1,
+    INFERENCE_TIME: 2,
 };
-  
+
 export const statusType = {
     LOADED: 0,
     WARMUP: 1,
@@ -60,16 +62,11 @@ export const uiParameterType = {
     SWITCH_1: 8,
     SWITCH_2: 9,
     SWITCH_3: 10,
-    SWITCH_4: 11,  
-}
-export const workerParameterType = {
-    RMS : 0,
-    LOUDNESS : 1,
-    INFERENCE_TIME : 2,
-}
+    SWITCH_4: 11,
+};
 
-export const workerHookType = {
-    CLOCK_EVENT : 0,
-    NOTE_EVENT : 1,
-    INIT_WORKER: 2,
-}
+export const agentHookType = {
+    CLOCK_EVENT: 0,
+    NOTE_EVENT: 1,
+    INIT_AGENT: 2,
+};

@@ -1,0 +1,70 @@
+gui:
+  score: 
+    status: false
+  textBox:
+    status: false
+    title: "Title"
+  pianoRoll:
+    status: true
+    human: true
+    agent: true
+  keyboard:
+    status: true # not used (always true)
+    # set the visible octaves. Max range [0,8]
+    octaveStart: 2
+    octaveEnd: 6
+  chromaChart:
+    status: false
+  audioMeter: 
+    status: false
+
+  settingsModal:
+    switches:
+      # You can create up to 4 switches
+      # The 'id' for each switch needs to be unique within switches
+      # and in an ascending order starting from 1.
+      # The 'label' is the switch name that appears on the GUI.
+      # The 'status' is the default status.
+      - id: 1 
+        label: "Switch 1"
+        status: false
+    sliders:
+      # You can create up to 4 sliders
+      # The 'id' for each slider needs to be unique within sliders
+      # and in an ascending order starting from 1.
+      # The 'label' is the slider name that appears on the GUI.
+      # The 'value' is the default value.
+      # The 'min' and 'max' indicate the slider's range.
+      - id: 1 
+        label: "Slider 1"
+        value: 25
+        min: 0
+        max: 100
+    buttons:
+      # You can create up to 4 buttons
+      # The 'id' for each button needs to be unique within buttons
+      # and in an ascending order starting from 1.
+      # The 'label' is the button name that appears on the GUI.
+      - id: 1
+        label: "Button 1"     
+  monitor:
+    status: false 
+    title: "Monitor"
+    structure:
+      - label: "Debugging"
+        parameters:
+          # The 'id' for each parameter must be unique and is used
+          # in the hooks for adding new values for monitoring
+          # The 'label' is the parameter name that appears in the GUI.
+          # The 'interval' is the refresh rate of the parameter in ms.
+          # The 'graph' flag allows you to visualize the value as a time grpah.
+          # The 'min' and 'max' indicate the expected range of the parameter.
+          - id: 0 
+            label: "debug" 
+            interval: 50
+            graph: true
+            min: 0
+            max: 40
+
+
+

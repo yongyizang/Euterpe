@@ -1,0 +1,30 @@
+players:
+  human:
+    label: 'User'
+    mute: false
+    volume: 8
+    instruments: 
+      - id: "piano" 
+        label: "Piano" 
+        mute: false
+        volume: 8
+        default: true
+  agent:
+    label: 'Empty Agent'
+    mute: false
+    volume: 8
+    instruments:
+      - id: "piano"
+        label: "Piano"
+        mute: false
+        volume: 8
+        default: true
+  metronome:
+    label: 'Metronome'
+    mute: false
+    volume: 8
+    instruments:
+      - id: "click"
+        label: "Click"
+        mute: false
+        volume: 8
