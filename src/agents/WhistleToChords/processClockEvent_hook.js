@@ -18,33 +18,35 @@ export function processClockEvent(content) {
         }
     }
 
+    // self.audio_features_queue is initialized in initAgent_hook.js
+    // and populated in processAudioEvent_hook.js
     const features = self.audio_features_queue.toArrayAndClear();
+    // chromaFrames is a list of chroma vectors for each audio frame
+    // since the last clock event (tick)
     const chromaFrames = features.map((f) => f.chroma);
+    // chromaVector is the average chroma vector across all frames
     const chromaVector = average2d(chromaFrames);
     // The chroma's we get from Meyda seem to be shifted by 1 left.
-    // That's probably a bug in Meyda. We'll shift it back here.
+    // We'll shift it back here so that 0-index = 'C'
     shiftRight(chromaVector);
-    message[self.messageType.CHROMA_VECTOR] = runningNoteHistogram.getHistogram()
+    // Add your messages to Euterpe here using the VECTOR message type
+    message[self.messageType.VECTOR] = runningNoteHistogram.getHistogram()
 
     let rmsFrames = features.map(f => f.rms);
     let rms = average1d(rmsFrames);
-
 
     if (rms < 0.01) {
         return message;
     }
     
     let currentPitch = chromaToPitch(chromaVector);
+    console.log(currentPitch);
     if (currentPitch) {
         runningNoteHistogram.process(currentPitch);
         let userNoteHistogram = runningNoteHistogram.getHistogram();
         let chord = getChord(userNoteHistogram);
         lastChord = chord;
     }
-    
-
-    // message[self.messageType.CHROMA_VECTOR] = runningNoteHistogram.getHistogram()
-    // message[self.messageType.CHROMA_VECTOR] = chromaVector;
 
     return message;
 }

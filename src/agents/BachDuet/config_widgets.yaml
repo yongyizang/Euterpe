@@ -2,7 +2,7 @@ gui:
   score: 
     status: true
   textBox:
-    status: true
+    status: false
     title: "Key"
   pianoRoll:
     status: true

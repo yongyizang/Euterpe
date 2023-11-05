@@ -59,7 +59,7 @@ export default {
             // Choose the agent.
             // This string should be one of
             // dir names inside public/agents/
-            agentName: 'BachDuet',
+            agentName: 'WhistleToChords',
             // Provide all the config files that should be loaded
             // These should be in public/agents/{agentName}/
             configFiles: ['config.yaml',
@@ -629,11 +629,11 @@ export default {
                 globalTick: this.$store.getters.getGlobalTick,
             };
             if (vm.config.noteModeSettings.gridBased.eventBuffer) {
-                messageContent['humanContinuousBuffer'] = this.$store.getters
+                messageContent['userNotes'] = this.$store.getters
                     .getMidiEventBuffer;
             }
             if (vm.config.noteModeSettings.gridBased.quantizedEvents) {
-                messageContent['humanQuantizedInput'] = this.$store.getters
+                messageContent['userQuantizedNotes'] = this.$store.getters
                     .getHumanInputFor(this.$store.getters.getLocalTick);
             }
             this.agent.postMessage({
@@ -794,7 +794,7 @@ export default {
             // constrainedCurrentQuantizedEvents.forEach(elem => {
             //     console.log("type ", elem.type);
             // })
-            this.$store.dispatch('storeHumanQuantizedInput', constrainedCurrentQuantizedEvents);
+            this.$store.dispatch('storeUserQuantizedNotes', constrainedCurrentQuantizedEvents);
 
             this.$store.commit('clearContinuousBuffers');
             // TODO : for the future, keep a reference to the active notes of the previous tick
@@ -907,7 +907,8 @@ export default {
                         });
                         break;
                     }
-                    case vm.messageType.CHROMA_VECTOR:
+                    // TODO ; make vector generic, not just for chroma vector
+                    case vm.messageType.VECTOR:
                         if (this.audioAndChroma) {
                             this.$root.$refs.chromaChart.updateChromaData(messageValue);
                             // this.$root.$refs.vectorBar.updateVectorData(messageValue);

@@ -312,7 +312,7 @@ const actions = {
         // }
     },
 
-    storeHumanQuantizedInput({commit, state, getters}, quantizedEventList) {
+    storeUserQuantizedNotes({commit, state, getters}, quantizedEventList) {
         state.quantizedBufferHuman[getters.getLocalTick] = quantizedEventList;
         // TODO : I still need this to display the notes in the score
         // TODO : Move this code to score.js

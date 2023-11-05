@@ -62,6 +62,7 @@ export function processNoteEvent(noteEvent) {
         // Later, when we receive the note-off event, we can use this mapping
         // to know which note to turn off
         self.userToAgentNoteMapping[noteEvent.midi] = [outputMidi];
+        
     } else if (noteEvent.type == self.noteType.NOTE_OFF) {
         const midisToTurnOff = self.userToAgentNoteMapping[noteEvent.midi];
         for (const midiOff of midisToTurnOff) {

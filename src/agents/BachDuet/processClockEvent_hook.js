@@ -11,17 +11,23 @@ import {
  * @return {Object} - The message with the agent's output notes.
  */
 export function processClockEvent(content) {
-    const numUserNotes = content.humanQuantizedInput.length;
+    // userQuantizedNotes is an array of NoteEvent objects
+    // it contains note_on and note_hold events for the current tick
+    const numUserNotes = content.userQuantizedNotes.length;
     if (numUserNotes > 1) {
         console.error('BachDuet can only handle monophonic input. ' +
         'Make sure to set polyphony.input:1 in config.yaml');
     }
-    // If there is no user note, BachDuet expects the a 'rest' token/note
+    // If there is no user note, then we have a rest
+    // BachDuet expects the 'rest' token/note
     let userInputBD;
     if (numUserNotes == 0) {
+        // self.restNote has been initialized in initAgent_hook.js
         userInputBD = self.restNote;
     } else {
-        userInputBD = euterpeNoteToBachDuetNote(content.humanQuantizedInput[0]);
+        // utility function to convert Euterpe's note to BachDuet's note
+        // i.e MIDI note 60 onset becomes '60_1'
+        userInputBD = euterpeNoteToBachDuetNote(content.userQuantizedNotes[0]);
     }
     // Convert the tick from Euterpe's format to BachDuet's format
     const tickBD = euterpeTickToBachDuetTick(content.tick);

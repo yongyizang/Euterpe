@@ -237,14 +237,14 @@ async function onMessageFunction(obj) {
             // The NoteEvents we receive from the UI are serialized
             // We need to deserialize them
             const content = obj.data.content;
-            if (content.humanContinuousBuffer) {
-                content.humanContinuousBuffer =
-                            content.humanContinuousBuffer.map(
+            if (content.userNotes) {
+                content.userNotes =
+                            content.userNotes.map(
                                 (serializedNoteEvent) => NoteEvent.fromPlain(serializedNoteEvent));
             }
-            if (content.humanQuantizedInput) {
-                content.humanQuantizedInput =
-                            content.humanQuantizedInput.map(
+            if (content.userQuantizedNotes) {
+                content.userQuantizedNotes =
+                            content.userQuantizedNotes.map(
                                 (serializedNoteEvent) => NoteEvent.fromPlain(serializedNoteEvent));
             }
             const startTime = performance.now();

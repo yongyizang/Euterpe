@@ -27,7 +27,7 @@ export function processClockEvent(content) {
     prevStartTime = startTime;
 
     // Get the clock-aligned user note events from the content
-    const quantizedEvents = content.humanQuantizedInput;
+    const quantizedEvents = content.userQuantizedNotes;
     const noteList = [];
     const message = {};
 

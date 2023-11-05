@@ -37,13 +37,10 @@ export class RunningHistogram {
     }
 }
 
-/**
- * @author yiyangwang
- */
 export function getChord(pitchHistogram){
     
     let maxScore = 0;
-    let matched =  {
+    let matchedChord =  {
         root: null,
         type: null,
         pitches: null,
@@ -51,17 +48,19 @@ export function getChord(pitchHistogram){
     
     for (const rootNote in self.chordDict) {
         for (const chordType in self.chordDict[rootNote]) {
-            let score = self.chordDict[rootNote][chordType].reduce((acc, val, idx) => acc + val * pitchHistogram[idx], 0);
+            let score = self.chordDict[rootNote][chordType]
+                .reduce((acc, val, idx) => acc + val * pitchHistogram[idx], 0);
             if (score > maxScore) {
                 maxScore = score;
-                matched.root = rootNote;
-                matched.type = chordType;
-                matched.pitches = self.chordDict[rootNote][chordType].map((val, idx) => val > 0 ? idx : -1).filter(val => val != -1);
+                matchedChord.root = rootNote;
+                matchedChord.type = chordType;
+                matchedChord.pitches = self.chordDict[rootNote][chordType]
+                    .map((val, idx) => val > 0 ? idx : -1).filter(val => val != -1);
             }
         }
     }
     console.log(maxScore);
-    return matched;
+    return matchedChord;
 
 }
 

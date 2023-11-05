@@ -14,7 +14,7 @@ export function processClockEvent(content) {
     const timeDiff = startTime - prevStartTime;
     prevStartTime = startTime;
 
-    const quantizedEvents = content.humanQuantizedInput;
+    const quantizedEvents = content.userQuantizedNotes;
     const noteList = [];
     const message = {};
 
@@ -106,6 +106,6 @@ export function processClockEvent(content) {
     shiftRight(averageChroma);
 
     message[self.messageType.NOTE_LIST] = noteList;
-    message[self.messageType.CHROMA_VECTOR] = averageChroma;
+    message[self.messageType.VECTOR] = averageChroma;
     return message;
 }
